@@ -4,7 +4,7 @@ import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { ateliers } from "@/content/ateliers";
 
-export function Ateliers() {
+export function Workshops() {
   return (
     <Section id="ateliers" background="creme" aria-labelledby="ateliers-title">
       <SectionHeading id="ateliers-title" eyebrow={ateliers.eyebrow} title={ateliers.title} />

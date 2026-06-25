@@ -3,7 +3,7 @@ import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { approche } from "@/content/valeurs";
 
-export function Approche() {
+export function Approach() {
   return (
     <Section id="approche" background="rose-tendre" aria-labelledby="approche-title">
       <SectionHeading id="approche-title" eyebrow={approche.eyebrow} title={approche.title} />

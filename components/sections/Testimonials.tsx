@@ -3,7 +3,7 @@ import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { temoignages } from "@/content/temoignages";
 
-export function Temoignages() {
+export function Testimonials() {
   return (
     <Section id="temoignages" background="creme" aria-labelledby="temoignages-title">
       <SectionHeading

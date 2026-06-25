@@ -5,7 +5,7 @@ import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { fondatrice } from "@/content/fondatrice";
 
-export function Fondatrice() {
+export function Founder() {
   return (
     <Section id="a-propos" background="rose-tendre" aria-labelledby="a-propos-title">
       <div className="grid items-center gap-12 lg:grid-cols-[0.8fr_1fr]">
