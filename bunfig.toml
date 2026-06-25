@@ -1,0 +1,3 @@
+[install]
+# Pin every dependency to an exact version — no ^ or ~ ranges.
+exact = true

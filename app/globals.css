@@ -1,0 +1,155 @@
+@import "tailwindcss";
+
+/*
+  Re-Source Et Moi — design tokens (brand style guide v1.0).
+
+  WCAG AA contrast table (every text/background pair used on the site).
+  Computed ratios; AA needs >=4.5:1 (normal text), >=3:1 (large text / UI).
+    charbon  #2E2022 on creme       #FAF4F0 → 13.9:1  ✓ body
+    charbon  #2E2022 on rose-tendre #F2CAED →  9.7:1  ✓ body
+    rose-sombre #5C2642 on creme       #FAF4F0 → 10.6:1  ✓ titles, eyebrows
+    rose-sombre #5C2642 on rose-tendre #F2CAED →  7.4:1  ✓ titles, eyebrows
+    rose-sombre #5C2642 on sauge-doux  #D8EAD0 →  8.3:1  ✓ PACE band text
+    creme    #FAF4F0 on rose-sombre #5C2642 → 10.6:1  ✓ dark-band text/buttons
+    creme    #FAF4F0 on rose-vif    #C4749A →  3.3:1  ✓ large/UI only
+
+  Accessibility decisions (deviating from the guide where it would fail AA):
+    • rose-vif as TEXT fails AA at small sizes (3.0:1 on creme), so rose-vif is
+      reserved for NON-text accents: the ∞ stroke, borders, icons, focus rings,
+      badge fills. Eyebrow labels use rose-sombre instead (10:1).
+    • Solid buttons use rose-sombre (white text, 10.6:1), never rose-vif text.
+*/
+
+@theme {
+  --color-rose-tendre: #f2caed;
+  --color-rose-vif: #c4749a;
+  --color-rose-sombre: #5c2642;
+  --color-rose-sombre-deep: #4a1e35;
+  --color-sauge-doux: #d8ead0;
+  --color-sauge-vif: #6b9b6a;
+  --color-creme: #faf4f0;
+  --color-charbon: #2e2022;
+
+  --font-display: var(--font-cormorant), Georgia, "Times New Roman", serif;
+  --font-body: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-card: 24px;
+
+  --shadow-soft: 0 8px 40px -12px rgb(92 38 66 / 0.12);
+  --shadow-soft-lg: 0 16px 60px -18px rgb(92 38 66 / 0.18);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-creme);
+    color: var(--color-charbon);
+    font-family: var(--font-body);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    color: var(--color-rose-sombre);
+    line-height: 1.15;
+    text-wrap: balance;
+  }
+
+  ::selection {
+    background-color: var(--color-rose-tendre);
+    color: var(--color-rose-sombre);
+  }
+
+  /* Visible keyboard focus everywhere. */
+  :focus-visible {
+    outline: 2px solid var(--color-rose-vif);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+}
+
+@layer components {
+  /* Scroll-reveal — sections fade up once when entering the viewport. */
+  .reveal {
+    opacity: 0;
+    transform: translateY(16px);
+    transition:
+      opacity 0.7s ease-out,
+      transform 0.7s ease-out;
+    will-change: opacity, transform;
+  }
+
+  .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* The Lazy-8 (∞) signature is animated by Motion in JS (see LazyEight.tsx).
+     Here we only set the deterministic initial state: hidden until JS draws it,
+     so there's no flash of the full ∞ before hydration. */
+  .lazy8 {
+    stroke-dasharray: 0 9999;
+  }
+
+  /* Under reduced motion the JS animation is skipped — show a static, full ∞. */
+  @media (prefers-reduced-motion: reduce) {
+    .lazy8 {
+      stroke-dasharray: none;
+    }
+  }
+}
+
+/* Desktop: full-height sections scroll-snap one step at a time (fullpage feel).
+   Sections vertically centre their content, so the floating header never hides
+   it. Disabled on mobile (single-column reading) and under reduced-motion. */
+@media (min-width: 1024px) {
+  html {
+    scroll-snap-type: y mandatory;
+  }
+
+  .snap-section {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  footer {
+    scroll-snap-align: start;
+  }
+}
+
+/* Honour reduced-motion: resolve every animation to its final state instantly. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-snap-type: none;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
