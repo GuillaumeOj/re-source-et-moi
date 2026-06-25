@@ -12,7 +12,8 @@ const base =
 const variants: Record<Variant, string> = {
   primary: "bg-rose-sombre text-creme shadow-soft hover:bg-rose-sombre-deep",
   // Solid fills (not translucent) so a background element can't show through, hover included.
-  secondary: "border border-rose-sombre/25 text-rose-sombre bg-rose-tendre hover:bg-rose-tendre-deep",
+  secondary:
+    "border border-rose-sombre/25 text-rose-sombre bg-rose-tendre hover:bg-rose-tendre-deep",
 };
 
 type CommonProps = {
