@@ -24,9 +24,9 @@ export function Newsletter() {
       className="relative overflow-hidden"
     >
       <LazyEight
-        durationMs={9000}
+        durationMs={36000}
         strokeWidth={1.25}
-        className="pointer-events-none absolute top-1/2 left-1/2 h-[110%] w-[110%] -translate-x-1/2 -translate-y-1/2 text-creme/10"
+        className="pointer-events-none absolute top-1/2 left-1/2 h-[110%] w-[110%] -translate-x-1/2 -translate-y-1/2 text-rose-sombre"
       />
 
       <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center gap-6 px-6 text-center">

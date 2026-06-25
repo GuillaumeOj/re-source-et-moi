@@ -11,11 +11,11 @@ export function Hero() {
       id="top"
       className="snap-section relative flex min-h-dvh items-center overflow-hidden bg-rose-tendre pt-24 pb-16 md:pt-28"
     >
-      {/* Oversized ∞ that draws itself once on load — the page signature. */}
+      {/* Oversized ∞ traced forever by a slow comet — the page signature. */}
       <LazyEight
-        durationMs={6500}
+        durationMs={26000}
         strokeWidth={1.5}
-        className="-z-0 pointer-events-none absolute top-1/2 left-1/2 h-[120%] w-[120%] -translate-x-1/2 -translate-y-1/2 text-rose-vif/35"
+        className="-z-0 pointer-events-none absolute top-1/2 left-1/2 h-[120%] w-[120%] -translate-x-1/2 -translate-y-1/2 text-rose-tendre"
       />
 
       <div className="relative z-10 mx-auto grid max-w-6xl items-center gap-12 px-6 lg:grid-cols-[1.1fr_0.9fr]">
