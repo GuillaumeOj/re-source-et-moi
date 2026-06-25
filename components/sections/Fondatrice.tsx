@@ -1,5 +1,4 @@
 import Image from "next/image";
-import { LazyEight } from "@/components/brand/LazyEight";
 import { Logo } from "@/components/brand/Logo";
 import { Reveal } from "@/components/ui/Reveal";
 import { Section } from "@/components/ui/Section";
@@ -30,7 +29,6 @@ export function Fondatrice() {
               </div>
             )}
           </div>
-          <LazyEight className="-right-5 -top-5 absolute h-14 w-24 text-rose-vif" />
         </Reveal>
 
         <div className="flex flex-col gap-6">
