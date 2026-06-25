@@ -106,10 +106,15 @@
     stroke-dasharray: 0 9999;
   }
 
-  /* Under reduced motion the JS animation is skipped — show a static, full ∞. */
+  /* Under reduced motion the JS animation is skipped — show a static, full ∞.
+     The comet is built from stacked layers; collapse them to a single full
+     stroke so the static mark keeps its intended (single-stroke) intensity. */
   @media (prefers-reduced-motion: reduce) {
     .lazy8 {
       stroke-dasharray: none;
+    }
+    .lazy8:not(:first-of-type) {
+      display: none;
     }
   }
 }
