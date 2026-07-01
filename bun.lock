@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "ressource-et-moi",
+      "name": "re-source-et-moi",
       "dependencies": {
         "lucide-react": "1.21.0",
         "motion": "12.42.0",
