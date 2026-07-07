@@ -20,7 +20,7 @@ export const faq = {
     {
       question: "Comment se déroule un atelier ?",
       answer:
-        "Chaque séance commence par le protocole PACE pour préparer le corps et le cerveau, puis explore quelques mouvements à reproduire ensuite chez soi.",
+        "Chaque séance commence par le protocole ECAP pour préparer le corps et le cerveau, puis explore quelques mouvements à reproduire ensuite chez soi.",
     },
     {
       question: "Combien de temps dure une séance ?",

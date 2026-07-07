@@ -19,9 +19,11 @@ describe("HomePage", () => {
   it("renders every section heading", () => {
     render(<HomePage />);
     for (const title of [
+      "Notre raison d'être",
       "Bouger pour mieux apprendre",
       "Une intention dans chaque geste",
       "Nos prochains ateliers",
+      "Tarifs",
       "À l'origine de Re-Source Et Moi",
       "Ce qu'ils en retiennent",
       "Vous vous demandez peut-être…",

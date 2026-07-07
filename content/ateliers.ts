@@ -24,7 +24,7 @@ export const ateliers = {
     {
       day: "28",
       month: "Juin",
-      title: "PACE & apprentissage",
+      title: "ECAP & apprentissage",
       schedule: "Samedi · 10h–12h",
       location: "Lyon",
     },

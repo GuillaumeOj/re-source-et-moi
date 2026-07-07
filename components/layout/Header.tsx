@@ -3,7 +3,7 @@
 import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Logo } from "@/components/brand/Logo";
-import { navLinks, site } from "@/content/site";
+import { navLinks, participateCta, site } from "@/content/site";
 import { cn } from "@/lib/cn";
 
 export function Header() {
@@ -48,10 +48,10 @@ export function Header() {
             </a>
           ))}
           <a
-            href="#newsletter"
-            className="rounded-full bg-rose-sombre px-5 py-2.5 text-sm font-semibold text-creme transition-all hover:-translate-y-0.5 hover:bg-rose-sombre-deep"
+            href={participateCta.href}
+            className="whitespace-nowrap rounded-full bg-rose-sombre px-5 py-2.5 text-sm font-semibold text-creme transition-all hover:-translate-y-0.5 hover:bg-rose-sombre-deep"
           >
-            Recevoir la lettre
+            {participateCta.label}
           </a>
         </nav>
 
@@ -88,11 +88,11 @@ export function Header() {
             <li>
               {/* biome-ignore lint/a11y/useValidAnchor: real in-page navigation; onClick only dismisses the menu */}
               <a
-                href="#newsletter"
+                href={participateCta.href}
                 className="mt-2 block rounded-full bg-rose-sombre px-5 py-3 text-center font-semibold text-creme"
                 onClick={() => setMenuOpen(false)}
               >
-                Recevoir la lettre
+                {participateCta.labelLong}
               </a>
             </li>
           </ul>

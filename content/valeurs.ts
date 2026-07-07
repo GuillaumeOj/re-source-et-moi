@@ -8,7 +8,7 @@ export const approche = {
   cards: [
     {
       title: "Mission",
-      body: "Rendre la kinésiologie éducative accessible, pour que chacun puisse, par le mouvement, lever ses blocages et retrouver sa joie naturelle d'apprendre.",
+      body: "Rendre l'éducation kinesthésique accessible, pour que chacun puisse, par le mouvement, lever ses blocages et retrouver sa joie naturelle d'apprendre.",
     },
     {
       title: "Valeurs",

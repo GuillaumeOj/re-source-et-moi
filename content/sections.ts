@@ -14,12 +14,12 @@ export type PageSection = {
 
 export const pageSections: PageSection[] = [
   { id: "top", label: "Accueil" },
-  { id: "brain-gym", label: "Le Brain Gym®", nav: true },
+  { id: "objet", label: "L'association", nav: true, dark: true },
+  { id: "education-kinesthesique", label: "Éducation kinesthésique", nav: true },
   { id: "approche", label: "Notre approche", nav: true },
-  { id: "ateliers", label: "Ateliers", nav: true },
+  { id: "ateliers", label: "Ateliers & tarifs", nav: true },
   { id: "a-propos", label: "À propos", nav: true },
   { id: "temoignages", label: "Témoignages" },
   { id: "faq", label: "Questions", nav: true },
-  { id: "newsletter", label: "La lettre", dark: true },
   { id: "contact", label: "Contact" },
 ];
