@@ -106,7 +106,10 @@
    Sections vertically centre their content, so the floating header never hides
    it. Disabled on mobile (single-column reading) and under reduced-motion. */
 @media (min-width: 1024px) {
-  html {
+  /* Only pages that actually contain snap sections (the home page) engage
+     mandatory snap; standalone pages (legal notices, etc.) scroll as normal
+     prose without any per-page opt-out. */
+  html:has(.snap-section) {
     scroll-snap-type: y mandatory;
   }
 

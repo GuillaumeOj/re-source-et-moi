@@ -19,7 +19,7 @@ export const footer = {
     "Brain Gym® est une marque déposée. Re-Source Et Moi n'est pas affiliée à Breakthroughs International.",
   rights: "Re-Source Et Moi — Association loi 1901.",
   legalLinks: [
-    { label: "Mentions légales", href: "#" },
-    { label: "Confidentialité", href: "#" },
+    { label: "Mentions légales", href: "/mentions-legales" },
+    { label: "Confidentialité", href: "/politique-de-confidentialite" },
   ],
 } as const;
