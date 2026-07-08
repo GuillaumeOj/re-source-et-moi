@@ -6,7 +6,7 @@ import { pageSections } from "./sections";
 export const site = {
   name: "Re-Source Et Moi",
   description:
-    "Re-Source Et Moi est une association de kinésiologie éducative (Brain Gym®). " +
+    "Re-Source Et Moi est une association d'éducation kinesthésique (Brain Gym®). " +
     "Par le mouvement, chacun réveille ses ressources pour apprendre, créer et agir avec plus d'aisance.",
   // Replace with the real production domain before launch.
   url: "https://re-source-et-moi.fr",
@@ -23,3 +23,10 @@ export type NavLink = { label: string; href: string };
 export const navLinks: NavLink[] = pageSections
   .filter((section) => section.nav)
   .map((section) => ({ label: section.label, href: `#${section.id}` }));
+
+// Header call-to-action — short label on desktop, long label on the mobile menu.
+export const participateCta = {
+  href: "#ateliers",
+  label: "Participer",
+  labelLong: "Participer à un atelier",
+} as const;

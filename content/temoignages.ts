@@ -23,7 +23,7 @@ export const temoignages = {
       quote:
         "Une approche concrète et bienveillante. On repart avec des clés utilisables tout de suite.",
       author: "Marc",
-      context: "Atelier PACE",
+      context: "Atelier ECAP",
     },
   ] as Temoignage[],
 } as const;

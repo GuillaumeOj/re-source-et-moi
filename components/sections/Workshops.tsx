@@ -1,8 +1,10 @@
 import { ArrowRight, MapPin } from "lucide-react";
+import { Card } from "@/components/ui/Card";
 import { Reveal } from "@/components/ui/Reveal";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { ateliers } from "@/content/ateliers";
+import { tarifs } from "@/content/tarifs";
 
 export function Workshops() {
   return (
@@ -48,6 +50,32 @@ export function Workshops() {
       </ul>
 
       <p className="mt-6 text-sm text-charbon/60">{ateliers.note}</p>
+
+      {/* Tarifs — pricing lives under the ateliers, in the same section. */}
+      <Reveal className="mt-16 flex flex-col gap-2">
+        <h3 className="font-display text-2xl text-rose-vif">{tarifs.title}</h3>
+        <p className="max-w-2xl text-base leading-relaxed text-charbon/80">{tarifs.intro}</p>
+      </Reveal>
+
+      <div className="mt-8 grid gap-6 md:grid-cols-2">
+        {tarifs.plans.map((plan, index) => (
+          <Card key={plan.name} delayMs={index * 80} className="gap-5 bg-white">
+            <h4 className="font-display text-xl text-rose-sombre">{plan.name}</h4>
+            <ul className="flex flex-col gap-3">
+              {plan.rows.map((row) => (
+                <li
+                  key={row.label}
+                  className="flex items-baseline justify-between gap-4 border-rose-sombre/10 border-b pb-3 last:border-b-0 last:pb-0"
+                >
+                  <span className="text-base text-charbon/80">{row.label}</span>
+                  <span className="font-display text-xl text-rose-sombre">{row.price}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="text-sm leading-relaxed text-charbon/60">{plan.note}</p>
+          </Card>
+        ))}
+      </div>
     </Section>
   );
 }

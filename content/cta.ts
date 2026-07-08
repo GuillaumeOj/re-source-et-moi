@@ -1,13 +1,4 @@
-// Newsletter, contact, and footer copy.
-
-export const newsletter = {
-  eyebrow: "La lettre mensuelle",
-  title: "Le mouvement, directement dans votre boîte",
-  subtitle: "Une lettre par mois : un mouvement à essayer, l'agenda des ateliers, rien de plus.",
-  placeholder: "votre@email.fr",
-  button: "S'inscrire",
-  consent: "Pas de spam. Désinscription en un clic.",
-} as const;
+// Contact and footer copy.
 
 export const contact = {
   eyebrow: "Écrire à l'association",
