@@ -39,8 +39,11 @@ describe("HomePage", () => {
     for (const link of navLinks) {
       const anchor = screen.getAllByRole("link", { name: link.label })[0];
       expect(anchor).toHaveAttribute("href", link.href);
-      const target = document.querySelector(link.href);
-      expect(target, `section ${link.href} should exist`).not.toBeNull();
+      // Nav hrefs are root-relative (`/#id`) so they also work from sub-routes;
+      // strip the leading slash to get the in-page id selector.
+      const selector = link.href.replace(/^\//, "");
+      const target = document.querySelector(selector);
+      expect(target, `section ${selector} should exist`).not.toBeNull();
     }
     expect(nav).toBeInTheDocument();
   });

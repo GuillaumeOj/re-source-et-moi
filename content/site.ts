@@ -22,11 +22,11 @@ export type NavLink = { label: string; href: string };
 // the nav and the step indicator can never drift apart.
 export const navLinks: NavLink[] = pageSections
   .filter((section) => section.nav)
-  .map((section) => ({ label: section.label, href: `#${section.id}` }));
+  .map((section) => ({ label: section.label, href: `/#${section.id}` }));
 
 // Header call-to-action — short label on desktop, long label on the mobile menu.
 export const participateCta = {
-  href: "#ateliers",
+  href: "/#ateliers",
   label: "Participer",
   labelLong: "Participer à un atelier",
 } as const;

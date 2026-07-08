@@ -26,7 +26,7 @@ export function Header() {
     >
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6 md:h-20">
         <a
-          href="#top"
+          href="/#top"
           className="flex items-center gap-3 text-rose-sombre"
           aria-label={`${site.name} — accueil`}
         >
@@ -86,7 +86,6 @@ export function Header() {
               </li>
             ))}
             <li>
-              {/* biome-ignore lint/a11y/useValidAnchor: real in-page navigation; onClick only dismisses the menu */}
               <a
                 href={participateCta.href}
                 className="mt-2 block rounded-full bg-rose-sombre px-5 py-3 text-center font-semibold text-creme"
