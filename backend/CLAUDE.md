@@ -1,0 +1,62 @@
+# Backend
+
+## Three rules that hold for every change
+
+1. **Every primary key is a UUID v4.** Models inherit `config.models.UUIDModel`; no model
+   declares its own `id`. `DEFAULT_AUTO_FIELD` cannot express this — Django requires it to
+   name an `AutoField` subclass and `UUIDField` is not one — which is why the abstract base
+   exists. Django's own apps (`auth`, `admin`, `sessions`) keep their `BigAutoField`.
+2. **Coverage never drops below 90%**, enforced by `--cov-fail-under=90` so `uv run tox`
+   and CI both fail below it. Tests land in the same commit as the code they cover. `--cov`
+   names each app package explicitly, so a new app that ships without tests drags the
+   number down rather than sitting outside the measurement — **add your new app to that
+   list in `pyproject.toml`**.
+3. **All tests live at the backend root, mirroring the app tree** — `tests/<app>/test_*.py`,
+   each directory with an `__init__.py`. Never `<app>/tests.py` or `<app>/tests/`.
+
+## Keep the schema and the seeds in sync with what you change
+
+### `schema.yml` is an API contract, not a build artifact you can ignore
+
+The frontend's TypeScript types are generated from it, and CI regenerates both and fails on
+any diff. **Change a serializer, run `uv run tox -e openapi` and `bun run codegen` in
+`../frontend`, and commit all three.**
+
+Watch for one trap: a `SerializerMethodField` tells drf-spectacular nothing about its
+shape, so it lands in the schema as an untyped object and the generated TypeScript loses
+every field inside it. Annotate it with `@extend_schema_field`, as
+`pricing/serializers.py` does for the nested prices.
+
+The env is called `openapi`, not `schema`, because tox has a built-in `schema` subcommand
+that swallows `tox -e schema`.
+
+### The seed commands are how anyone sees your feature
+
+`agenda/seed_agenda` and `pricing/seed_pricing` build the dataset the dev stack runs on
+(`uv run tox -e seed`). A feature the seed never creates is one nobody looks at until it
+surprises them in production.
+
+When you add or change a model, extend the matching seed command in the same change:
+
+- **New field** → give it a realistic and *varied* value, so the UI renders more than one
+  case.
+- **New state something can be in** (published/unpublished, on-demand/fixed, past/upcoming)
+  → create rows on both sides of it. The agenda seed deliberately includes an unpublished
+  and an already-past workshop so the API's filtering is visible in dev, not only in tests.
+- **New model** → wire it to what it belongs to, not floating on its own.
+- Cover it in `tests/<app>/test_seed_<app>.py`.
+
+Two invariants the seeds must keep: they are **dev only** (guarded by
+`config.seeding.guard_dev_only`, which requires `VERCEL_ENV` absent *and* `DEBUG` on,
+because they wipe the rows they own and on a deployment those rows are the owner's real
+agenda and real prices), and they are **re-runnable** — every run rebuilds the dataset
+rather than piling onto it.
+
+## The admin is the product
+
+There is no custom editor UI and no site user accounts. `django.contrib.admin` at a secret
+`ADMIN_PATH` is the entire interface the site owner has, so treat it as a user interface:
+French `verbose_name` on every model and field, `help_text` where a choice is not obvious,
+related rows edited inline where they are read together, and `list_editable` for the
+toggles that get flipped most. Prefetch anything a `list_display` column reads, or the
+changelist fires a query per row.
