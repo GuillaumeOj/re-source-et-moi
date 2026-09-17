@@ -1,0 +1,27 @@
+# Postgres for the test suite, kept in its own Compose project so running tests never
+# touches the dev database. Started automatically by `tox` / `tox -e py313`.
+#
+# The host port differs from the dev stack's so both can run at once.
+name: rsm-tests
+
+services:
+  db-test:
+    image: postgres:16
+    container_name: rsm_db_test
+    environment:
+      POSTGRES_USER: rsm
+      POSTGRES_PASSWORD: rsm
+      POSTGRES_DB: rsm
+    ports:
+      - "${RSM_DB_PORT_TEST:-5436}:5432"
+    volumes:
+      - postgres_data_test:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rsm"]
+      # Postgres is ready in ~0.1s; the probe interval is the real floor on `up --wait`.
+      interval: 1s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data_test:

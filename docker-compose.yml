@@ -1,0 +1,99 @@
+# Local development stack. Production runs on Vercel (function + Neon), not here.
+#
+# `name` pins the Compose project, so the containers, image, and volume are identical no
+# matter which git worktree this is launched from — without it, Compose derives the project
+# from the checkout directory and every worktree grows its own stack. Bring it up with
+# `uv run tox -e dev` (from backend/), which routes through scripts/dev_stack.py.
+#
+# Host ports deliberately avoid ma-garde-sereine's (5444 / 5435 / 8002 / 5175) so both
+# projects' stacks can run side by side.
+
+name: rsm-development
+
+services:
+  db:
+    image: postgres:16
+    container_name: rsm_db
+    environment:
+      POSTGRES_USER: rsm
+      POSTGRES_PASSWORD: rsm
+      POSTGRES_DB: rsm
+    ports:
+      - "${RSM_DB_PORT:-5445}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rsm"]
+      # Postgres is ready in ~0.1s; the probe interval is the real floor on `up --wait`.
+      interval: 1s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: ./backend
+    # Pinned for the same reason as `name` above: an unnamed build is tagged after the
+    # project, which would otherwise make the image name worktree-dependent.
+    image: rsm-development-web
+    container_name: rsm_web
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    environment:
+      DEBUG: "1"
+      SECRET_KEY: "dev-only-secret-change-me"
+      DATABASE_URL: "postgres://rsm:rsm@db:5432/rsm"
+      DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1,0.0.0.0,web,.orb.local"
+      # The Next dev server runs on its own origin locally, so it calls the API
+      # cross-origin — unlike production, where one Vercel domain fronts both services.
+      CORS_ALLOWED_ORIGINS: "http://localhost:3001"
+      CSRF_TRUSTED_ORIGINS: "http://localhost:3001,https://*.orb.local"
+    volumes:
+      - ./backend:/app
+      # Preserve the container's Linux virtualenv (don't let the host .venv shadow it).
+      - /app/.venv
+    ports:
+      - "${RSM_WEB_PORT:-8003}:8000"
+    # Without this, `up --wait` calls the stack ready as soon as the process starts — which
+    # is before migrate has finished and Django has bound the port.
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen("http://localhost:8000/api/health/")
+      interval: 3s
+      timeout: 5s
+      retries: 20
+      start_period: 5s
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    image: rsm-development-frontend
+    container_name: rsm_frontend
+    environment:
+      # Django is a compose service here, not localhost (which is Next's own container).
+      API_BASE_URL: "http://web:8000"
+      PORT: "3000"
+    volumes:
+      - ./frontend:/app
+      # Preserve the container's Linux node_modules (don't let the host's shadow it).
+      - /app/node_modules
+      # Likewise the build cache — a host .next from a different platform confuses Next.
+      - /app/.next
+    ports:
+      - "${RSM_FRONTEND_PORT:-3001}:3000"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/"]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    depends_on:
+      web:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
