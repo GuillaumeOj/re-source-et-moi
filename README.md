@@ -82,9 +82,11 @@ backend's OpenAPI schema by `bun run codegen`, committed, and diffed in CI so th
 sides cannot drift.
 
 It fetches on the server, not in the browser, so the dates and prices are in the HTML a
-crawler sees. The section degrades in three steps: live data; then, if the backend goes
-down, Next keeps serving the last good response from its fetch cache; and only with no
-cached data at all does it show the unavailable notice.
+crawler sees. Responses are cached for five minutes, so a blip shorter than that is
+invisible — the cached copy is served without calling the backend at all. Once the entry
+has expired the next request re-fetches, and if that fails the section shows the
+unavailable notice rather than anything out of date. Next does not serve an expired entry
+as a fallback, so the notice is what an outage longer than the window looks like.
 
 ### Not wired yet
 

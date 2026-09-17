@@ -73,3 +73,30 @@ def test_shows_an_error_for_an_online_workshop_carrying_an_address(staff_client)
 
     assert response.status_code == 200
     assert "adresse postale" in response.content.decode()
+
+
+def test_editing_the_city_moves_the_label_the_site_displays(staff_client, make_event):
+    """The label is refreshed by comparing against what the *loaded* row derived to, which
+    relies on Event.from_db running. The ORM-level tests in test_models.py load with a
+    plain .get(); this covers the path that actually matters — the admin's own
+    load-form-save cycle — so a change to how the admin fetches the object can't quietly
+    strand the agenda row on the old city."""
+    from agenda.models import Event
+
+    event = make_event(location_kind=Event.LocationKind.ONSITE, city="Lyon")
+    assert event.location_label == "Lyon"
+
+    response = staff_client.post(
+        f"/api/admin/agenda/event/{event.pk}/change/",
+        {
+            **VALID,
+            "location_kind": "onsite",
+            "city": "Paris",
+            # Submitted as the form renders it — the derived value, not blank.
+            "location_label": "Lyon",
+        },
+    )
+
+    assert response.status_code == 302
+    event.refresh_from_db()
+    assert event.location_label == "Paris"

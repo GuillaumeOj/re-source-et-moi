@@ -62,6 +62,39 @@ class TestLocationLabel:
 
         assert event.location_label == "Lyon 6e"
 
+    def test_a_derived_label_follows_the_city(self, make_event):
+        """Editing the city must not leave the agenda row naming the old one."""
+        make_event(location_kind=Event.LocationKind.ONSITE, city="Lyon")
+
+        event = Event.objects.get()
+        event.city = "Paris"
+        event.save()
+
+        assert event.location_label == "Paris"
+
+    def test_a_derived_label_follows_a_switch_to_online(self, make_event):
+        """clean() forces the address off when a workshop moves online; the label, which is
+        what the site actually displays, has to move with it."""
+        make_event(location_kind=Event.LocationKind.ONSITE, city="Lyon")
+
+        event = Event.objects.get()
+        event.location_kind = Event.LocationKind.ONLINE
+        event.city = ""
+        event.save()
+
+        assert event.location_label == "En ligne"
+
+    def test_an_explicit_label_survives_an_edit(self, make_event):
+        """Only a label this model derived is refreshed — a hand-written one is the
+        owner's override and stays put."""
+        make_event(location_kind=Event.LocationKind.ONSITE, city="Lyon", location_label="Lyon 6e")
+
+        event = Event.objects.get()
+        event.city = "Paris"
+        event.save()
+
+        assert event.location_label == "Lyon 6e"
+
 
 class TestClean:
     def test_rejects_an_end_before_the_start(self, make_event):
@@ -91,6 +124,17 @@ class TestClean:
             event.clean()
 
         assert "city" in excinfo.value.message_dict
+
+    def test_flags_the_address_field_that_actually_holds_the_leftover(self, make_event):
+        """An error parked on an empty "Ville" would point the editor at the wrong box."""
+        event = make_event(location_kind=Event.LocationKind.ONLINE)
+        event.address_line1 = "12 rue de la Charité"
+
+        with pytest.raises(ValidationError) as excinfo:
+            event.clean()
+
+        assert "address_line1" in excinfo.value.message_dict
+        assert "city" not in excinfo.value.message_dict
 
     def test_rejects_an_on_site_workshop_without_a_city(self, make_event):
         """The city is what the agenda row displays; without it the row renders blank."""

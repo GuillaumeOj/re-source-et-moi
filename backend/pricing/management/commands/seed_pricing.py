@@ -41,8 +41,11 @@ class Command(BaseCommand):
     def handle(self, *args: object, **options: object) -> None:
         guard_dev_only()
 
-        # Prices cascade with their type, so this clears both tables.
-        deleted, _ = PricingType.objects.all().delete()
+        # Prices cascade with their type, so this clears both tables. The first return
+        # value counts every row removed, prices included — the message below is about
+        # types, so take the per-model tally instead.
+        _, per_model = PricingType.objects.all().delete()
+        deleted = per_model.get(PricingType._meta.label, 0)
 
         for type_position, (name, description, rows) in enumerate(SEED):
             pricing_type = PricingType.objects.create(

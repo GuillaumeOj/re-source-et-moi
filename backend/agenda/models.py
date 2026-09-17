@@ -60,6 +60,11 @@ class Event(UUIDModel):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # Not a field: what `location_label` was derived to when this row was read from the
+    # database, set by from_db() and used by save(). None on an instance that never came
+    # from the database, which is why a fresh Event only ever derives a blank label.
+    _loaded_derived_label: str | None = None
+
     class Meta:
         verbose_name = "atelier"
         verbose_name_plural = "ateliers"
@@ -93,9 +98,13 @@ class Event(UUIDModel):
 
         if self.is_online:
             # An online workshop with a postal address is a copy/paste leftover: the
-            # frontend would show a city for something nobody travels to.
-            if any([self.address_line1, self.address_line2, self.postal_code, self.city]):
-                errors["city"] = "Un atelier en ligne ne doit pas porter d'adresse postale."
+            # frontend would show a city for something nobody travels to. The message goes
+            # on every field that still holds one, so the admin highlights exactly what
+            # needs clearing — an address left in `address_line1` is invisible if the only
+            # error sits on an already-empty "Ville".
+            for field in ("address_line1", "address_line2", "postal_code", "city"):
+                if getattr(self, field):
+                    errors[field] = "Un atelier en ligne ne doit pas porter d'adresse postale."
         elif not self.city:
             # The city is what the agenda row displays, so on-site without one renders blank.
             errors["city"] = "Une ville est requise pour un atelier sur place."
@@ -103,7 +112,26 @@ class Event(UUIDModel):
         if errors:
             raise ValidationError(errors)
 
+    def _derived_location_label(self) -> str:
+        """The label this workshop's kind and city imply, before any manual override."""
+        return str(self.LocationKind.ONLINE.label) if self.is_online else self.city
+
+    @classmethod
+    def from_db(cls, db, field_names, values):  # type: ignore[no-untyped-def]
+        instance = super().from_db(db, field_names, values)
+        # Remember what the *stored* kind/city derived to, so save() can tell a label this
+        # model filled in from one the owner typed. Skipped when either field is deferred:
+        # reading them here would fire an extra query per row.
+        if {"location_kind", "city"} <= set(field_names):
+            instance._loaded_derived_label = instance._derived_location_label()
+        return instance
+
     def save(self, *args: Any, **kwargs: Any) -> None:
-        if not self.location_label:
-            self.location_label = self.LocationKind.ONLINE.label if self.is_online else self.city
+        # Fill the label in when it is blank, and refresh it when it still holds whatever
+        # was derived at load time. Without the second half, moving a workshop from Lyon to
+        # Paris — or from on-site to online, which clean() forces the address off — leaves
+        # the agenda row displaying "Lyon". A label typed by hand ("Lyon 6e") never matches
+        # the derivation, so it survives untouched.
+        if not self.location_label or self.location_label == self._loaded_derived_label:
+            self.location_label = self._derived_location_label()
         super().save(*args, **kwargs)
