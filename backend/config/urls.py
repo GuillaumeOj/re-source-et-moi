@@ -7,7 +7,7 @@ site. A path outside /api/ would never reach Django in production.
 
 from django.conf import settings
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from config import views
@@ -25,4 +25,6 @@ urlpatterns = [
         name="swagger-ui",
     ),
     path("api/health/", views.health, name="health"),
+    path("api/", include("agenda.urls")),
+    path("api/", include("pricing.urls")),
 ]

@@ -86,7 +86,10 @@ services:
     ports:
       - "${RSM_FRONTEND_PORT:-3001}:3000"
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/"]
+      # 127.0.0.1, not localhost: next binds IPv4 only, while localhost resolves to ::1
+      # first inside the container — the probe then gets a connection refused from a
+      # server that is up and serving.
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/"]
       interval: 3s
       timeout: 5s
       retries: 20

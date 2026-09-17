@@ -145,8 +145,12 @@ SPECTACULAR_SETTINGS = {
     # Split components into request/response variants so write-only/read-only fields
     # generate distinct TS types instead of one loose shape.
     "COMPONENT_SPLIT_REQUEST": True,
+    # Keep drf-spectacular's default enum postprocessing, then mark response fields as
+    # required so the generated TS response types aren't riddled with spurious optionals
+    # (see config/spectacular_hooks.py for why).
     "POSTPROCESSING_HOOKS": [
         "drf_spectacular.hooks.postprocess_schema_enums",
+        "config.spectacular_hooks.make_response_fields_required",
     ],
 }
 
@@ -184,8 +188,9 @@ STORAGES = {
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
 }
 
-# Applies only to Django's own built-in apps (auth, admin, sessions, …), which are the
-# only models here that don't set their own PK.
+# Applies only to models that don't set their own PK — Django's built-in apps
+# (auth, admin, sessions, …). Our models get a UUID-4 PK by subclassing
+# config.models.UUIDModel (see there for why); new models must do the same.
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
