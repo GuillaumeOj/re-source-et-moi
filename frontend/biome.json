@@ -8,7 +8,15 @@
   },
   "files": {
     "ignoreUnknown": true,
-    "includes": ["**", "!.next", "!node_modules", "!next-env.d.ts", "!**/*.svg", "!app/globals.css"]
+    "includes": [
+      "**",
+      "!.next",
+      "!node_modules",
+      "!next-env.d.ts",
+      "!**/*.svg",
+      "!app/globals.css",
+      "!lib/api/generated.ts"
+    ]
   },
   "formatter": {
     "enabled": true,

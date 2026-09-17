@@ -30,6 +30,23 @@ def test_response_components_have_every_property_required(client):
     assert "prices" in pricing_type["required"]
 
 
+def test_nested_prices_are_typed_not_loose_objects(client):
+    """A SerializerMethodField tells drf-spectacular nothing about its shape, so without
+    the @extend_schema_field on get_prices this comes out as an array of untyped objects
+    and the generated TypeScript loses every price field — see pricing/serializers.py."""
+    components = client.get("/api/schema/?format=json").json()["components"]["schemas"]
+
+    assert components["PricingType"]["properties"]["prices"]["items"] == {
+        "$ref": "#/components/schemas/Price"
+    }
+    assert set(components["Price"]["properties"]) == {
+        "id",
+        "description",
+        "amount",
+        "on_demand",
+    }
+
+
 def test_paths_have_the_api_prefix_trimmed(client):
     """SCHEMA_PATH_PREFIX_TRIM — the frontend's base URL already ends in /api, so leaving
     the prefix on would generate calls to /api/api/events/."""

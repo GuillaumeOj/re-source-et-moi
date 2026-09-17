@@ -1,25 +1,12 @@
-// "Tarifs" — placeholder pricing. Individual amounts are set; group pricing is
-// a placeholder pending Cécile's real figures. Maps onto a future Payload collection.
-
-export type PriceRow = { label: string; price: string };
-export type Plan = { name: string; rows: PriceRow[]; note: string };
+// "Tarifs" — section copy only.
+//
+// The amounts now come from the backend (GET /api/pricing-types/) so Cécile can change
+// them from the Django admin without a deploy. Only the framing copy stays here.
 
 export const tarifs = {
   title: "Tarifs",
-  intro: "Des tarifs pensés pour rester accessibles à chacun. Montants indicatifs, à confirmer.",
-  plans: [
-    {
-      name: "Individuel",
-      rows: [
-        { label: "Adulte", price: "75 €" },
-        { label: "Enfant (jusqu'à 14 ans)", price: "60 €" },
-      ],
-      note: "Par séance individuelle.",
-    },
-    {
-      name: "Groupe",
-      rows: [{ label: "Atelier en groupe", price: "Sur devis" }],
-      note: "Tarif de groupe à définir — n'hésitez pas à nous consulter.",
-    },
-  ] as Plan[],
+  intro: "Des tarifs pensés pour rester accessibles à chacun.",
+  // Shown when the backend can't be reached. It names no figures on purpose — showing a
+  // stale price is worse than showing none, because someone could arrive expecting it.
+  unavailable: "Les tarifs sont momentanément indisponibles. N'hésitez pas à nous contacter.",
 } as const;
