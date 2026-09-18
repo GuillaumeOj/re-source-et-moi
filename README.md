@@ -24,10 +24,23 @@ The repository holds two stacks:
 
 ### Getting started
 
+One command brings up everything — Postgres, Django and the site:
+
+```bash
+cd backend
+uv run tox -e dev        # site http://localhost:3001 · API http://localhost:8003
+```
+
+That is the normal way to run this project. The site's workshop dates and tariffs come
+from the backend, so running the frontend on its own shows the "momentanément
+indisponible" notices in that section until a backend is reachable.
+
+To run just the site against a backend you started separately:
+
 ```bash
 cd frontend
 bun install
-bun run dev        # http://localhost:3000
+API_BASE_URL=http://localhost:8003 bun run dev        # http://localhost:3000
 ```
 
 ### Scripts
