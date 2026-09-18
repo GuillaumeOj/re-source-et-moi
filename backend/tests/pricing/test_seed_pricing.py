@@ -4,13 +4,7 @@ from django.core.management.base import CommandError
 
 from pricing.models import Price, PricingType
 
-pytestmark = pytest.mark.django_db
-
-
-@pytest.fixture(autouse=True)
-def dev_environment(settings):
-    settings.DEBUG = True
-    settings.ON_VERCEL = False
+pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("dev_environment")]
 
 
 def test_covers_both_sides_of_the_on_demand_toggle():
@@ -30,21 +24,9 @@ def test_is_rerunnable_without_piling_up():
     assert (PricingType.objects.count(), Price.objects.count()) == (types, prices)
 
 
-def test_refuses_to_run_on_a_vercel_deployment(settings):
-    settings.ON_VERCEL = True
-
-    with pytest.raises(CommandError, match="Vercel"):
-        call_command("seed_pricing")
-
-
-def test_refuses_to_run_with_debug_off(settings):
-    settings.DEBUG = False
-
-    with pytest.raises(CommandError, match="DEBUG"):
-        call_command("seed_pricing")
-
-
 def test_a_refusal_destroys_nothing(settings, make_type):
+    """The guard itself is covered in tests/config/test_seeding.py. What matters here is
+    that this command is behind it — that the wipe cannot outrun the check."""
     existing = make_type(name="Vrai tarif")
     settings.ON_VERCEL = True
 

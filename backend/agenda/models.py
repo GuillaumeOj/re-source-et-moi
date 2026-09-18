@@ -10,8 +10,6 @@ rendering is the frontend's job.
 
 from __future__ import annotations
 
-from typing import Any
-
 from django.core.exceptions import ValidationError
 from django.db import models
 
@@ -36,9 +34,11 @@ class Event(UUIDModel):
         choices=LocationKind.choices,
         default=LocationKind.ONSITE,
     )
-    # The short label the agenda row shows — "En ligne", "Lyon". Left blank it is derived
-    # in save(), so the common case needs no typing; set it to override (e.g. "Lyon 6e").
-    location_label = models.CharField(
+    # Only ever the *override*. The label the site shows is the `location_label` property
+    # below, which falls back to the kind or the city — so there is no stored copy that can
+    # drift when either of those is edited, and no write path (.update(), bulk_create) that
+    # can bypass keeping it in step.
+    location_label_override = models.CharField(
         "libellé du lieu",
         max_length=120,
         blank=True,
@@ -60,11 +60,6 @@ class Event(UUIDModel):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    # Not a field: what `location_label` was derived to when this row was read from the
-    # database, set by from_db() and used by save(). None on an instance that never came
-    # from the database, which is why a fresh Event only ever derives a blank label.
-    _loaded_derived_label: str | None = None
-
     class Meta:
         verbose_name = "atelier"
         verbose_name_plural = "ateliers"
@@ -82,6 +77,13 @@ class Event(UUIDModel):
     @property
     def is_online(self) -> bool:
         return self.location_kind == self.LocationKind.ONLINE
+
+    @property
+    def location_label(self) -> str:
+        """The short label the agenda row shows — "En ligne", "Lyon", or an override."""
+        if self.location_label_override:
+            return self.location_label_override
+        return str(self.LocationKind.ONLINE.label) if self.is_online else self.city
 
     def clean(self) -> None:
         """Validate the two things the admin form can get wrong.
@@ -111,27 +113,3 @@ class Event(UUIDModel):
 
         if errors:
             raise ValidationError(errors)
-
-    def _derived_location_label(self) -> str:
-        """The label this workshop's kind and city imply, before any manual override."""
-        return str(self.LocationKind.ONLINE.label) if self.is_online else self.city
-
-    @classmethod
-    def from_db(cls, db, field_names, values):  # type: ignore[no-untyped-def]
-        instance = super().from_db(db, field_names, values)
-        # Remember what the *stored* kind/city derived to, so save() can tell a label this
-        # model filled in from one the owner typed. Skipped when either field is deferred:
-        # reading them here would fire an extra query per row.
-        if {"location_kind", "city"} <= set(field_names):
-            instance._loaded_derived_label = instance._derived_location_label()
-        return instance
-
-    def save(self, *args: Any, **kwargs: Any) -> None:
-        # Fill the label in when it is blank, and refresh it when it still holds whatever
-        # was derived at load time. Without the second half, moving a workshop from Lyon to
-        # Paris — or from on-site to online, which clean() forces the address off — leaves
-        # the agenda row displaying "Lyon". A label typed by hand ("Lyon 6e") never matches
-        # the derivation, so it survives untouched.
-        if not self.location_label or self.location_label == self._loaded_derived_label:
-            self.location_label = self._derived_location_label()
-        super().save(*args, **kwargs)

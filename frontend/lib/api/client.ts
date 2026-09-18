@@ -29,8 +29,8 @@ const REVALIDATE_SECONDS = 300;
  * CDN, the firewall, and — the reason it matters here — Deployment Protection, which would
  * answer a preview deployment's call to its own public URL with a 401.
  *
- * Bindings are runtime-only, which is why nothing here runs at build time (see the
- * `connection()` call in Workshops.tsx).
+ * Bindings are runtime-only, so this throws during a build — which is why every caller
+ * awaits `connection()` first (see AgendaList and PricingCards).
  *
  * Locally there is no binding, so API_BASE_URL is set explicitly: the compose service name
  * inside Docker, or localhost when running `bun run dev` on the host.
@@ -46,6 +46,11 @@ function apiBaseUrl(): string {
 }
 
 async function get<T>(path: string): Promise<T> {
+  // NB: `connection()` must NOT be called here, tempting as it is — it would put the
+  // build-time opt-out next to the env var that causes it, but awaiting it in the same
+  // function that then fetches makes Next hand back an empty body: Django logs a full
+  // 821-byte response while this sees content-length 2 and an empty array. It has to be
+  // awaited at the render boundary instead, which is why each calling component does it.
   const response = await fetch(`${apiBaseUrl()}/api${path}`, {
     next: { revalidate: REVALIDATE_SECONDS },
     headers: { Accept: "application/json" },

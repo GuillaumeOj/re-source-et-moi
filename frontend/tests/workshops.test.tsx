@@ -1,19 +1,21 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { Workshops } from "@/components/sections/Workshops";
+import { AgendaList } from "@/components/sections/workshops/AgendaList";
+import { PricingCards } from "@/components/sections/workshops/PricingCards";
 import { ateliers } from "@/content/ateliers";
 import { tarifs } from "@/content/tarifs";
 import type { Event, PricingType } from "@/lib/api/client";
 
-// Workshops is an async Server Component, so it is invoked and awaited rather than passed
-// to render() as an element — React's client renderer cannot resolve an async component.
-// Everything it returns is synchronous, so the awaited tree renders normally.
+// Both are async Server Components, so they are invoked and awaited rather than passed to
+// render() as elements — React's client renderer cannot resolve an async component.
+// Everything they return is synchronous, so the awaited tree renders normally.
 vi.mock("@/lib/api/client", () => ({
   getEvents: vi.fn(),
   getPricingTypes: vi.fn(),
 }));
 
-// No request context under vitest; connection() only exists to defer rendering past build.
+// No request context under vitest. connection() only exists to defer rendering past the
+// build, so a resolved stub is the whole of its behaviour here.
 vi.mock("next/server", () => ({ connection: vi.fn().mockResolvedValue(undefined) }));
 
 const { getEvents, getPricingTypes } = await import("@/lib/api/client");
@@ -51,8 +53,9 @@ function makePricingType(overrides: Partial<PricingType> = {}): PricingType {
   };
 }
 
-async function renderWorkshops() {
-  render(await Workshops());
+/** Silences the deliberate console.error a failure path logs. */
+function expectFailureLogged() {
+  vi.spyOn(console, "error").mockImplementation(() => {});
 }
 
 beforeEach(() => {
@@ -60,9 +63,9 @@ beforeEach(() => {
   vi.mocked(getPricingTypes).mockResolvedValue([makePricingType()]);
 });
 
-describe("Workshops — agenda", () => {
+describe("AgendaList", () => {
   it("renders a workshop from the API", async () => {
-    await renderWorkshops();
+    render(await AgendaList());
 
     expect(screen.getByRole("heading", { name: "Brain Gym® en mouvement" })).toBeInTheDocument();
     expect(screen.getByText("En ligne")).toBeInTheDocument();
@@ -72,7 +75,7 @@ describe("Workshops — agenda", () => {
     // 2026-06-13 is a Saturday. The API sends only "2026-06-13" / "10:00:00", so every
     // one of these strings is produced on this side — the reason the backend is free to
     // stay machine-readable.
-    await renderWorkshops();
+    render(await AgendaList());
 
     expect(screen.getByText("13")).toBeInTheDocument();
     expect(screen.getByText("Juin")).toBeInTheDocument();
@@ -81,7 +84,7 @@ describe("Workshops — agenda", () => {
 
   it("gives the date badge a machine-readable datetime and a full spoken date", async () => {
     // The "13"/"Juin" split is visual only; a screen reader gets the whole date.
-    await renderWorkshops();
+    render(await AgendaList());
 
     const fullDate = screen.getByText("samedi 13 juin 2026");
     expect(fullDate.closest("time")).toHaveAttribute("datetime", "2026-06-13");
@@ -92,7 +95,7 @@ describe("Workshops — agenda", () => {
       makeEvent({ start_time: "10:30:00", end_time: "12:00:00" }),
     ]);
 
-    await renderWorkshops();
+    render(await AgendaList());
 
     expect(screen.getByText("Samedi · 10h30–12h")).toBeInTheDocument();
   });
@@ -102,7 +105,7 @@ describe("Workshops — agenda", () => {
       makeEvent({ location_kind: "onsite", location_label: "Lyon", address: "12 rue X, Lyon" }),
     ]);
 
-    await renderWorkshops();
+    render(await AgendaList());
 
     expect(screen.getByText("Lyon")).toBeInTheDocument();
   });
@@ -110,16 +113,16 @@ describe("Workshops — agenda", () => {
   it("says so when the agenda is empty rather than rendering nothing", async () => {
     vi.mocked(getEvents).mockResolvedValue([]);
 
-    await renderWorkshops();
+    render(await AgendaList());
 
     expect(screen.getByText(ateliers.empty)).toBeInTheDocument();
   });
 
   it("degrades to a notice when the backend is unreachable", async () => {
     vi.mocked(getEvents).mockRejectedValue(new Error("ECONNREFUSED"));
-    vi.spyOn(console, "error").mockImplementation(() => {});
+    expectFailureLogged();
 
-    await renderWorkshops();
+    render(await AgendaList());
 
     expect(screen.getByText(ateliers.unavailable)).toBeInTheDocument();
     // The notice names no dates: a stale workshop list is worse than none, because
@@ -127,20 +130,22 @@ describe("Workshops — agenda", () => {
     expect(screen.queryByText("Brain Gym® en mouvement")).not.toBeInTheDocument();
   });
 
-  it("keeps the tariffs when only the agenda fails", async () => {
+  it("does not take the tariffs down with it", async () => {
+    // The two fetch independently, which is why they are separate components.
     vi.mocked(getEvents).mockRejectedValue(new Error("ECONNREFUSED"));
-    vi.spyOn(console, "error").mockImplementation(() => {});
+    expectFailureLogged();
 
-    await renderWorkshops();
+    render(await AgendaList());
+    render(await PricingCards());
 
     expect(screen.getByText(ateliers.unavailable)).toBeInTheDocument();
     expect(screen.getByText("75 €")).toBeInTheDocument();
   });
 });
 
-describe("Workshops — tarifs", () => {
+describe("PricingCards", () => {
   it("formats an amount as euros", async () => {
-    await renderWorkshops();
+    render(await PricingCards());
 
     expect(screen.getByText("Adulte")).toBeInTheDocument();
     expect(screen.getByText("75 €")).toBeInTheDocument();
@@ -161,12 +166,12 @@ describe("Workshops — tarifs", () => {
       }),
     ]);
 
-    await renderWorkshops();
+    render(await PricingCards());
 
     expect(screen.getByText("Sur devis")).toBeInTheDocument();
   });
 
-  it("shows cents when a price has them", async () => {
+  it("shows cents when a price has them, and none when it doesn't", async () => {
     vi.mocked(getPricingTypes).mockResolvedValue([
       makePricingType({
         prices: [
@@ -180,17 +185,17 @@ describe("Workshops — tarifs", () => {
       }),
     ]);
 
-    await renderWorkshops();
+    render(await PricingCards());
 
-    // Non-breaking space before the euro sign, as Intl emits for fr-FR.
+    // Never "75,5 €" — a price shows two decimals or none.
     expect(screen.getByText(/75,50/)).toBeInTheDocument();
   });
 
   it("degrades to a notice when the backend is unreachable", async () => {
     vi.mocked(getPricingTypes).mockRejectedValue(new Error("ECONNREFUSED"));
-    vi.spyOn(console, "error").mockImplementation(() => {});
+    expectFailureLogged();
 
-    await renderWorkshops();
+    render(await PricingCards());
 
     expect(screen.getByText(tarifs.unavailable)).toBeInTheDocument();
     expect(screen.queryByText("75 €")).not.toBeInTheDocument();
@@ -199,7 +204,7 @@ describe("Workshops — tarifs", () => {
   it("shows the notice rather than an empty grid when there are no tariffs", async () => {
     vi.mocked(getPricingTypes).mockResolvedValue([]);
 
-    await renderWorkshops();
+    render(await PricingCards());
 
     expect(screen.getByText(tarifs.unavailable)).toBeInTheDocument();
   });

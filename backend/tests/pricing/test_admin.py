@@ -32,23 +32,13 @@ def test_price_count_counts_unpublished_lines_too(pricing_admin, make_type, make
     assert pricing_admin.price_count(pricing_type) == 1
 
 
-@pytest.fixture
-def staff_client(django_user_model):
-    from django.test import Client
-
-    user = django_user_model.objects.create_superuser("staff", "staff@example.test", "pw")
-    admin_client = Client(SERVER_NAME="localhost")
-    admin_client.force_login(user)
-    return admin_client
-
-
-def test_the_add_form_shows_the_amount_xor_on_demand_error(staff_client, make_type):
+def test_the_add_form_shows_the_amount_xor_on_demand_error(admin_client, make_type):
     """The model's clean() is tested directly in test_models.py; this covers that the
     admin form runs it and renders the message, rather than letting the write through to
     a database constraint and a 500 in the editor's face."""
     pricing_type = make_type()
 
-    response = staff_client.post(
+    response = admin_client.post(
         "/api/admin/pricing/price/add/",
         {
             "type": str(pricing_type.pk),

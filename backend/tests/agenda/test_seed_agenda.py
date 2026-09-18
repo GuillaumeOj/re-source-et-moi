@@ -5,14 +5,7 @@ from django.utils import timezone
 
 from agenda.models import Event
 
-pytestmark = pytest.mark.django_db
-
-
-@pytest.fixture(autouse=True)
-def dev_environment(settings):
-    """The command refuses to run outside local development; tests opt in explicitly."""
-    settings.DEBUG = True
-    settings.ON_VERCEL = False
+pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("dev_environment")]
 
 
 def test_creates_a_dataset_covering_more_than_the_happy_path():
@@ -34,30 +27,17 @@ def test_is_rerunnable_without_piling_up():
     assert Event.objects.count() == first
 
 
-def test_location_labels_are_derived():
-    """save() derives the label; bulk_create would have skipped it."""
+def test_every_workshop_has_a_label_to_display():
+    """The label is derived from the kind or the city, so a seeded row that set neither
+    would render a blank location on the site."""
     call_command("seed_agenda")
 
-    assert not Event.objects.filter(location_label="").exists()
-
-
-def test_refuses_to_run_on_a_vercel_deployment(settings):
-    """It wipes data. On a deployment those rows are the owner's real agenda."""
-    settings.ON_VERCEL = True
-
-    with pytest.raises(CommandError, match="Vercel"):
-        call_command("seed_agenda")
-
-
-def test_refuses_to_run_with_debug_off(settings):
-    """Catches the case Vercel's own flag cannot see: a laptop pointed at production."""
-    settings.DEBUG = False
-
-    with pytest.raises(CommandError, match="DEBUG"):
-        call_command("seed_agenda")
+    assert all(event.location_label for event in Event.objects.all())
 
 
 def test_a_refusal_destroys_nothing(settings, make_event):
+    """The guard itself is covered in tests/config/test_seeding.py. What matters here is
+    that this command is behind it — that the wipe cannot outrun the check."""
     existing = make_event(title="Vrai atelier")
     settings.ON_VERCEL = True
 

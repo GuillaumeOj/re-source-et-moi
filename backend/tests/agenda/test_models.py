@@ -43,7 +43,12 @@ def test_ordering_is_chronological(make_event, today):
 
 
 class TestLocationLabel:
-    """`location_label` is derived on save so the common case needs no typing."""
+    """`location_label` is derived on read, so it cannot go stale.
+
+    Only the override is stored. Nothing has to notice an edit and refresh a copy — which
+    also means no write path (.update(), bulk_create) can leave the site showing the old
+    city, the way a stored label would.
+    """
 
     def test_defaults_to_the_online_label(self, make_event):
         event = make_event(location_kind=Event.LocationKind.ONLINE)
@@ -55,45 +60,40 @@ class TestLocationLabel:
 
         assert event.location_label == "Lyon"
 
-    def test_an_explicit_label_is_kept(self, make_event):
+    def test_an_override_wins(self, make_event):
         event = make_event(
-            location_kind=Event.LocationKind.ONSITE, city="Lyon", location_label="Lyon 6e"
+            location_kind=Event.LocationKind.ONSITE, city="Lyon", location_label_override="Lyon 6e"
         )
 
         assert event.location_label == "Lyon 6e"
 
-    def test_a_derived_label_follows_the_city(self, make_event):
+    def test_follows_the_city(self, make_event):
         """Editing the city must not leave the agenda row naming the old one."""
         make_event(location_kind=Event.LocationKind.ONSITE, city="Lyon")
 
-        event = Event.objects.get()
-        event.city = "Paris"
-        event.save()
+        Event.objects.update(city="Paris")
 
-        assert event.location_label == "Paris"
+        # .update() writes straight to SQL. A stored label would still read "Lyon" here.
+        assert Event.objects.get().location_label == "Paris"
 
-    def test_a_derived_label_follows_a_switch_to_online(self, make_event):
+    def test_follows_a_switch_to_online(self, make_event):
         """clean() forces the address off when a workshop moves online; the label, which is
-        what the site actually displays, has to move with it."""
+        what the site actually displays, moves with it."""
         make_event(location_kind=Event.LocationKind.ONSITE, city="Lyon")
 
-        event = Event.objects.get()
-        event.location_kind = Event.LocationKind.ONLINE
-        event.city = ""
-        event.save()
+        Event.objects.update(location_kind=Event.LocationKind.ONLINE, city="")
 
-        assert event.location_label == "En ligne"
+        assert Event.objects.get().location_label == "En ligne"
 
-    def test_an_explicit_label_survives_an_edit(self, make_event):
-        """Only a label this model derived is refreshed — a hand-written one is the
-        owner's override and stays put."""
-        make_event(location_kind=Event.LocationKind.ONSITE, city="Lyon", location_label="Lyon 6e")
+    def test_an_override_survives_an_edit(self, make_event):
+        """The override is the owner's wording and is never recomputed."""
+        make_event(
+            location_kind=Event.LocationKind.ONSITE, city="Lyon", location_label_override="Lyon 6e"
+        )
 
-        event = Event.objects.get()
-        event.city = "Paris"
-        event.save()
+        Event.objects.update(city="Paris")
 
-        assert event.location_label == "Lyon 6e"
+        assert Event.objects.get().location_label == "Lyon 6e"
 
 
 class TestClean:

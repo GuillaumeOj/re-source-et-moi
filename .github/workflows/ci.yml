@@ -51,11 +51,10 @@ jobs:
       - name: Sync dependencies
         run: uv sync --locked
 
+      # `select` in pyproject.toml already includes the isort rules ("I"), so this covers
+      # import sorting too — a separate --select I pass could only fail where this does.
       - name: Lint (ruff check)
         run: uv run ruff check .
-
-      - name: Import sorting (ruff, isort rules)
-        run: uv run ruff check --select I .
 
       - name: Format check (ruff format)
         run: uv run ruff format --check .
@@ -92,7 +91,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Biome check
-        run: bunx biome check .
+        run: bun run lint
 
       - name: Type check
         run: bun run typecheck

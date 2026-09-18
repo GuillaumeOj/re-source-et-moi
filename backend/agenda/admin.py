@@ -16,9 +16,16 @@ class EventAdmin(admin.ModelAdmin):
     list_display = ("title", "date", "start_time", "end_time", "location_label", "is_published")
     list_filter = ("is_published", "location_kind", "date")
     list_editable = ("is_published",)
-    search_fields = ("title", "location_label", "city", "description")
+    # The override, not the property — only stored columns are searchable, and `city`
+    # already covers the derived case.
+    search_fields = ("title", "location_label_override", "city", "description")
     date_hierarchy = "date"
     ordering = ("-date",)
+
+    @admin.display(description="libellé du lieu")
+    def location_label(self, event: Event) -> str:
+        """What the site actually shows, override or derived — see Event.location_label."""
+        return event.location_label
 
     fieldsets = (
         (None, {"fields": ("title", "description", "is_published")}),
@@ -28,7 +35,7 @@ class EventAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     "location_kind",
-                    "location_label",
+                    "location_label_override",
                     "online_url",
                     "address_line1",
                     "address_line2",

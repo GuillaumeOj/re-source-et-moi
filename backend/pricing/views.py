@@ -1,7 +1,7 @@
-from django.db.models import QuerySet
+from django.db.models import Prefetch, QuerySet
 from rest_framework import generics, permissions
 
-from pricing.models import PricingType
+from pricing.models import Price, PricingType
 from pricing.serializers import PricingTypeSerializer
 
 
@@ -17,7 +17,10 @@ class PricingTypeListView(generics.ListAPIView):
     pagination_class = None
 
     def get_queryset(self) -> QuerySet[PricingType]:
-        # prefetch_related, so the whole response is two queries whatever the number of
-        # groups. The serializer drops unpublished lines from the prefetched set in Python
-        # rather than filtering here — see PricingTypeSerializer.get_prices.
-        return PricingType.objects.filter(is_published=True).prefetch_related("prices")
+        # "Published only" is said once, here, for groups and their lines alike — the
+        # serializer just renders what it is handed. The Prefetch keeps the whole response
+        # at two queries however many groups there are, and applying the filter inside it
+        # (rather than after) means the prefetch cache holds exactly the rows to render.
+        return PricingType.objects.filter(is_published=True).prefetch_related(
+            Prefetch("prices", queryset=Price.objects.filter(is_published=True))
+        )

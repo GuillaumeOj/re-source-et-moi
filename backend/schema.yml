@@ -117,9 +117,7 @@ components:
           title: Type de lieu
         location_label:
           type: string
-          title: Libellé du lieu
-          description: Laisser vide pour le déduire du lieu (« En ligne », ou la ville).
-          maxLength: 120
+          readOnly: true
         online_url:
           type: string
           format: uri
@@ -191,6 +189,10 @@ components:
         Nested rather than a second endpoint because the site renders exactly this shape —
         one card per group, a list of lines inside it. One request, and no chance of the two
         halves arriving inconsistent.
+
+        Which lines are visible is decided once, in the view's Prefetch — not here. A plain
+        nested serializer then types itself in the OpenAPI schema, where a SerializerMethodField
+        would have needed an @extend_schema_field to say what it returns.
       properties:
         id:
           type: string

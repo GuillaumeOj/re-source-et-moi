@@ -1,25 +1,17 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import HomePage from "@/app/page";
-import { Section } from "@/components/ui/Section";
-import { SectionHeading } from "@/components/ui/SectionHeading";
-import { ateliers } from "@/content/ateliers";
 import { navLinks } from "@/content/site";
-import { tarifs } from "@/content/tarifs";
 
-// Workshops is an async Server Component that fetches from the backend, and React's client
-// renderer cannot resolve an async component nested inside a tree. This file is about page
-// composition — landmarks, headings, nav anchors — so it substitutes a synchronous shell
-// with the same id and the same headings. The headings still come from the real content
-// modules, so a copy change is still caught here; the component's own behaviour (data,
-// formatting, failure handling) is covered directly in workshops.test.tsx.
-vi.mock("@/components/sections/Workshops", () => ({
-  Workshops: () => (
-    <Section id="ateliers" background="creme" aria-labelledby="ateliers-title">
-      <SectionHeading id="ateliers-title" eyebrow={ateliers.eyebrow} title={ateliers.title} />
-      <h3>{tarifs.title}</h3>
-    </Section>
-  ),
+// React's client renderer cannot resolve an async Server Component, so the two that fetch
+// from the backend are stubbed out. Workshops itself is NOT mocked — it is synchronous, so
+// this suite asserts against the real section: its real id, its real headings. Only the
+// data inside is replaced, and that data's own behaviour is covered in workshops.test.tsx.
+vi.mock("@/components/sections/workshops/AgendaList", () => ({
+  AgendaList: () => <ul />,
+}));
+vi.mock("@/components/sections/workshops/PricingCards", () => ({
+  PricingCards: () => <div />,
 }));
 
 describe("HomePage", () => {

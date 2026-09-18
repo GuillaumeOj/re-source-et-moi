@@ -20,7 +20,8 @@ from django.utils import timezone
 from agenda.models import Event
 from config.seeding import guard_dev_only
 
-MORNING = (datetime.time(10, 0), datetime.time(12, 0))
+MORNING_START = datetime.time(10, 0)
+MORNING_END = datetime.time(12, 0)
 
 
 class Command(BaseCommand):
@@ -37,16 +38,16 @@ class Command(BaseCommand):
             Event(
                 title="Brain Gym® en mouvement",
                 date=today + datetime.timedelta(days=14),
-                start_time=MORNING[0],
-                end_time=MORNING[1],
+                start_time=MORNING_START,
+                end_time=MORNING_END,
                 location_kind=Event.LocationKind.ONLINE,
                 description="Une matinée pour découvrir les mouvements de base.",
             ),
             Event(
                 title="ECAP & apprentissage",
                 date=today + datetime.timedelta(days=28),
-                start_time=MORNING[0],
-                end_time=MORNING[1],
+                start_time=MORNING_START,
+                end_time=MORNING_END,
                 location_kind=Event.LocationKind.ONSITE,
                 address_line1="12 rue de la Charité",
                 postal_code="69002",
@@ -55,16 +56,16 @@ class Command(BaseCommand):
             Event(
                 title="La ligne médiane, pas à pas",
                 date=today + datetime.timedelta(days=42),
-                start_time=MORNING[0],
-                end_time=MORNING[1],
+                start_time=MORNING_START,
+                end_time=MORNING_END,
                 location_kind=Event.LocationKind.ONLINE,
             ),
             # Not published: present in the admin, absent from the API.
             Event(
                 title="Atelier en préparation",
                 date=today + datetime.timedelta(days=56),
-                start_time=MORNING[0],
-                end_time=MORNING[1],
+                start_time=MORNING_START,
+                end_time=MORNING_END,
                 location_kind=Event.LocationKind.ONLINE,
                 is_published=False,
             ),
@@ -72,16 +73,13 @@ class Command(BaseCommand):
             Event(
                 title="Brain Gym® — session passée",
                 date=today - datetime.timedelta(days=7),
-                start_time=MORNING[0],
-                end_time=MORNING[1],
+                start_time=MORNING_START,
+                end_time=MORNING_END,
                 location_kind=Event.LocationKind.ONSITE,
                 city="Lyon",
             ),
         ]
-        # save() per instance rather than bulk_create: location_label is derived there, and
-        # bulk_create bypasses save() entirely.
-        for event in events:
-            event.save()
+        Event.objects.bulk_create(events)
 
         self.stdout.write(
             self.style.SUCCESS(f"Agenda seeded: {len(events)} ateliers ({deleted} supprimés).")

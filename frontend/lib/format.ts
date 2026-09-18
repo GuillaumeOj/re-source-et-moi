@@ -23,21 +23,19 @@ const fullDateFormatter = new Intl.DateTimeFormat("fr-FR", {
   year: "numeric",
   timeZone: TIME_ZONE,
 });
-// Whole-euro prices are the norm here, so "75 €" reads better than "75,00 €". A price with
-// cents must still show both of them: one shared formatter with min 0 / max 2 would render
-// 75.50 as "75,5 €", which no price is ever written as.
-const wholeEuroFormatter = new Intl.NumberFormat("fr-FR", {
+const euroFormatter = new Intl.NumberFormat("fr-FR", {
   style: "currency",
   currency: "EUR",
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 0,
+  // Whole-euro prices are the norm here, so "75 €" reads better than "75,00 €", while a
+  // price with cents still shows both of them ("75,50 €"). This is that 0-or-2 rule in one
+  // option — min 0 / max 2 would render 75.50 as "75,5 €", which no price is written as.
+  trailingZeroDisplay: "stripIfInteger",
 });
-const centsEuroFormatter = new Intl.NumberFormat("fr-FR", {
-  style: "currency",
-  currency: "EUR",
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
+
+/** Intl returns French months and weekdays lowercase; these sit alone, so they lead caps. */
+function capitalise(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
 
 /**
  * Parse an API date ("2026-10-01") as noon UTC.
@@ -56,15 +54,9 @@ export function formatDay(isoDate: string): string {
   return dayFormatter.format(parseApiDate(isoDate));
 }
 
-/**
- * The abbreviated month for the date badge — "juin", "juil.".
- *
- * Capitalised because it sits alone in the badge, where French sentence case does not
- * apply. Intl returns it lowercase.
- */
+/** The abbreviated month for the date badge — "Juin", "Juil.". */
 export function formatMonth(isoDate: string): string {
-  const month = monthFormatter.format(parseApiDate(isoDate));
-  return month.charAt(0).toUpperCase() + month.slice(1);
+  return capitalise(monthFormatter.format(parseApiDate(isoDate)));
 }
 
 /** The full date, for a screen reader and the `datetime` title — "mercredi 1 octobre 2026". */
@@ -80,10 +72,9 @@ export function formatTime(isoTime: string): string {
 
 /** The agenda row's schedule line — "Samedi · 10h–12h". */
 export function formatSchedule(isoDate: string, start: string, end: string): string {
-  const weekday = weekdayFormatter.format(parseApiDate(isoDate));
-  const capitalised = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+  const weekday = capitalise(weekdayFormatter.format(parseApiDate(isoDate)));
   // En dash between times, as the original copy had it.
-  return `${capitalised} · ${formatTime(start)}–${formatTime(end)}`;
+  return `${weekday} · ${formatTime(start)}–${formatTime(end)}`;
 }
 
 /**
@@ -96,8 +87,5 @@ export function formatPrice(amount: string | null, onDemand: boolean): string {
   if (onDemand || amount === null) {
     return "Sur devis";
   }
-  const value = Number(amount);
-  return Number.isInteger(value)
-    ? wholeEuroFormatter.format(value)
-    : centsEuroFormatter.format(value);
+  return euroFormatter.format(Number(amount));
 }

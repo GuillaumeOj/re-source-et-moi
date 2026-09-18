@@ -105,11 +105,7 @@ export interface components {
             end_time: string;
             /** Type de lieu */
             location_kind: components["schemas"]["LocationKindEnum"];
-            /**
-             * Libellé du lieu
-             * @description Laisser vide pour le déduire du lieu (« En ligne », ou la ville).
-             */
-            location_label: string;
+            readonly location_label: string;
             /**
              * Lien de visioconférence
              * Format: uri
@@ -155,6 +151,10 @@ export interface components {
          *     Nested rather than a second endpoint because the site renders exactly this shape —
          *     one card per group, a list of lines inside it. One request, and no chance of the two
          *     halves arriving inconsistent.
+         *
+         *     Which lines are visible is decided once, in the view's Prefetch — not here. A plain
+         *     nested serializer then types itself in the OpenAPI schema, where a SerializerMethodField
+         *     would have needed an @extend_schema_field to say what it returns.
          */
         PricingType: {
             /** Format: uuid */

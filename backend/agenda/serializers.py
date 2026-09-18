@@ -16,6 +16,10 @@ class EventSerializer(serializers.ModelSerializer):
     anything downstream wants them apart.
     """
 
+    # Both are read-only model properties: the label falls back to the kind or the city,
+    # the address is assembled from the four stored parts. Neither has a stored copy that
+    # could go stale.
+    location_label = serializers.CharField(read_only=True)
     address = serializers.SerializerMethodField()
 
     class Meta:
@@ -37,9 +41,7 @@ class EventSerializer(serializers.ModelSerializer):
         """The postal address on one line, or "" for an online workshop."""
         if event.is_online:
             return ""
-        parts = [
-            event.address_line1,
-            event.address_line2,
-            " ".join(part for part in (event.postal_code, event.city) if part),
-        ]
-        return ", ".join(part for part in parts if part)
+        # The postcode and city share a line ("69002 Lyon"); everything else is
+        # comma-separated. Blanks drop out of both joins.
+        locality = " ".join(filter(None, (event.postal_code, event.city)))
+        return ", ".join(filter(None, (event.address_line1, event.address_line2, locality)))
