@@ -4,6 +4,192 @@
  */
 
 export interface paths {
+    "/auth/account/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** @description Change the logged-in staff member's username and e-mail. */
+        put: operations["auth_account_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/csrf/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Set the CSRF cookie, and nothing else.
+         *
+         *     Every write needs the token, and a logged-out page (login, reset) has nothing else to
+         *     get it from. The editor's fetch layer calls this by itself before its first write, so
+         *     no page has to know about it.
+         */
+        get: operations["auth_csrf_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/login/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["auth_login_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/logout/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["auth_logout_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/password/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * @description Change the logged-in staff member's password, keeping the session open.
+         *
+         *     Django invalidates every session when the password changes. update_session_auth_hash
+         *     re-validates this one, so she isn't logged out of the page she changed it from, while
+         *     any other browser still logged in as her is.
+         */
+        post: operations["auth_password_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/password-reset/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * @description Send a reset link to a staff member's e-mail address.
+         *
+         *     Always 204, whether or not the address matches an account, so the form cannot be used
+         *     to find out which addresses do. For the same reason a Brevo failure is logged rather
+         *     than reported: only a matching address ever reaches the send, so an error would reveal
+         *     the match.
+         *
+         *     The link points at settings.EDITOR_URL and never at anything taken from the request.
+         *     See the note on EDITOR_URL in settings.py.
+         */
+        post: operations["auth_password_reset_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/password-reset/confirm/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * @description Set a new password from the link in the reset e-mail.
+         *
+         *     The token is Django's: single-use (it is tied to the current password hash), and
+         *     valid for PASSWORD_RESET_TIMEOUT. Setting the password ends every open session.
+         */
+        post: operations["auth_password_reset_confirm_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/password-rules/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description The password rules, in French, straight from AUTH_PASSWORD_VALIDATORS.
+         *
+         *     The editor shows these under every "new password" field. They come from the backend
+         *     so the hint can never promise less, or more, than what is actually enforced.
+         */
+        get: operations["auth_password_rules_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/session/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Who is logged in: 401 without a session, 403 for a non-staff one. The editor uses
+         *     this to decide between its login form and the editor itself.
+         */
+        get: operations["auth_session_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/events/": {
         parameters: {
             query?: never;
@@ -48,6 +234,178 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/manage/events/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Every workshop (drafts and past ones included), editable by staff.
+         *
+         *     This backs the site owner's editor. Unlike the public list it hides nothing: a draft is
+         *     exactly what she is working on, and a past workshop is what she duplicates to plan the
+         *     next one. The list is paginated, because unlike the public feed it only ever grows.
+         */
+        get: operations["manage_events_list"];
+        put?: never;
+        /**
+         * @description Every workshop (drafts and past ones included), editable by staff.
+         *
+         *     This backs the site owner's editor. Unlike the public list it hides nothing: a draft is
+         *     exactly what she is working on, and a past workshop is what she duplicates to plan the
+         *     next one. The list is paginated, because unlike the public feed it only ever grows.
+         */
+        post: operations["manage_events_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/manage/events/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Every workshop (drafts and past ones included), editable by staff.
+         *
+         *     This backs the site owner's editor. Unlike the public list it hides nothing: a draft is
+         *     exactly what she is working on, and a past workshop is what she duplicates to plan the
+         *     next one. The list is paginated, because unlike the public feed it only ever grows.
+         */
+        get: operations["manage_events_retrieve"];
+        /**
+         * @description Every workshop (drafts and past ones included), editable by staff.
+         *
+         *     This backs the site owner's editor. Unlike the public list it hides nothing: a draft is
+         *     exactly what she is working on, and a past workshop is what she duplicates to plan the
+         *     next one. The list is paginated, because unlike the public feed it only ever grows.
+         */
+        put: operations["manage_events_update"];
+        post?: never;
+        /**
+         * @description Every workshop (drafts and past ones included), editable by staff.
+         *
+         *     This backs the site owner's editor. Unlike the public list it hides nothing: a draft is
+         *     exactly what she is working on, and a past workshop is what she duplicates to plan the
+         *     next one. The list is paginated, because unlike the public feed it only ever grows.
+         */
+        delete: operations["manage_events_destroy"];
+        options?: never;
+        head?: never;
+        /**
+         * @description Every workshop (drafts and past ones included), editable by staff.
+         *
+         *     This backs the site owner's editor. Unlike the public list it hides nothing: a draft is
+         *     exactly what she is working on, and a past workshop is what she duplicates to plan the
+         *     next one. The list is paginated, because unlike the public feed it only ever grows.
+         */
+        patch: operations["manage_events_partial_update"];
+        trace?: never;
+    };
+    "/manage/pricing-types/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Every tariff group with every line (hidden ones included), editable by staff.
+         *
+         *     This backs the site owner's editor. Lines are written through their group (see
+         *     PricingTypeManageSerializer), so there is no separate prices endpoint to keep
+         *     consistent with this one.
+         */
+        get: operations["manage_pricing_types_list"];
+        put?: never;
+        /**
+         * @description Every tariff group with every line (hidden ones included), editable by staff.
+         *
+         *     This backs the site owner's editor. Lines are written through their group (see
+         *     PricingTypeManageSerializer), so there is no separate prices endpoint to keep
+         *     consistent with this one.
+         */
+        post: operations["manage_pricing_types_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/manage/pricing-types/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Every tariff group with every line (hidden ones included), editable by staff.
+         *
+         *     This backs the site owner's editor. Lines are written through their group (see
+         *     PricingTypeManageSerializer), so there is no separate prices endpoint to keep
+         *     consistent with this one.
+         */
+        get: operations["manage_pricing_types_retrieve"];
+        /**
+         * @description Every tariff group with every line (hidden ones included), editable by staff.
+         *
+         *     This backs the site owner's editor. Lines are written through their group (see
+         *     PricingTypeManageSerializer), so there is no separate prices endpoint to keep
+         *     consistent with this one.
+         */
+        put: operations["manage_pricing_types_update"];
+        post?: never;
+        /**
+         * @description Every tariff group with every line (hidden ones included), editable by staff.
+         *
+         *     This backs the site owner's editor. Lines are written through their group (see
+         *     PricingTypeManageSerializer), so there is no separate prices endpoint to keep
+         *     consistent with this one.
+         */
+        delete: operations["manage_pricing_types_destroy"];
+        options?: never;
+        head?: never;
+        /**
+         * @description Every tariff group with every line (hidden ones included), editable by staff.
+         *
+         *     This backs the site owner's editor. Lines are written through their group (see
+         *     PricingTypeManageSerializer), so there is no separate prices endpoint to keep
+         *     consistent with this one.
+         */
+        patch: operations["manage_pricing_types_partial_update"];
+        trace?: never;
+    };
+    "/manage/pricing-types/reorder/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * @description Set the order of every group at once, from the full list of ids.
+         *
+         *     One request, and one UPDATE statement, rather than a PATCH per group from the
+         *     browser: a reorder is all-or-nothing, never half-renumbered. The list must name
+         *     every group exactly once, so a stale screen (a group added or deleted elsewhere)
+         *     is refused instead of leaving two groups on the same position.
+         */
+        post: operations["manage_pricing_types_reorder_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/pricing-types/": {
         parameters: {
             query?: never;
@@ -74,6 +432,24 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * @description The editor's "Mon compte" form: new username and e-mail, confirmed by the current
+         *     password. The e-mail is where a reset link goes, so changing it is as sensitive as
+         *     changing the password, and it is required: an account without one cannot be recovered.
+         */
+        AccountRequest: {
+            /**
+             * Nom d’utilisateur
+             * @description Requis. 150 caractères maximum. Uniquement des lettres, nombres et les caractères « @ », « . », « + », « - » et « _ ».
+             */
+            username: string;
+            /**
+             * Adresse électronique
+             * Format: email
+             */
+            email: string;
+            current_password: string;
+        };
         /**
          * @description A workshop as the public agenda needs it.
          *
@@ -116,11 +492,223 @@ export interface components {
             description: string;
         };
         /**
+         * @description A workshop as the site owner's editor reads and writes it.
+         *
+         *     Not the public shape. It carries the stored address parts and the label override
+         *     (what the form edits) and `is_published`. The derived `location_label` is read-only,
+         *     so the list can show what the site will display. Validation reuses `Event.clean()`
+         *     through ModelCleanMixin, so the editor gets the admin's French field messages.
+         */
+        EventManage: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Titre */
+            title: string;
+            /** Format: date */
+            date: string;
+            /**
+             * Heure de début
+             * Format: time
+             */
+            start_time: string;
+            /**
+             * Heure de fin
+             * Format: time
+             */
+            end_time: string;
+            /** Type de lieu */
+            location_kind: components["schemas"]["LocationKindEnum"];
+            /**
+             * Libellé du lieu
+             * @description Laisser vide pour le déduire du lieu (« En ligne », ou la ville).
+             */
+            location_label_override: string;
+            readonly location_label: string;
+            /**
+             * Lien de visioconférence
+             * Format: uri
+             */
+            online_url: string;
+            /** Adresse */
+            address_line1: string;
+            /** Complément d'adresse */
+            address_line2: string;
+            /** Code postal */
+            postal_code: string;
+            /** Ville */
+            city: string;
+            description: string;
+            /**
+             * Publié
+             * @description Décocher pour préparer un atelier sans l'afficher sur le site.
+             */
+            is_published: boolean;
+        };
+        /**
+         * @description A workshop as the site owner's editor reads and writes it.
+         *
+         *     Not the public shape. It carries the stored address parts and the label override
+         *     (what the form edits) and `is_published`. The derived `location_label` is read-only,
+         *     so the list can show what the site will display. Validation reuses `Event.clean()`
+         *     through ModelCleanMixin, so the editor gets the admin's French field messages.
+         */
+        EventManageRequest: {
+            /** Titre */
+            title: string;
+            /** Format: date */
+            date: string;
+            /**
+             * Heure de début
+             * Format: time
+             */
+            start_time: string;
+            /**
+             * Heure de fin
+             * Format: time
+             */
+            end_time: string;
+            /** Type de lieu */
+            location_kind?: components["schemas"]["LocationKindEnum"];
+            /**
+             * Libellé du lieu
+             * @description Laisser vide pour le déduire du lieu (« En ligne », ou la ville).
+             */
+            location_label_override?: string;
+            /**
+             * Lien de visioconférence
+             * Format: uri
+             */
+            online_url?: string;
+            /** Adresse */
+            address_line1?: string;
+            /** Complément d'adresse */
+            address_line2?: string;
+            /** Code postal */
+            postal_code?: string;
+            /** Ville */
+            city?: string;
+            description?: string;
+            /**
+             * Publié
+             * @description Décocher pour préparer un atelier sans l'afficher sur le site.
+             */
+            is_published?: boolean;
+        };
+        /**
          * @description * `online` - En ligne
          *     * `onsite` - Sur place
          * @enum {string}
          */
         LocationKindEnum: "online" | "onsite";
+        LoginRequest: {
+            username: string;
+            password: string;
+        };
+        PaginatedEventManageList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous: string | null;
+            results: components["schemas"]["EventManage"][];
+        };
+        /** @description The request shape only. PasswordChangeForm does the validating. */
+        PasswordChangeRequest: {
+            old_password: string;
+            new_password1: string;
+            new_password2: string;
+        };
+        /** @description The request shape only. SetPasswordForm does the validating. */
+        PasswordResetConfirmRequest: {
+            uid: string;
+            token: string;
+            new_password1: string;
+            new_password2: string;
+        };
+        PasswordResetRequestRequest: {
+            /** Format: email */
+            email: string;
+        };
+        PasswordRules: {
+            readonly rules: string[];
+        };
+        /**
+         * @description A workshop as the site owner's editor reads and writes it.
+         *
+         *     Not the public shape. It carries the stored address parts and the label override
+         *     (what the form edits) and `is_published`. The derived `location_label` is read-only,
+         *     so the list can show what the site will display. Validation reuses `Event.clean()`
+         *     through ModelCleanMixin, so the editor gets the admin's French field messages.
+         */
+        PatchedEventManageRequest: {
+            /** Titre */
+            title?: string;
+            /** Format: date */
+            date?: string;
+            /**
+             * Heure de début
+             * Format: time
+             */
+            start_time?: string;
+            /**
+             * Heure de fin
+             * Format: time
+             */
+            end_time?: string;
+            /** Type de lieu */
+            location_kind?: components["schemas"]["LocationKindEnum"];
+            /**
+             * Libellé du lieu
+             * @description Laisser vide pour le déduire du lieu (« En ligne », ou la ville).
+             */
+            location_label_override?: string;
+            /**
+             * Lien de visioconférence
+             * Format: uri
+             */
+            online_url?: string;
+            /** Adresse */
+            address_line1?: string;
+            /** Complément d'adresse */
+            address_line2?: string;
+            /** Code postal */
+            postal_code?: string;
+            /** Ville */
+            city?: string;
+            description?: string;
+            /**
+             * Publié
+             * @description Décocher pour préparer un atelier sans l'afficher sur le site.
+             */
+            is_published?: boolean;
+        };
+        /**
+         * @description A tariff group with its lines, saved in one request.
+         *
+         *     This mirrors the admin's inline: the site owner edits "Individuel" and all its lines
+         *     on one screen, and one "Enregistrer" writes the lot. When `prices` is sent, it is the
+         *     group's complete list. Lines with an `id` are updated, lines without one are created,
+         *     and any existing line left out is deleted, all in one transaction. So a bad line
+         *     leaves the whole group as it was.
+         */
+        PatchedPricingTypeManageRequest: {
+            /** Nom */
+            name?: string;
+            /** @description Note affichée sous les tarifs de ce groupe. */
+            description?: string;
+            /** @description Ordre d'affichage : le plus petit nombre en premier. */
+            position?: number;
+            /** Publié */
+            is_published?: boolean;
+            prices?: components["schemas"]["PriceManageRequest"][];
+        };
         /**
          * @description One tariff line.
          *
@@ -146,6 +734,60 @@ export interface components {
             on_demand: boolean;
         };
         /**
+         * @description One tariff line as the editor writes it, inside its group.
+         *
+         *     `id` is writable (optional) here, unlike on the model. It is how a save tells the
+         *     group "this is the existing line, updated" apart from "this is a new line". Lines
+         *     sent without one are created.
+         */
+        PriceManage: {
+            /** Format: uuid */
+            id: string;
+            /** Libellé */
+            description: string;
+            /**
+             * Montant
+             * Format: decimal
+             * @description En euros. Laisser vide si le tarif est sur devis.
+             */
+            amount: string | null;
+            /**
+             * Sur devis
+             * @description Cocher pour afficher « Sur devis » à la place d'un montant.
+             */
+            on_demand: boolean;
+            position: number;
+            /** Publié */
+            is_published: boolean;
+        };
+        /**
+         * @description One tariff line as the editor writes it, inside its group.
+         *
+         *     `id` is writable (optional) here, unlike on the model. It is how a save tells the
+         *     group "this is the existing line, updated" apart from "this is a new line". Lines
+         *     sent without one are created.
+         */
+        PriceManageRequest: {
+            /** Format: uuid */
+            id?: string;
+            /** Libellé */
+            description: string;
+            /**
+             * Montant
+             * Format: decimal
+             * @description En euros. Laisser vide si le tarif est sur devis.
+             */
+            amount: string | null;
+            /**
+             * Sur devis
+             * @description Cocher pour afficher « Sur devis » à la place d'un montant.
+             */
+            on_demand: boolean;
+            position?: number;
+            /** Publié */
+            is_published?: boolean;
+        };
+        /**
          * @description A tariff group with its lines nested.
          *
          *     Nested rather than a second endpoint because the site renders exactly this shape —
@@ -165,6 +807,57 @@ export interface components {
             description: string;
             readonly prices: components["schemas"]["Price"][];
         };
+        /**
+         * @description A tariff group with its lines, saved in one request.
+         *
+         *     This mirrors the admin's inline: the site owner edits "Individuel" and all its lines
+         *     on one screen, and one "Enregistrer" writes the lot. When `prices` is sent, it is the
+         *     group's complete list. Lines with an `id` are updated, lines without one are created,
+         *     and any existing line left out is deleted, all in one transaction. So a bad line
+         *     leaves the whole group as it was.
+         */
+        PricingTypeManage: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Nom */
+            name: string;
+            /** @description Note affichée sous les tarifs de ce groupe. */
+            description: string;
+            /** @description Ordre d'affichage : le plus petit nombre en premier. */
+            position: number;
+            /** Publié */
+            is_published: boolean;
+            prices: components["schemas"]["PriceManage"][];
+        };
+        /**
+         * @description A tariff group with its lines, saved in one request.
+         *
+         *     This mirrors the admin's inline: the site owner edits "Individuel" and all its lines
+         *     on one screen, and one "Enregistrer" writes the lot. When `prices` is sent, it is the
+         *     group's complete list. Lines with an `id` are updated, lines without one are created,
+         *     and any existing line left out is deleted, all in one transaction. So a bad line
+         *     leaves the whole group as it was.
+         */
+        PricingTypeManageRequest: {
+            /** Nom */
+            name: string;
+            /** @description Note affichée sous les tarifs de ce groupe. */
+            description?: string;
+            /** @description Ordre d'affichage : le plus petit nombre en premier. */
+            position?: number;
+            /** Publié */
+            is_published?: boolean;
+            prices?: components["schemas"]["PriceManageRequest"][];
+        };
+        /** @description Every group's id, in the order the site should show them. */
+        PricingTypeOrderRequest: {
+            ids: string[];
+        };
+        Session: {
+            readonly username: string;
+            /** Format: email */
+            readonly email: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -174,6 +867,202 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    auth_account_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccountRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["AccountRequest"];
+                "multipart/form-data": components["schemas"]["AccountRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Session"];
+                };
+            };
+        };
+    };
+    auth_csrf_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    auth_login_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["LoginRequest"];
+                "multipart/form-data": components["schemas"]["LoginRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Session"];
+                };
+            };
+        };
+    };
+    auth_logout_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    auth_password_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordChangeRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PasswordChangeRequest"];
+                "multipart/form-data": components["schemas"]["PasswordChangeRequest"];
+            };
+        };
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    auth_password_reset_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordResetRequestRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PasswordResetRequestRequest"];
+                "multipart/form-data": components["schemas"]["PasswordResetRequestRequest"];
+            };
+        };
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    auth_password_reset_confirm_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordResetConfirmRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PasswordResetConfirmRequest"];
+                "multipart/form-data": components["schemas"]["PasswordResetConfirmRequest"];
+            };
+        };
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    auth_password_rules_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PasswordRules"];
+                };
+            };
+        };
+    };
+    auth_session_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Session"];
+                };
+            };
+        };
+    };
     events_list: {
         parameters: {
             query?: never;
@@ -211,6 +1100,330 @@ export interface operations {
                         status?: string;
                     };
                 };
+            };
+        };
+    };
+    manage_events_list: {
+        parameters: {
+            query?: {
+                date_from?: string;
+                date_to?: string;
+                /** @description Un numéro de page de l'ensemble des résultats. */
+                page?: number;
+                /** @description Nombre de résultats à retourner par page. */
+                page_size?: number;
+                /**
+                 * @description upcoming: from today on, soonest first. past: before today, latest first.
+                 *
+                 *     * `upcoming` - À venir
+                 *     * `past` - Passés
+                 */
+                period?: "upcoming" | "past";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedEventManageList"];
+                };
+            };
+        };
+    };
+    manage_events_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventManageRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["EventManageRequest"];
+                "multipart/form-data": components["schemas"]["EventManageRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventManage"];
+                };
+            };
+        };
+    };
+    manage_events_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Un(une) Chaîne UUID identifiant ce(cette) atelier. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventManage"];
+                };
+            };
+        };
+    };
+    manage_events_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Un(une) Chaîne UUID identifiant ce(cette) atelier. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventManageRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["EventManageRequest"];
+                "multipart/form-data": components["schemas"]["EventManageRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventManage"];
+                };
+            };
+        };
+    };
+    manage_events_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Un(une) Chaîne UUID identifiant ce(cette) atelier. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    manage_events_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Un(une) Chaîne UUID identifiant ce(cette) atelier. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedEventManageRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedEventManageRequest"];
+                "multipart/form-data": components["schemas"]["PatchedEventManageRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventManage"];
+                };
+            };
+        };
+    };
+    manage_pricing_types_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PricingTypeManage"][];
+                };
+            };
+        };
+    };
+    manage_pricing_types_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PricingTypeManageRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PricingTypeManageRequest"];
+                "multipart/form-data": components["schemas"]["PricingTypeManageRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PricingTypeManage"];
+                };
+            };
+        };
+    };
+    manage_pricing_types_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Un(une) Chaîne UUID identifiant ce(cette) type de tarif. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PricingTypeManage"];
+                };
+            };
+        };
+    };
+    manage_pricing_types_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Un(une) Chaîne UUID identifiant ce(cette) type de tarif. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PricingTypeManageRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PricingTypeManageRequest"];
+                "multipart/form-data": components["schemas"]["PricingTypeManageRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PricingTypeManage"];
+                };
+            };
+        };
+    };
+    manage_pricing_types_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Un(une) Chaîne UUID identifiant ce(cette) type de tarif. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    manage_pricing_types_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Un(une) Chaîne UUID identifiant ce(cette) type de tarif. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedPricingTypeManageRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedPricingTypeManageRequest"];
+                "multipart/form-data": components["schemas"]["PatchedPricingTypeManageRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PricingTypeManage"];
+                };
+            };
+        };
+    };
+    manage_pricing_types_reorder_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PricingTypeOrderRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PricingTypeOrderRequest"];
+                "multipart/form-data": components["schemas"]["PricingTypeOrderRequest"];
+            };
+        };
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

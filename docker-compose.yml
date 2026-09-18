@@ -77,6 +77,10 @@ services:
       # Django is a compose service here, not localhost (which is Next's own container).
       API_BASE_URL: "http://web:8000"
       PORT: "3000"
+      # The editor's secret path, i.e. http://localhost:3001/admin-local. It is also the
+      # default when unset; spelled out so the URL is findable. On Vercel it is a random
+      # per-environment value (see the README's first-time setup).
+      EDITOR_PATH: "admin-local"
     volumes:
       - ./frontend:/app
       # Preserve the container's Linux node_modules (don't let the host's shadow it).

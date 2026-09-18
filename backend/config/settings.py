@@ -4,9 +4,10 @@ Django settings for the Re-Source Et Moi backend.
 Configuration is environment-driven via django-environ so the same code runs
 locally (Docker + Postgres) and on Vercel (Python function + Neon Postgres).
 
-The API is public and read-only: it serves the workshop agenda and the tariffs to the
-Next.js site. There are no site user accounts — the only humans who authenticate are
-staff, through the Django admin, which is the editing UI.
+The public API is read-only: it serves the workshop agenda and the tariffs to the Next.js
+site. There are no site user accounts. The only people who authenticate are staff, either
+through the editor page of the Next.js site (session login under /api/auth/, writes under
+/api/manage/) or through the Django admin, which remains as a fallback.
 """
 
 from pathlib import Path
@@ -51,6 +52,19 @@ ALLOWED_HOSTS = env(
 # value; no default → startup fails if it's missing); local dev falls back to "admin".
 ADMIN_PATH = (env("ADMIN_PATH") if ON_VERCEL else env("ADMIN_PATH", default="admin")).strip("/")
 
+# The editor's full public URL, secret path included, e.g.
+# "https://re-source-et-moi.fr/admin-3f2c…". The frontend owns the secret (EDITOR_PATH);
+# Django needs its own copy for one thing: the link in a password-reset e-mail. It is
+# configured here rather than taken from the request on purpose. A reset link built from
+# anything the caller sends (Origin, Host, a field in the body) can be pointed at an
+# attacker's site, and the reset token would go with it. Required on Vercel, like
+# ADMIN_PATH.
+EDITOR_URL = (
+    env("EDITOR_URL")
+    if ON_VERCEL
+    else env("EDITOR_URL", default="http://localhost:3001/admin-local")
+).rstrip("/")
+
 
 # Application definition
 
@@ -65,6 +79,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "drf_spectacular",
     "corsheaders",
+    "anymail",
     # Local
     # `config` is the project package, listed as an app so Django finds the management
     # commands under config/management/. It owns no tables — config/models.py holds only
@@ -128,6 +143,24 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
+    # Session only. The editor is a same-origin browser page, so a session cookie plus CSRF
+    # is how it authenticates. DRF's default also accepts HTTP Basic, which would let a
+    # password be tried on every endpoint without passing through the throttled login view.
+    # The subclass answers 401 for "no session" so the editor can tell it from a 403.
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "config.authentication.EditorSessionAuthentication",
+    ],
+    # Only views that name a scope are throttled: the editor's login and the two halves of
+    # the password reset. Asking for a reset sends e-mail, so it is also a spam lever and
+    # gets the tight limit. Confirming is looser, because a mistyped confirmation counts
+    # too and the token itself cannot be guessed. The counters live in the default
+    # (per-process) cache, so on serverless they slow a guesser down rather than stop one.
+    # Pair them with a strong password.
+    "DEFAULT_THROTTLE_RATES": {
+        "login": "10/min",
+        "password_reset": "5/hour",
+        "password_reset_confirm": "20/hour",
+    },
     # drf-spectacular introspects the views to build the OpenAPI schema the frontend's
     # TypeScript types are generated from (see SPECTACULAR_SETTINGS + config/urls.py).
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
@@ -206,3 +239,33 @@ CORS_ALLOWED_ORIGINS = env("CORS_ALLOWED_ORIGINS", cast=list, default=["http://l
 # Behind Vercel's proxy, trust the forwarded protocol header.
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS", cast=list, default=["https://*.vercel.app"])
+
+# The editor's session and CSRF cookies travel over HTTPS only once deployed. Locally the
+# dev stack is plain http://localhost, where a Secure cookie would never be sent back.
+SESSION_COOKIE_SECURE = ON_VERCEL
+CSRF_COOKIE_SECURE = ON_VERCEL
+
+
+# E-mail. The only message sent is the editor's password-reset link, through Brevo's
+# transactional API via django-anymail. On Vercel both the key and the sender are
+# required: a deployment that silently dropped reset e-mails would lock the site owner out
+# with no error anywhere. Locally, with no key, messages print to the Django console
+# instead, which is how you follow a reset link in development.
+BREVO_API_KEY = env("BREVO_API_KEY") if ON_VERCEL else env("BREVO_API_KEY", default="")
+ANYMAIL = {"BREVO_API_KEY": BREVO_API_KEY}
+EMAIL_BACKEND = (
+    "anymail.backends.brevo.EmailBackend"
+    if BREVO_API_KEY
+    else "django.core.mail.backends.console.EmailBackend"
+)
+# Must be a sender verified in the Brevo account, e.g. "Re-Source Et Moi <contact@…>".
+DEFAULT_FROM_EMAIL = (
+    env("DEFAULT_FROM_EMAIL")
+    if ON_VERCEL
+    else env("DEFAULT_FROM_EMAIL", default="Re-Source Et Moi <contact@re-source-et-moi.fr>")
+)
+
+# How long a reset link stays valid. Django's default is three days, far longer than
+# anyone takes to click a link they just asked for. It is kept short because the link is a
+# way into the editor.
+PASSWORD_RESET_TIMEOUT = 60 * 60 * 2

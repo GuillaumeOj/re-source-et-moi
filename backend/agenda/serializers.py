@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from agenda.models import Event
+from config.serializers import ModelCleanMixin
 
 
 class EventSerializer(serializers.ModelSerializer):
@@ -45,3 +46,51 @@ class EventSerializer(serializers.ModelSerializer):
         # comma-separated. Blanks drop out of both joins.
         locality = " ".join(filter(None, (event.postal_code, event.city)))
         return ", ".join(filter(None, (event.address_line1, event.address_line2, locality)))
+
+
+class EventManageSerializer(ModelCleanMixin):
+    """A workshop as the site owner's editor reads and writes it.
+
+    Not the public shape. It carries the stored address parts and the label override
+    (what the form edits) and `is_published`. The derived `location_label` is read-only,
+    so the list can show what the site will display. Validation reuses `Event.clean()`
+    through ModelCleanMixin, so the editor gets the admin's French field messages.
+    """
+
+    location_label = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = Event
+        fields = (
+            "id",
+            "title",
+            "date",
+            "start_time",
+            "end_time",
+            "location_kind",
+            "location_label_override",
+            "location_label",
+            "online_url",
+            "address_line1",
+            "address_line2",
+            "postal_code",
+            "city",
+            "description",
+            "is_published",
+        )
+
+
+class EventManageFilterSerializer(serializers.Serializer):
+    """The query parameters of the editor's workshop list.
+
+    `period` backs the list view's two tabs. `date_from`/`date_to` (inclusive) back the
+    calendar, which asks for the weeks it is showing. They combine, and all are optional.
+    """
+
+    period = serializers.ChoiceField(
+        choices=[("upcoming", "À venir"), ("past", "Passés")],
+        required=False,
+        help_text="upcoming: from today on, soonest first. past: before today, latest first.",
+    )
+    date_from = serializers.DateField(required=False)
+    date_to = serializers.DateField(required=False)
