@@ -66,6 +66,10 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "corsheaders",
     # Local
+    # `config` is the project package, listed as an app so Django finds the management
+    # commands under config/management/. It owns no tables — config/models.py holds only
+    # the abstract UUIDModel — so it needs no migrations.
+    "config",
     "agenda",
     "pricing",
 ]

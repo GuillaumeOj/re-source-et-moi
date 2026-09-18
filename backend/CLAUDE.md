@@ -32,9 +32,13 @@ that swallows `tox -e schema`.
 
 ### The seed commands are how anyone sees your feature
 
-`agenda/seed_agenda` and `pricing/seed_pricing` build the dataset the dev stack runs on
-(`uv run tox -e seed`). A feature the seed never creates is one nobody looks at until it
-surprises them in production.
+`config/seed_admin`, `agenda/seed_agenda` and `pricing/seed_pricing` build what the dev
+stack runs on (`uv run tox -e seed`) — the admin login, then the content it edits. A
+feature the seed never creates is one nobody looks at until it surprises them in
+production.
+
+One command per app, because no app owns another's data; `seed_admin` lives in `config`
+because a `django.contrib.auth` account belongs to neither `agenda` nor `pricing`.
 
 When you add or change a model, extend the matching seed command in the same change:
 
@@ -46,11 +50,14 @@ When you add or change a model, extend the matching seed command in the same cha
 - **New model** → wire it to what it belongs to, not floating on its own.
 - Cover it in `tests/<app>/test_seed_<app>.py`.
 
-Two invariants the seeds must keep: they are **dev only** (guarded by
-`config.seeding.guard_dev_only`, which requires `VERCEL_ENV` absent *and* `DEBUG` on,
-because they wipe the rows they own and on a deployment those rows are the owner's real
-agenda and real prices), and they are **re-runnable** — every run rebuilds the dataset
-rather than piling onto it.
+Two invariants every seed must keep: it is **dev only** (guarded by
+`config.seeding.guard_dev_only`, which requires `VERCEL_ENV` absent *and* `DEBUG` on) and
+it is **re-runnable** — a run rebuilds its dataset rather than piling onto it.
+
+The guard matters for two different reasons. The content seeds wipe the rows they own, and
+on a deployment those rows are the owner's real agenda and real prices. `seed_admin` wipes
+nothing, but mints an account with a known weak password — which on a deployment would be a
+way in. Anything new that seeds accounts or credentials sits behind the same guard.
 
 ## The admin is the product
 

@@ -139,14 +139,19 @@ Everything runs through tox, from `backend/`:
 | `uv run tox`             | The gate: pytest (≥ 90% coverage), ruff, ty                      |
 | `uv run tox -e dev`      | Start Postgres + Django + Next in Docker, then tail logs         |
 | `uv run tox -e dev-down` | Stop the dev stack (the database volume is kept)                 |
-| `uv run tox -e seed`     | Fill the dev database with a starter agenda and tariff set       |
+| `uv run tox -e seed`     | Fill the dev database with an admin login, an agenda and tariffs |
 | `uv run tox -e openapi`  | Regenerate the committed `schema.yml`                            |
 | `uv run tox -e lint`     | ruff check + format check                                        |
 | `uv run tox -e type`     | ty                                                               |
 
 The dev stack serves the site on **http://localhost:3001**, the API on
-**http://localhost:8003**, and the admin on **http://localhost:8003/api/admin/**. Create a
-login with `uv run python manage.py createsuperuser`.
+**http://localhost:8003**, and the admin on **http://localhost:8003/api/admin/**.
+
+`uv run tox -e seed` creates the admin login along with the demo content — **`admin` /
+`admin`**. Re-running it resets that password, which is how you recover it. Override the
+credentials with `DJANGO_SUPERUSER_USERNAME` / `_EMAIL` / `_PASSWORD` (the same variables
+Django's own `createsuperuser` reads). The command refuses to run anywhere that isn't local
+development, so the weak default can never reach a deployment.
 
 Ports (5445 dev db, 5436 test db, 8003 Django, 3001 Next) deliberately avoid
 `ma-garde-sereine`'s, so both stacks can run at once. The two Compose projects are pinned
