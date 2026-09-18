@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AgendaList } from "@/components/sections/workshops/AgendaList";
-import { PricingCards } from "@/components/sections/workshops/PricingCards";
+import { PricingSection } from "@/components/sections/workshops/PricingSection";
 import { ateliers } from "@/content/ateliers";
 import { tarifs } from "@/content/tarifs";
 import type { Event, PricingType } from "@/lib/api/client";
@@ -100,22 +100,44 @@ describe("AgendaList", () => {
     expect(screen.getByText("Samedi · 10h30–12h")).toBeInTheDocument();
   });
 
-  it("shows the city for an on-site workshop", async () => {
+  it("shows the city and the full address for an on-site workshop", async () => {
+    const address = "12 rue de la Charité, 69002 Lyon";
     vi.mocked(getEvents).mockResolvedValue([
-      makeEvent({ location_kind: "onsite", location_label: "Lyon", address: "12 rue X, Lyon" }),
+      makeEvent({ location_kind: "onsite", location_label: "Lyon", address }),
     ]);
 
     render(await AgendaList());
 
     expect(screen.getByText("Lyon")).toBeInTheDocument();
+    const link = screen.getByRole("link", { name: new RegExp(address) });
+    expect(link.closest("address")).not.toBeNull();
+    expect(link).toHaveAttribute(
+      "href",
+      `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`,
+    );
   });
 
-  it("says so when the agenda is empty rather than rendering nothing", async () => {
+  it("shows no address, and never the video link, for an online workshop", async () => {
+    vi.mocked(getEvents).mockResolvedValue([
+      makeEvent({ online_url: "https://meet.example.com/secret" }),
+    ]);
+
+    const { container } = render(await AgendaList());
+
+    expect(container.querySelector("address")).toBeNull();
+    expect(container.innerHTML).not.toContain("meet.example.com");
+  });
+
+  it("says so when the agenda is empty, and points at the contact form", async () => {
     vi.mocked(getEvents).mockResolvedValue([]);
 
     render(await AgendaList());
 
     expect(screen.getByText(ateliers.empty)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: ateliers.emptyCta })).toHaveAttribute(
+      "href",
+      "#contact",
+    );
   });
 
   it("degrades to a notice when the backend is unreachable", async () => {
@@ -136,16 +158,16 @@ describe("AgendaList", () => {
     expectFailureLogged();
 
     render(await AgendaList());
-    render(await PricingCards());
+    render(await PricingSection());
 
     expect(screen.getByText(ateliers.unavailable)).toBeInTheDocument();
     expect(screen.getByText("75 €")).toBeInTheDocument();
   });
 });
 
-describe("PricingCards", () => {
+describe("PricingSection", () => {
   it("formats an amount as euros", async () => {
-    render(await PricingCards());
+    render(await PricingSection());
 
     expect(screen.getByText("Adulte")).toBeInTheDocument();
     expect(screen.getByText("75 €")).toBeInTheDocument();
@@ -166,7 +188,7 @@ describe("PricingCards", () => {
       }),
     ]);
 
-    render(await PricingCards());
+    render(await PricingSection());
 
     expect(screen.getByText("Sur devis")).toBeInTheDocument();
   });
@@ -185,27 +207,58 @@ describe("PricingCards", () => {
       }),
     ]);
 
-    render(await PricingCards());
+    render(await PricingSection());
 
     // Never "75,5 €" — a price shows two decimals or none.
     expect(screen.getByText(/75,50/)).toBeInTheDocument();
   });
 
-  it("degrades to a notice when the backend is unreachable", async () => {
+  it("renders one card per group, headed by its name, with its note under the lines", async () => {
+    const { container } = render(await PricingSection());
+
+    expect(screen.getByRole("heading", { name: tarifs.title })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Individuel" })).toBeInTheDocument();
+    // Name, then the price rows, then the group's note.
+    const text = container.textContent ?? "";
+    expect(text.indexOf("Individuel")).toBeLessThan(text.indexOf("Adulte"));
+    expect(text.indexOf("Adulte")).toBeLessThan(text.indexOf("Par séance individuelle."));
+  });
+
+  it("keeps the heading and shows a notice when the backend is unreachable", async () => {
+    // The tariffs exist, they just cannot be read right now — unlike an empty list, this
+    // is not a reason to hide the sub-section.
     vi.mocked(getPricingTypes).mockRejectedValue(new Error("ECONNREFUSED"));
     expectFailureLogged();
 
-    render(await PricingCards());
+    render(await PricingSection());
 
+    expect(screen.getByRole("heading", { name: tarifs.title })).toBeInTheDocument();
     expect(screen.getByText(tarifs.unavailable)).toBeInTheDocument();
     expect(screen.queryByText("75 €")).not.toBeInTheDocument();
   });
 
-  it("shows the notice rather than an empty grid when there are no tariffs", async () => {
-    vi.mocked(getPricingTypes).mockResolvedValue([]);
+  it.each([
+    ["no tariffs are set up", []],
+    ["every group is empty", [makePricingType({ prices: [] })]],
+  ])("hides the whole sub-section when %s", async (_case, pricingTypes) => {
+    vi.mocked(getPricingTypes).mockResolvedValue(pricingTypes);
 
-    render(await PricingCards());
+    expect(await PricingSection()).toBeNull();
+  });
 
-    expect(screen.getByText(tarifs.unavailable)).toBeInTheDocument();
+  it("drops a group with no published lines rather than rendering an empty card", async () => {
+    vi.mocked(getPricingTypes).mockResolvedValue([
+      makePricingType(),
+      makePricingType({
+        id: "66666666-6666-4666-8666-666666666666",
+        name: "Groupe",
+        prices: [],
+      }),
+    ]);
+
+    render(await PricingSection());
+
+    expect(screen.getByRole("heading", { name: "Individuel" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Groupe" })).not.toBeInTheDocument();
   });
 });

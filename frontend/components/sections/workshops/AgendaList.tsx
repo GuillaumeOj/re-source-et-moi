@@ -6,6 +6,15 @@ import { getEvents } from "@/lib/api/client";
 import { formatDay, formatFullDate, formatMonth, formatSchedule } from "@/lib/format";
 import { Notice } from "./Notice";
 
+/** The outlined pill both the row's "S'inscrire" and the empty state's contact link use. */
+const pillLinkClass =
+  "inline-flex items-center gap-1.5 rounded-full border border-rose-sombre/20 px-5 py-2.5 text-sm font-semibold text-rose-sombre transition-colors hover:bg-rose-sombre/5";
+
+/** A Google Maps search for the address — no API key, and it opens the app on a phone. */
+function mapsUrl(address: string): string {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+}
+
 /**
  * The workshop list, fetched from the backend.
  *
@@ -34,7 +43,18 @@ export async function AgendaList() {
     return <Notice>{ateliers.unavailable}</Notice>;
   }
   if (events.length === 0) {
-    return <Notice>{ateliers.empty}</Notice>;
+    return (
+      <Notice
+        action={
+          <a href="#contact" className={pillLinkClass}>
+            {ateliers.emptyCta}
+            <ArrowRight size={16} aria-hidden="true" />
+          </a>
+        }
+      >
+        {ateliers.empty}
+      </Notice>
+    );
   }
 
   return (
@@ -73,15 +93,31 @@ export async function AgendaList() {
             )}
           </div>
 
-          <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-rose-sombre/70">
-            <MapPin size={15} aria-hidden="true" />
-            {event.location_label}
-          </span>
+          {/* The short label ("Lyon", "En ligne") leads; an on-site workshop adds its full
+              address under it, capped in width so a long one wraps rather than squeezing the
+              title. An online workshop's video link is never shown here — it goes to people
+              who registered, not to anyone reading the page. */}
+          <div className="flex flex-col gap-1 sm:max-w-56">
+            <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-rose-sombre/70">
+              <MapPin size={15} aria-hidden="true" />
+              {event.location_label}
+            </span>
+            {event.address && (
+              <address className="pl-5 text-xs leading-relaxed not-italic text-charbon/60">
+                <a
+                  href={mapsUrl(event.address)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline decoration-rose-sombre/30 underline-offset-2 transition-colors hover:decoration-rose-sombre"
+                >
+                  {event.address}
+                  <span className="sr-only"> (ouvre Google Maps dans un nouvel onglet)</span>
+                </a>
+              </address>
+            )}
+          </div>
 
-          <a
-            href="#contact"
-            className="inline-flex items-center gap-1.5 rounded-full border border-rose-sombre/20 px-5 py-2.5 text-sm font-semibold text-rose-sombre transition-colors hover:bg-rose-sombre/5"
-          >
+          <a href="#contact" className={pillLinkClass}>
             <span className="sr-only">S'inscrire à {event.title}</span>
             <span aria-hidden="true">S'inscrire</span>
             <ArrowRight
