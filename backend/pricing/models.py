@@ -26,9 +26,9 @@ class PricingType(UUIDModel):
     """A tariff group — "Individuel", "Groupe" — rendered as one card on the site."""
 
     if TYPE_CHECKING:
-        # Declared for the type checker only. The reverse accessor is created at runtime
-        # by Price.type's related_name, which ty cannot see (it does not run django-stubs'
-        # mypy plugin), so without this every `pricing_type.prices` reads as an error.
+        # Declared for the type checker only: the reverse accessor is created at runtime by
+        # Price.type's related_name, which ty cannot see. See CLAUDE.md, "ty does not run
+        # django-stubs' plugin".
         prices: models.Manager[Price]
 
     name = models.CharField("nom", max_length=100, unique=True)

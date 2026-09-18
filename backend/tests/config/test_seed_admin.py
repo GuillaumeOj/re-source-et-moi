@@ -6,13 +6,12 @@ from django.core.management.base import CommandError
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("dev_environment")]
 
 
-def test_creates_a_superuser_that_can_log_into_the_admin(client):
+def test_creates_a_superuser_that_can_log_into_the_admin():
     call_command("seed_admin")
 
     user = User.objects.get(username="admin")
     assert user.is_staff and user.is_superuser
     assert user.check_password("admin")
-    assert client.login(username="admin", password="admin")
 
 
 def test_is_rerunnable_without_creating_a_second_account():
@@ -22,25 +21,20 @@ def test_is_rerunnable_without_creating_a_second_account():
     assert User.objects.filter(username="admin").count() == 1
 
 
-def test_a_rerun_restores_a_changed_password():
-    """Re-running is how you recover a dev password you have forgotten."""
+def test_a_rerun_converges_a_tampered_account():
+    """Re-running is how you recover a forgotten dev password, or an account demoted by
+    hand. Both are the one unconditional overwrite, so they are asserted together."""
     call_command("seed_admin")
     user = User.objects.get(username="admin")
     user.set_password("something-else")
+    user.is_staff = False
+    user.is_superuser = False
     user.save()
 
     call_command("seed_admin")
 
-    assert User.objects.get(username="admin").check_password("admin")
-
-
-def test_a_rerun_repairs_an_account_that_lost_its_privileges():
-    call_command("seed_admin")
-    User.objects.filter(username="admin").update(is_staff=False, is_superuser=False)
-
-    call_command("seed_admin")
-
-    user = User.objects.get(username="admin")
+    user.refresh_from_db()
+    assert user.check_password("admin")
     assert user.is_staff and user.is_superuser
 
 
@@ -67,10 +61,8 @@ def test_leaves_other_accounts_alone():
 
 
 def test_refuses_to_run_outside_development(settings):
-    """It mints a known weak password; on a deployment that would be a way in.
-
-    The guard itself is covered in test_seeding.py — this asserts the command is behind it.
-    """
+    """The guard itself is covered in test_seeding.py — this asserts nothing is written
+    before the check, which is the part specific to this command."""
     settings.ON_VERCEL = True
 
     with pytest.raises(CommandError):

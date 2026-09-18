@@ -7,9 +7,12 @@ destroys nothing — which is the part that is genuinely per-command.
 """
 
 import pytest
+from django.core.management import call_command, get_commands
 from django.core.management.base import CommandError
 
 from config.seeding import guard_dev_only
+
+SEED_COMMANDS = sorted(name for name in get_commands() if name.startswith("seed_"))
 
 
 def test_allows_a_local_development_environment(dev_environment):
@@ -32,3 +35,25 @@ def test_refuses_debug_off(settings):
 
     with pytest.raises(CommandError, match="DEBUG"):
         guard_dev_only()
+
+
+def test_every_seed_command_is_discovered():
+    """Guards the guard below: if the naming convention changes, the parametrised test
+    would silently cover nothing."""
+    assert SEED_COMMANDS == ["seed_admin", "seed_agenda", "seed_pricing"]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("command", SEED_COMMANDS)
+def test_every_seed_command_refuses_a_deployment(settings, command):
+    """The invariant, enforced across every seed command rather than remembered per file.
+
+    `backend/CLAUDE.md` states this as a rule authors must follow; this is what makes a
+    fourth command that forgets `guard_dev_only()` fail rather than merely read oddly.
+    Discovery is by command name, so it covers a new seed whatever it inherits from.
+    """
+    settings.DEBUG = True
+    settings.ON_VERCEL = True
+
+    with pytest.raises(CommandError):
+        call_command(command)

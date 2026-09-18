@@ -15,6 +15,20 @@ from django.utils import timezone
 from rest_framework.test import APIClient
 
 
+@pytest.fixture(autouse=True)
+def fast_password_hashing(settings):
+    """Hash with MD5 rather than the default PBKDF2 (~1.2M iterations).
+
+    Every account a test mints otherwise costs a real hash, and that dominates the suite:
+    the admin seed alone hashes on each of its calls, and pytest-django's `admin_client`
+    creates a superuser per test. Measured at ~55% of total runtime before this.
+
+    Hashing strength is a production concern; no test asserts on it, and `check_password`
+    and `login()` still work.
+    """
+    settings.PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+
+
 @pytest.fixture
 def client() -> APIClient:
     """DRF's client, for the API tests. Shadows pytest-django's plain `client` on purpose:

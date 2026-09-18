@@ -59,6 +59,24 @@ on a deployment those rows are the owner's real agenda and real prices. `seed_ad
 nothing, but mints an account with a known weak password — which on a deployment would be a
 way in. Anything new that seeds accounts or credentials sits behind the same guard.
 
+## `ty` does not run django-stubs' plugin
+
+django-stubs types a lot of Django's dynamic surface through a **mypy plugin**. `ty` has no
+plugin system, so that resolution never happens and anything the plugin would have
+synthesised reads as an error. This is one root cause with two sanctioned workarounds —
+reach for whichever fits rather than inventing a third:
+
+- **A relation the plugin would synthesise** (a reverse accessor from `related_name`) —
+  declare it in an `if TYPE_CHECKING:` block on the model, as `pricing/models.py` does for
+  `PricingType.prices`. Every new `related_name` you read through will need one.
+- **`get_user_model()`**, which resolves no further than `AbstractBaseUser` — import the
+  concrete `django.contrib.auth.models.User`, as `config/seed_admin` does. That is honest
+  here because `AUTH_USER_MODEL` is Django's default and stays that way; it would be wrong
+  in a project with a custom user model.
+
+Both are workarounds for a tool gap, not design decisions. If `ty` grows plugin support,
+this section is the list of places to delete.
+
 ## The admin is the product
 
 There is no custom editor UI and no site user accounts. `django.contrib.admin` at a secret
