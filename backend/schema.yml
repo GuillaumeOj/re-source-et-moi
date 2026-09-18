@@ -1,0 +1,225 @@
+openapi: 3.0.3
+info:
+  title: Re-Source Et Moi API
+  version: 1.0.0
+  description: Agenda & tarifs — read-only REST API consumed by the Next.js site.
+paths:
+  /events/:
+    get:
+      operationId: events_list
+      description: |-
+        The published, still-upcoming workshops, soonest first.
+
+        Public: this is the same content the website already shows to anyone, so requiring a
+        token would only complicate the caller. DRF's project default is IsAuthenticated, so
+        the AllowAny here is a deliberate, visible exception rather than a missing setting.
+
+        Pagination is off. The list is a handful of rows, and an unpaginated response makes
+        the generated TypeScript type a plain array instead of {count, next, previous,
+        results} — the frontend maps over it directly.
+      tags:
+      - events
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+          description: ''
+  /health/:
+    get:
+      operationId: health_retrieve
+      description: Liveness probe used by the dev stack's healthcheck. Public — no
+        auth required.
+      tags:
+      - health
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+          description: ''
+  /pricing-types/:
+    get:
+      operationId: pricing_types_list
+      description: |-
+        The published tariff groups, each with its published lines nested.
+
+        Public and unpaginated for the same reasons as the agenda's list view: the content is
+        already on the website, and a plain array generates a plain TypeScript array.
+      tags:
+      - pricing-types
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PricingType'
+          description: ''
+components:
+  schemas:
+    Event:
+      type: object
+      description: |-
+        A workshop as the public agenda needs it.
+
+        Values go out machine-readable — an ISO date, ISO times, a location kind — and the
+        frontend renders them with Intl.DateTimeFormat("fr-FR"). Formatting here instead would
+        put French display strings in the database's contract and make the data unsortable
+        again, which is the exact problem this replaced.
+
+        The postal address is flattened into a single `address` string: the site shows one
+        line, and the separate fields exist so the admin form can guide input, not because
+        anything downstream wants them apart.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        title:
+          type: string
+          title: Titre
+          maxLength: 200
+        date:
+          type: string
+          format: date
+        start_time:
+          type: string
+          format: time
+          title: Heure de début
+        end_time:
+          type: string
+          format: time
+          title: Heure de fin
+        location_kind:
+          allOf:
+          - $ref: '#/components/schemas/LocationKindEnum'
+          title: Type de lieu
+        location_label:
+          type: string
+          readOnly: true
+        online_url:
+          type: string
+          format: uri
+          title: Lien de visioconférence
+          maxLength: 200
+        address:
+          type: string
+          description: The postal address on one line, or "" for an online workshop.
+          readOnly: true
+        description:
+          type: string
+      required:
+      - id
+      - title
+      - date
+      - start_time
+      - end_time
+      - location_kind
+      - location_label
+      - online_url
+      - address
+      - description
+    LocationKindEnum:
+      enum:
+      - online
+      - onsite
+      type: string
+      description: |-
+        * `online` - En ligne
+        * `onsite` - Sur place
+    Price:
+      type: object
+      description: |-
+        One tariff line.
+
+        `amount` goes out as a decimal string (DRF's default, which avoids float rounding) or
+        null when the tariff is on demand. The frontend formats it with Intl.NumberFormat —
+        the euro sign never enters the data.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        description:
+          type: string
+          title: Libellé
+          maxLength: 200
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+          nullable: true
+          title: Montant
+          description: En euros. Laisser vide si le tarif est sur devis.
+        on_demand:
+          type: boolean
+          title: Sur devis
+          description: Cocher pour afficher « Sur devis » à la place d'un montant.
+      required:
+      - id
+      - description
+      - amount
+      - on_demand
+    PricingType:
+      type: object
+      description: |-
+        A tariff group with its lines nested.
+
+        Nested rather than a second endpoint because the site renders exactly this shape —
+        one card per group, a list of lines inside it. One request, and no chance of the two
+        halves arriving inconsistent.
+
+        Which lines are visible is decided once, in the view's Prefetch — not here. A plain
+        nested serializer then types itself in the OpenAPI schema, where a SerializerMethodField
+        would have needed an @extend_schema_field to say what it returns.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          title: Nom
+          maxLength: 100
+        description:
+          type: string
+          description: Note affichée sous les tarifs de ce groupe.
+        prices:
+          type: array
+          items:
+            $ref: '#/components/schemas/Price'
+          readOnly: true
+      required:
+      - id
+      - name
+      - description
+      - prices
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid

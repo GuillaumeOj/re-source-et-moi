@@ -1,0 +1,115 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Cancel superseded runs on the same ref (e.g. new push to an open PR).
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: rsm
+          POSTGRES_PASSWORD: rsm
+          POSTGRES_DB: rsm
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      # Set here so pytest is called directly, bypassing tox's Docker step: CI already has
+      # a Postgres service, and starting a container inside one would be pure waste.
+      DATABASE_URL: postgres://rsm:rsm@localhost:5432/rsm
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          # Pinned in backend/.python-version; keep uv's env in sync.
+          python-version: "3.13"
+
+      - name: Sync dependencies
+        run: uv sync --locked
+
+      # `select` in pyproject.toml already includes the isort rules ("I"), so this covers
+      # import sorting too — a separate --select I pass could only fail where this does.
+      - name: Lint (ruff check)
+        run: uv run ruff check .
+
+      - name: Format check (ruff format)
+        run: uv run ruff format --check .
+
+      - name: Type check (ty)
+        run: uv run ty check
+
+      # Coverage threshold (>= 90%) is enforced via --cov-fail-under in pyproject.toml.
+      - name: Tests + coverage
+        run: uv run pytest
+
+      # schema.yml is a committed build product and the frontend's TypeScript types are
+      # generated from it. Regenerate and fail on any diff, so a serializer change can
+      # never land without the schema (and the types) moving with it.
+      - name: OpenAPI schema is up to date
+        run: |
+          uv run python manage.py spectacular --file schema.yml --validate
+          git diff --exit-code -- schema.yml
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Biome check
+        run: bun run lint
+
+      - name: Type check
+        run: bun run typecheck
+
+      - name: Tests
+        run: bun run test
+
+      # tsc and vitest never exercise the Next.js build, where a Server Component, a
+      # `server-only` import or `connection()` can fail on its own. Without this step the
+      # first place a build error surfaces is the Vercel deployment.
+      - name: Build
+        run: bun run build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+
+      # The other half of the drift guard: generated.ts is committed, so regenerating it
+      # from the committed schema must be a no-op.
+      - name: Generated API types are up to date
+        run: |
+          bun run codegen
+          git diff --exit-code -- lib/api/generated.ts

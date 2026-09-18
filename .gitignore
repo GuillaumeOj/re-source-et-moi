@@ -1,12 +1,15 @@
+# The repo holds two stacks (frontend/ Next.js, backend/ Django), so these patterns are
+# deliberately un-anchored: they must match at either root.
+
 # dependencies
-/node_modules
+node_modules/
 
 # next.js
-/.next/
-/out/
+.next/
+out/
 
 # production
-/build
+build/
 
 # misc
 .DS_Store
@@ -24,12 +27,25 @@ yarn-error.log*
 # vercel
 .vercel
 
-# claude code (local, machine-specific settings)
+# claude code (local, machine-specific settings; worktrees are scratch checkouts)
 .claude/settings.local.json
+.claude/worktrees/
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
 
 # testing
-/coverage
+coverage/
+
+# python / django
+.venv/
+.tox/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+backend/staticfiles/
