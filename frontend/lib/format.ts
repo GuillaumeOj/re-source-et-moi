@@ -32,8 +32,11 @@ const euroFormatter = new Intl.NumberFormat("fr-FR", {
   trailingZeroDisplay: "stripIfInteger",
 });
 
+// en-CA formats a date as ISO YYYY-MM-DD, which is what parisToday() needs.
+const isoDateFormatter = new Intl.DateTimeFormat("en-CA", { timeZone: TIME_ZONE });
+
 /** Intl returns French months and weekdays lowercase; these sit alone, so they lead caps. */
-function capitalise(value: string): string {
+export function capitalise(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
@@ -73,8 +76,20 @@ export function formatTime(isoTime: string): string {
 /** The agenda row's schedule line — "Samedi · 10h–12h". */
 export function formatSchedule(isoDate: string, start: string, end: string): string {
   const weekday = capitalise(weekdayFormatter.format(parseApiDate(isoDate)));
-  // En dash between times, as the original copy had it.
-  return `${weekday} · ${formatTime(start)}–${formatTime(end)}`;
+  return `${weekday} · ${formatTimeRange(start, end)}`;
+}
+
+/** Two API times as a range — "10h–12h30". En dash between them, as the original copy had it. */
+export function formatTimeRange(start: string, end: string): string {
+  return `${formatTime(start)}–${formatTime(end)}`;
+}
+
+/**
+ * Today where the workshops happen, as ISO "YYYY-MM-DD": the same "today" the backend's
+ * upcoming/past split uses, whatever timezone the browser or server is in.
+ */
+export function parisToday(): string {
+  return isoDateFormatter.format(new Date());
 }
 
 /**

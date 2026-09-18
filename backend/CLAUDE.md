@@ -77,11 +77,33 @@ reach for whichever fits rather than inventing a third:
 Both are workarounds for a tool gap, not design decisions. If `ty` grows plugin support,
 this section is the list of places to delete.
 
-## The admin is the product
+## Two editing UIs, one set of rules
 
-There is no custom editor UI and no site user accounts. `django.contrib.admin` at a secret
-`ADMIN_PATH` is the entire interface the site owner has, so treat it as a user interface:
-French `verbose_name` on every model and field, `help_text` where a choice is not obvious,
-related rows edited inline where they are read together, and `list_editable` for the
-toggles that get flipped most. Prefetch anything a `list_display` column reads, or the
-changelist fires a query per row.
+The site owner edits through **the editor**, a French page of the Next.js site at a secret
+`EDITOR_PATH` (see the README). It is backed by `/api/auth/*` (session login, in
+`config/auth_views.py`) and `/api/manage/*` (a staff-only `ModelViewSet` per app).
+`django.contrib.admin` at the secret `ADMIN_PATH` stays as the fallback. There are still
+no site user accounts.
+
+Keep the two consistent:
+
+- **Validation lives on the model, in `clean()`.** DRF never calls it, so every manage
+  serializer mixes in `config.serializers.ModelCleanMixin`. It runs `clean()` and turns
+  its errors into DRF field errors. Never re-implement a rule in a serializer: the admin
+  and the editor would then disagree about what is valid, or word it differently.
+- **Messages and help texts are French and written for the site owner.** The editor
+  shows the backend's validation messages verbatim under the fields.
+- **Manage endpoints are staff-only (`IsAdminUser`), unpaginated, and unfiltered.** The
+  editor needs drafts and past rows too. A nested write (a pricing group's lines) is one
+  transaction, so a bad line leaves the whole group untouched.
+- **Account and password endpoints validate through Django's own auth forms**
+  (`PasswordChangeForm`, `SetPasswordForm`, `PasswordResetForm`), so password rules and
+  their messages match the admin. Anything that changes the password or the e-mail asks
+  for the current password.
+- **The reset link is built from `settings.EDITOR_URL`, never from the request.** A link
+  built from the request's Host or Origin could be aimed at another site, and the token
+  would go with it. Reset requests always answer 204, so they never reveal whether an
+  address has an account.
+- **The admin is still a user interface.** French `verbose_name` on every model and
+  field, related rows inline where they are read together, `list_editable` for the
+  toggles flipped most, and prefetch anything a `list_display` column reads.

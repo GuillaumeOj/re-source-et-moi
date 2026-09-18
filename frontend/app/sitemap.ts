@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { site } from "@/content/site";
 
+/** Public pages only. The editor never goes here; see robots.ts. */
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {

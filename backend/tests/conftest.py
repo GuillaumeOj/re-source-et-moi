@@ -11,6 +11,8 @@ as a superuser — rather than a fixture of our own.
 import datetime
 
 import pytest
+from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.utils import timezone
 from rest_framework.test import APIClient
 
@@ -27,6 +29,28 @@ def fast_password_hashing(settings):
     and `login()` still work.
     """
     settings.PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+
+
+@pytest.fixture(autouse=True)
+def clear_cache():
+    """Start every test with an empty cache.
+
+    The login throttle counts attempts in the default (in-process) cache, which outlives
+    a test. Without this, the login tests would share one counter and the suite would start
+    throttling itself partway through.
+    """
+    cache.clear()
+
+
+@pytest.fixture
+def staff_client() -> APIClient:
+    """A client logged in as a staff member: the site owner, in the editor."""
+    user = User.objects.create_user(
+        "cecile", email="cecile@example.org", password="motdepasse-solide", is_staff=True
+    )
+    api_client = APIClient()
+    api_client.force_login(user)
+    return api_client
 
 
 @pytest.fixture
