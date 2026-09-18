@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AgendaList } from "@/components/sections/workshops/AgendaList";
 import { PricingSection } from "@/components/sections/workshops/PricingSection";
 import { ateliers } from "@/content/ateliers";
+import { contact } from "@/content/cta";
 import { tarifs } from "@/content/tarifs";
 import type { Event, PricingType } from "@/lib/api/client";
 
@@ -51,6 +52,11 @@ function makePricingType(overrides: Partial<PricingType> = {}): PricingType {
     ],
     ...overrides,
   };
+}
+
+/** Every notice offers a way out: a link to the contact form. */
+function expectContactLink() {
+  expect(screen.getByRole("link", { name: contact.cta })).toHaveAttribute("href", "#contact");
 }
 
 /** Silences the deliberate console.error a failure path logs. */
@@ -134,10 +140,7 @@ describe("AgendaList", () => {
     render(await AgendaList());
 
     expect(screen.getByText(ateliers.empty)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: ateliers.emptyCta })).toHaveAttribute(
-      "href",
-      "#contact",
-    );
+    expectContactLink();
   });
 
   it("degrades to a notice when the backend is unreachable", async () => {
@@ -147,6 +150,7 @@ describe("AgendaList", () => {
     render(await AgendaList());
 
     expect(screen.getByText(ateliers.unavailable)).toBeInTheDocument();
+    expectContactLink();
     // The notice names no dates: a stale workshop list is worse than none, because
     // someone could turn up to a workshop that is no longer happening.
     expect(screen.queryByText("Brain Gym® en mouvement")).not.toBeInTheDocument();
@@ -234,6 +238,7 @@ describe("PricingSection", () => {
 
     expect(screen.getByRole("heading", { name: tarifs.title })).toBeInTheDocument();
     expect(screen.getByText(tarifs.unavailable)).toBeInTheDocument();
+    expectContactLink();
     expect(screen.queryByText("75 €")).not.toBeInTheDocument();
   });
 

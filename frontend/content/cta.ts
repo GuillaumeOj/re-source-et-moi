@@ -11,6 +11,8 @@ export const contact = {
     message: "Message",
   },
   button: "Envoyer",
+  // The link to this form from elsewhere on the page (e.g. under an empty agenda).
+  cta: "Nous contacter",
 } as const;
 
 export const footer = {

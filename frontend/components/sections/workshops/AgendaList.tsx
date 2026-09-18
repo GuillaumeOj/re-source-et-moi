@@ -1,14 +1,11 @@
-import { ArrowRight, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { connection } from "next/server";
 import { Reveal } from "@/components/ui/Reveal";
 import { ateliers } from "@/content/ateliers";
 import { getEvents } from "@/lib/api/client";
 import { formatDay, formatFullDate, formatMonth, formatSchedule } from "@/lib/format";
+import { ContactLink } from "./ContactLink";
 import { Notice } from "./Notice";
-
-/** The outlined pill both the row's "S'inscrire" and the empty state's contact link use. */
-const pillLinkClass =
-  "inline-flex items-center gap-1.5 rounded-full border border-rose-sombre/20 px-5 py-2.5 text-sm font-semibold text-rose-sombre transition-colors hover:bg-rose-sombre/5";
 
 /** A Google Maps search for the address — no API key, and it opens the app on a phone. */
 function mapsUrl(address: string): string {
@@ -43,18 +40,7 @@ export async function AgendaList() {
     return <Notice>{ateliers.unavailable}</Notice>;
   }
   if (events.length === 0) {
-    return (
-      <Notice
-        action={
-          <a href="#contact" className={pillLinkClass}>
-            {ateliers.emptyCta}
-            <ArrowRight size={16} aria-hidden="true" />
-          </a>
-        }
-      >
-        {ateliers.empty}
-      </Notice>
-    );
+    return <Notice>{ateliers.empty}</Notice>;
   }
 
   return (
@@ -117,15 +103,10 @@ export async function AgendaList() {
             )}
           </div>
 
-          <a href="#contact" className={pillLinkClass}>
+          <ContactLink>
             <span className="sr-only">S'inscrire à {event.title}</span>
             <span aria-hidden="true">S'inscrire</span>
-            <ArrowRight
-              size={16}
-              aria-hidden="true"
-              className="transition-transform group-hover:translate-x-1"
-            />
-          </a>
+          </ContactLink>
         </Reveal>
       ))}
     </ul>
