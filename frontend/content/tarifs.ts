@@ -1,7 +1,9 @@
 // "Tarifs" — section copy only.
 //
 // The amounts now come from the backend (GET /api/pricing-types/) so Cécile can change
-// them from the Django admin without a deploy. Only the framing copy stays here.
+// them from the Django admin without a deploy. Only the framing copy stays here — and it
+// only renders when there are tariffs to frame: with none set up, the whole sub-section is
+// hidden (see PricingSection).
 
 export const tarifs = {
   title: "Tarifs",

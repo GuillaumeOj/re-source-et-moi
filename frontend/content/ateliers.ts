@@ -8,9 +8,10 @@ export const ateliers = {
   eyebrow: "Prochains rendez-vous",
   title: "Nos prochains ateliers",
   // Shown when the agenda is legitimately empty — after the last workshop has passed,
-  // which the old hardcoded list could never be.
+  // which the old hardcoded list could never be. Like every notice, followed by a link to
+  // the contact form.
   empty:
-    "Aucun atelier n'est programmé pour le moment. Écrivez-nous pour être prévenue du prochain.",
+    "Pas d'ateliers programmés pour le moment. Vous pouvez nous contacter pour être tenu informé lorsque de nouvelles dates seront disponibles.",
   // Shown when the backend can't be reached. Deliberately says nothing about dates: an
   // out-of-date workshop list is worse than no list, because someone might turn up.
   unavailable: "Le programme est momentanément indisponible. N'hésitez pas à nous contacter.",

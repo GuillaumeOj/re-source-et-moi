@@ -10,8 +10,10 @@ import { navLinks } from "@/content/site";
 vi.mock("@/components/sections/workshops/AgendaList", () => ({
   AgendaList: () => <ul />,
 }));
-vi.mock("@/components/sections/workshops/PricingCards", () => ({
-  PricingCards: () => <div />,
+// PricingSection owns the "Tarifs" heading (it hides when no tariffs exist), so that
+// heading is covered in workshops.test.tsx rather than here.
+vi.mock("@/components/sections/workshops/PricingSection", () => ({
+  PricingSection: () => <div />,
 }));
 
 describe("HomePage", () => {
@@ -34,7 +36,6 @@ describe("HomePage", () => {
       "Bouger pour mieux apprendre",
       "Une intention dans chaque geste",
       "Nos prochains ateliers",
-      "Tarifs",
       "À l'origine de Re-Source Et Moi",
       "Ce qu'ils en retiennent",
       "Vous vous demandez peut-être…",
