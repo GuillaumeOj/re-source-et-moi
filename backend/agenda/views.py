@@ -6,14 +6,21 @@ from rest_framework.pagination import PageNumberPagination
 
 from agenda.models import Event
 from agenda.serializers import (
+    EventListFilterSerializer,
     EventManageFilterSerializer,
     EventManageSerializer,
     EventSerializer,
 )
 
 
+@extend_schema(parameters=[EventListFilterSerializer])
 class EventListView(generics.ListAPIView):
-    """The published, still-upcoming workshops, soonest first.
+    """The published workshops, soonest first: the upcoming ones, or those in a date range.
+
+    Without parameters this is the upcoming agenda, which the home page and the agenda's
+    list view show. With `date_from`/`date_to` it is every published workshop in the range,
+    past ones included, for the agenda's month calendar. Past workshops are no secret —
+    they were on the site until their date — so opening the range up exposes nothing new.
 
     Public: this is the same content the website already shows to anyone, so requiring a
     token would only complicate the caller. DRF's project default is IsAuthenticated, so
@@ -29,10 +36,22 @@ class EventListView(generics.ListAPIView):
     pagination_class = None
 
     def get_queryset(self) -> QuerySet[Event]:
-        # localdate(), not utcnow(): TIME_ZONE is Europe/Paris, and a workshop is "today"
-        # in the timezone it happens in. Comparing against UTC would drop an evening
-        # workshop from the list an hour or two early.
-        return Event.objects.filter(is_published=True, date__gte=timezone.localdate())
+        events = Event.objects.filter(is_published=True)
+
+        filters = EventListFilterSerializer(data=self.request.query_params)
+        filters.is_valid(raise_exception=True)
+        params = filters.validated_data
+        if not params:
+            # localdate(), not utcnow(): TIME_ZONE is Europe/Paris, and a workshop is
+            # "today" in the timezone it happens in. Comparing against UTC would drop an
+            # evening workshop from the list an hour or two early.
+            return events.filter(date__gte=timezone.localdate())
+
+        if "date_from" in params:
+            events = events.filter(date__gte=params["date_from"])
+        if "date_to" in params:
+            events = events.filter(date__lte=params["date_to"])
+        return events
 
 
 class EventManagePagination(PageNumberPagination):

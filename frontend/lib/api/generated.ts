@@ -198,7 +198,12 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description The published, still-upcoming workshops, soonest first.
+         * @description The published workshops, soonest first: the upcoming ones, or those in a date range.
+         *
+         *     Without parameters this is the upcoming agenda, which the home page and the agenda's
+         *     list view show. With `date_from`/`date_to` it is every published workshop in the range,
+         *     past ones included, for the agenda's month calendar. Past workshops are no secret —
+         *     they were on the site until their date — so opening the range up exposes nothing new.
          *
          *     Public: this is the same content the website already shows to anyone, so requiring a
          *     token would only complicate the caller. DRF's project default is IsAuthenticated, so
@@ -1065,7 +1070,10 @@ export interface operations {
     };
     events_list: {
         parameters: {
-            query?: never;
+            query?: {
+                date_from?: string;
+                date_to?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;

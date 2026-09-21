@@ -80,11 +80,32 @@ class EventManageSerializer(ModelCleanMixin):
         )
 
 
-class EventManageFilterSerializer(serializers.Serializer):
+class EventListFilterSerializer(serializers.Serializer):
+    """The optional date range of the public workshop list.
+
+    Both bounds are inclusive. Without them the list is the upcoming workshops; with them
+    it is whatever was published in the range, past included — the website's month
+    calendar asks for the six weeks it is showing, and can look back at earlier months.
+    """
+
+    date_from = serializers.DateField(required=False)
+    date_to = serializers.DateField(required=False)
+
+    def validate(self, attrs: dict) -> dict:
+        date_from, date_to = attrs.get("date_from"), attrs.get("date_to")
+        if date_from and date_to and date_to < date_from:
+            raise serializers.ValidationError(
+                {"date_to": "La date de fin doit être postérieure à la date de début."}
+            )
+        return attrs
+
+
+class EventManageFilterSerializer(EventListFilterSerializer):
     """The query parameters of the editor's workshop list.
 
-    `period` backs the list view's two tabs. `date_from`/`date_to` (inclusive) back the
-    calendar, which asks for the weeks it is showing. They combine, and all are optional.
+    `period` backs the list view's two tabs. `date_from`/`date_to` (inclusive, inherited
+    from the public filter) back the calendar, which asks for the weeks it is showing.
+    They combine, and all are optional.
     """
 
     period = serializers.ChoiceField(
@@ -92,5 +113,3 @@ class EventManageFilterSerializer(serializers.Serializer):
         required=False,
         help_text="upcoming: from today on, soonest first. past: before today, latest first.",
     )
-    date_from = serializers.DateField(required=False)
-    date_to = serializers.DateField(required=False)

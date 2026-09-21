@@ -123,3 +123,61 @@ def test_empty_agenda_is_an_empty_list_not_an_error(client):
 
     assert response.status_code == 200
     assert response.json() == []
+
+
+def test_a_date_range_includes_past_published_workshops(client, make_event, today):
+    """The agenda's calendar looks back at earlier months."""
+    last_month = today - datetime.timedelta(days=30)
+    make_event(title="Passé", date=last_month)
+
+    response = client.get(URL, {"date_from": last_month.isoformat(), "date_to": today.isoformat()})
+
+    assert [event["title"] for event in response.json()] == ["Passé"]
+
+
+def test_a_date_range_still_excludes_unpublished_workshops(client, make_event, today):
+    make_event(title="Brouillon", date=today, is_published=False)
+
+    response = client.get(URL, {"date_from": today.isoformat(), "date_to": today.isoformat()})
+
+    assert response.json() == []
+
+
+def test_date_range_bounds_are_inclusive(client, make_event, today):
+    start = today + datetime.timedelta(days=10)
+    end = today + datetime.timedelta(days=20)
+    make_event(title="Avant", date=start - datetime.timedelta(days=1))
+    make_event(title="Premier jour", date=start)
+    make_event(title="Dernier jour", date=end)
+    make_event(title="Après", date=end + datetime.timedelta(days=1))
+
+    response = client.get(URL, {"date_from": start.isoformat(), "date_to": end.isoformat()})
+
+    assert [event["title"] for event in response.json()] == ["Premier jour", "Dernier jour"]
+
+
+def test_a_single_bound_is_enough(client, make_event, today):
+    """date_to alone reaches back to the start of time: past workshops included."""
+    make_event(title="Passé", date=today - datetime.timedelta(days=30))
+    make_event(title="Trop tard", date=today + datetime.timedelta(days=30))
+
+    response = client.get(URL, {"date_to": today.isoformat()})
+
+    assert [event["title"] for event in response.json()] == ["Passé"]
+
+
+def test_rejects_an_inverted_date_range(client, today):
+    response = client.get(
+        URL,
+        {
+            "date_from": today.isoformat(),
+            "date_to": (today - datetime.timedelta(days=1)).isoformat(),
+        },
+    )
+
+    assert response.status_code == 400
+    assert "date_to" in response.json()
+
+
+def test_rejects_a_malformed_date(client):
+    assert client.get(URL, {"date_from": "demain"}).status_code == 400

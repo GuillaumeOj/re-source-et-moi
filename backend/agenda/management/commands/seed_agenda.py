@@ -6,7 +6,10 @@ did before the backend existed, and there is something to click on in the admin.
 
 It deliberately covers more than the happy path: an online workshop and an on-site one
 (the two location kinds render differently), plus one unpublished and one already past, so
-the "published and upcoming" filtering is visible in dev rather than only in tests.
+the "published and upcoming" filtering is visible in dev rather than only in tests. Five
+published upcoming workshops, one more than the home page shows, so its "Voir tout
+l'agenda" link has something to reveal; two past ones in different months, so the agenda's
+calendar has history to look back on.
 """
 
 from __future__ import annotations
@@ -60,6 +63,21 @@ class Command(BaseCommand):
                 end_time=MORNING_END,
                 location_kind=Event.LocationKind.ONLINE,
             ),
+            Event(
+                title="Brain Gym® et concentration",
+                date=today + datetime.timedelta(days=49),
+                start_time=datetime.time(14, 0),
+                end_time=datetime.time(16, 0),
+                location_kind=Event.LocationKind.ONSITE,
+                city="Lyon",
+            ),
+            Event(
+                title="Mouvements de l'hiver",
+                date=today + datetime.timedelta(days=70),
+                start_time=MORNING_START,
+                end_time=MORNING_END,
+                location_kind=Event.LocationKind.ONLINE,
+            ),
             # Not published: present in the admin, absent from the API.
             Event(
                 title="Atelier en préparation",
@@ -69,7 +87,8 @@ class Command(BaseCommand):
                 location_kind=Event.LocationKind.ONLINE,
                 is_published=False,
             ),
-            # Already past: kept as history, absent from the API.
+            # Already past: kept as history, absent from the upcoming list but shown by the
+            # agenda's calendar.
             Event(
                 title="Brain Gym® — session passée",
                 date=today - datetime.timedelta(days=7),
@@ -77,6 +96,13 @@ class Command(BaseCommand):
                 end_time=MORNING_END,
                 location_kind=Event.LocationKind.ONSITE,
                 city="Lyon",
+            ),
+            Event(
+                title="ECAP & apprentissage — session passée",
+                date=today - datetime.timedelta(days=40),
+                start_time=MORNING_START,
+                end_time=MORNING_END,
+                location_kind=Event.LocationKind.ONLINE,
             ),
         ]
         Event.objects.bulk_create(events)
