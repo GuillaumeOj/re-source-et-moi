@@ -61,9 +61,15 @@ async function get<T>(path: string, tag: PublicTag): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-/** Published, still-upcoming workshops, soonest first. */
-export function getEvents(): Promise<Event[]> {
-  return get<Event[]>("/events/", "events");
+/**
+ * Published workshops, soonest first: the upcoming ones, or with `range` every one between
+ * the two ISO dates (inclusive), past ones included — what the agenda's calendar shows.
+ */
+export function getEvents(range?: { from: string; to: string }): Promise<Event[]> {
+  const query = range
+    ? `?${new URLSearchParams({ date_from: range.from, date_to: range.to })}`
+    : "";
+  return get<Event[]>(`/events/${query}`, "events");
 }
 
 /** Published tariff groups, each with its published lines nested. */

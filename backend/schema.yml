@@ -216,7 +216,12 @@ paths:
     get:
       operationId: events_list
       description: |-
-        The published, still-upcoming workshops, soonest first.
+        The published workshops, soonest first: the upcoming ones, or those in a date range.
+
+        Without parameters this is the upcoming agenda, which the home page and the agenda's
+        list view show. With `date_from`/`date_to` it is every published workshop in the range,
+        past ones included, for the agenda's month calendar. Past workshops are no secret —
+        they were on the site until their date — so opening the range up exposes nothing new.
 
         Public: this is the same content the website already shows to anyone, so requiring a
         token would only complicate the caller. DRF's project default is IsAuthenticated, so
@@ -225,6 +230,17 @@ paths:
         Pagination is off. The list is a handful of rows, and an unpaginated response makes
         the generated TypeScript type a plain array instead of {count, next, previous,
         results} — the frontend maps over it directly.
+      parameters:
+      - in: query
+        name: date_from
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: date_to
+        schema:
+          type: string
+          format: date
       tags:
       - events
       security:

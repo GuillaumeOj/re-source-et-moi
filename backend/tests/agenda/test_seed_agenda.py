@@ -18,6 +18,24 @@ def test_creates_a_dataset_covering_more_than_the_happy_path():
     assert Event.objects.filter(location_kind=Event.LocationKind.ONSITE).exists()
 
 
+def test_has_more_upcoming_workshops_than_the_home_page_shows():
+    """The home page shows four; a fifth is what makes its "Voir tout l'agenda" link show
+    something new in dev."""
+    call_command("seed_agenda")
+
+    today = timezone.localdate()
+    assert Event.objects.filter(is_published=True, date__gte=today).count() > 4
+
+
+def test_has_past_workshops_in_two_different_months():
+    """History for the agenda's calendar to look back on, beyond the current month."""
+    call_command("seed_agenda")
+
+    today = timezone.localdate()
+    past = Event.objects.filter(is_published=True, date__lt=today)
+    assert len({(event.date.year, event.date.month) for event in past}) >= 2
+
+
 def test_is_rerunnable_without_piling_up():
     call_command("seed_agenda")
     first = Event.objects.count()

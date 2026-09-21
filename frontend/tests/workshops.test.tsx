@@ -56,7 +56,7 @@ function makePricingType(overrides: Partial<PricingType> = {}): PricingType {
 
 /** Every notice offers a way out: a link to the contact form. */
 function expectContactLink() {
-  expect(screen.getByRole("link", { name: contact.cta })).toHaveAttribute("href", "#contact");
+  expect(screen.getByRole("link", { name: contact.cta })).toHaveAttribute("href", "/#contact");
 }
 
 /** Silences the deliberate console.error a failure path logs. */
@@ -132,6 +132,40 @@ describe("AgendaList", () => {
 
     expect(container.querySelector("address")).toBeNull();
     expect(container.innerHTML).not.toContain("meet.example.com");
+  });
+
+  it("shows only the first `limit` workshops, soonest first", async () => {
+    vi.mocked(getEvents).mockResolvedValue(
+      Array.from({ length: 6 }, (_, index) =>
+        makeEvent({ id: `event-${index}`, title: `Atelier ${index + 1}` }),
+      ),
+    );
+
+    render(await AgendaList({ limit: 4 }));
+
+    const titles = screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent);
+    expect(titles).toEqual(["Atelier 1", "Atelier 2", "Atelier 3", "Atelier 4"]);
+  });
+
+  it("shows every workshop without a limit", async () => {
+    vi.mocked(getEvents).mockResolvedValue(
+      Array.from({ length: 6 }, (_, index) =>
+        makeEvent({ id: `event-${index}`, title: `Atelier ${index + 1}` }),
+      ),
+    );
+
+    render(await AgendaList());
+
+    expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(6);
+  });
+
+  it("links a workshop's sign-up to the contact form from any page", async () => {
+    // Root-relative, because the list also renders on /agenda, which has no #contact.
+    render(await AgendaList());
+
+    expect(
+      screen.getByRole("link", { name: "S'inscrire à Brain Gym® en mouvement" }),
+    ).toHaveAttribute("href", "/#contact");
   });
 
   it("says so when the agenda is empty, and points at the contact form", async () => {
