@@ -11,8 +11,8 @@ import {
   formatMonthParam,
   isInMonth,
   type Month,
-  monthGrid,
   monthOf,
+  monthWeeks,
   WEEKDAYS,
 } from "@/lib/calendar";
 import { cn } from "@/lib/cn";
@@ -48,8 +48,8 @@ export async function AgendaCalendar({ month }: { month: Month }) {
   await connection();
 
   const today = parisToday();
-  const days = monthGrid(month);
-  const events = await getEvents({ from: days[0], to: days[days.length - 1] }).catch(
+  const weeks = monthWeeks(month);
+  const events = await getEvents({ from: weeks[0][0], to: weeks[weeks.length - 1][6] }).catch(
     (error: unknown) => {
       console.error("[AgendaCalendar] backend unreachable:", error);
       return null;
@@ -60,7 +60,6 @@ export async function AgendaCalendar({ month }: { month: Month }) {
   for (const event of events ?? []) {
     byDay.set(event.date, [...(byDay.get(event.date) ?? []), event]);
   }
-  const weeks = Array.from({ length: 6 }, (_, week) => days.slice(week * 7, week * 7 + 7));
   const monthEvents = (events ?? []).filter((event) => isInMonth(event.date, month));
   const monthDays = [...new Set(monthEvents.map((event) => event.date))];
   const heading = formatMonthHeading(month);

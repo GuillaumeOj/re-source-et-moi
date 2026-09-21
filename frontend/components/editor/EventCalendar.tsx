@@ -9,8 +9,8 @@ import {
   formatMonthHeading,
   isInMonth,
   type Month,
-  monthGrid,
   monthOf,
+  monthWeeks,
   WEEKDAYS,
 } from "@/lib/calendar";
 import { cn } from "@/lib/cn";
@@ -43,10 +43,10 @@ export function EventCalendar({ reloadKey, onCreate, ...actions }: EventCalendar
   const [month, setMonth] = useState<Month>(() => monthOf(today));
   const [selected, setSelected] = useState(today);
 
-  const days = useMemo(() => monthGrid(month), [month]);
+  const weeks = useMemo(() => monthWeeks(month), [month]);
   const fetchMonth = useCallback(
-    () => editorApi.listAllEvents(days[0], days[days.length - 1]),
-    [days],
+    () => editorApi.listAllEvents(weeks[0][0], weeks[weeks.length - 1][6]),
+    [weeks],
   );
   const { data: events, failed, reload } = useLoad(fetchMonth, reloadKey);
 
@@ -67,7 +67,6 @@ export function EventCalendar({ reloadKey, onCreate, ...actions }: EventCalendar
     setSelected(isInMonth(today, target) ? today : firstOf(target));
   }
 
-  const weeks = Array.from({ length: 6 }, (_, week) => days.slice(week * 7, week * 7 + 7));
   const selectedEvents = byDay.get(selected) ?? [];
 
   return (
