@@ -6,9 +6,11 @@ import { Logo } from "@/components/brand/Logo";
 import { navLinks, participateCta, site } from "@/content/site";
 import { cn } from "@/lib/cn";
 
-export function Header() {
+/** `currentPath` marks the matching nav link as the current page (none on the home page). */
+export function Header({ currentPath }: { currentPath?: string }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const current = (href: string) => (href === currentPath ? "page" : undefined);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -42,7 +44,8 @@ export function Header() {
             <a
               key={link.href}
               href={link.href}
-              className="text-sm font-semibold text-rose-sombre/80 transition-colors hover:text-rose-sombre"
+              aria-current={current(link.href)}
+              className="text-sm font-semibold text-rose-sombre/80 underline-offset-8 transition-colors hover:text-rose-sombre aria-[current=page]:text-rose-sombre aria-[current=page]:underline"
             >
               {link.label}
             </a>
@@ -78,7 +81,8 @@ export function Header() {
               <li key={link.href}>
                 <a
                   href={link.href}
-                  className="block rounded-xl px-2 py-3 font-semibold text-rose-sombre hover:bg-rose-sombre/5"
+                  aria-current={current(link.href)}
+                  className="block rounded-xl px-2 py-3 font-semibold text-rose-sombre hover:bg-rose-sombre/5 aria-[current=page]:bg-rose-sombre/5"
                   onClick={() => setMenuOpen(false)}
                 >
                   {link.label}

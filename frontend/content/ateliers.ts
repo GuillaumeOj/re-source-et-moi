@@ -15,20 +15,21 @@ export const ateliers = {
   // Shown when the backend can't be reached. Deliberately says nothing about dates: an
   // out-of-date workshop list is worse than no list, because someone might turn up.
   unavailable: "Le programme est momentanément indisponible. N'hésitez pas à nous contacter.",
-  // The link under the home page's first few workshops, to the full agenda page.
+  // The link under the home page's first few workshops, to the full /ateliers page.
   seeAll: "Voir tout l'agenda",
 } as const;
 
-// The /agenda page: every upcoming workshop as a list, or month by month in a calendar
-// that can also look back at past ones.
+// The /ateliers page: every upcoming workshop as a list, or month by month in a calendar
+// that can also look back at past ones, with the tariffs under them. (/agenda, its old
+// address, redirects here — see next.config.ts.)
 export const agenda = {
-  metaTitle: "Agenda des ateliers",
+  metaTitle: "Ateliers & tarifs",
   metaDescription:
-    "Tous les ateliers de Re-Source Et Moi — Brain Gym®, ECAP, mouvement et apprentissage — en liste ou mois par mois dans le calendrier.",
-  eyebrow: "Agenda",
+    "Tous les ateliers de Re-Source Et Moi — Brain Gym®, Le Soi en Mouvement®, mouvement et apprentissage — en liste ou mois par mois dans le calendrier, et leurs tarifs.",
+  eyebrow: "Ateliers & tarifs",
   title: "Tous nos ateliers",
   intro:
-    "Retrouvez les prochains rendez-vous en liste, ou parcourez le calendrier mois par mois, y compris les ateliers passés.",
+    "Retrouvez les prochains rendez-vous en liste, ou parcourez le calendrier mois par mois, y compris les ateliers passés. Les tarifs sont indiqués en bas de page.",
   views: { list: "Liste", calendar: "Calendrier" },
   viewsLabel: "Affichage de l'agenda",
   monthNavLabel: "Changer de mois",

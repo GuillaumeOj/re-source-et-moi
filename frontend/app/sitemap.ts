@@ -1,28 +1,11 @@
 import type { MetadataRoute } from "next";
+import { routes } from "@/content/routes";
 import { site } from "@/content/site";
 
 /** Public pages only. The editor never goes here; see robots.ts. */
 export default function sitemap(): MetadataRoute.Sitemap {
-  return [
-    {
-      url: site.url,
-      changeFrequency: "monthly",
-      priority: 1,
-    },
-    {
-      url: `${site.url}/agenda`,
-      changeFrequency: "weekly",
-      priority: 0.8,
-    },
-    {
-      url: `${site.url}/mentions-legales`,
-      changeFrequency: "yearly",
-      priority: 0.3,
-    },
-    {
-      url: `${site.url}/politique-de-confidentialite`,
-      changeFrequency: "yearly",
-      priority: 0.3,
-    },
-  ];
+  return Object.values(routes).map((route) => ({
+    url: route.path === routes.home.path ? site.url : `${site.url}${route.path}`,
+    ...route.sitemap,
+  }));
 }

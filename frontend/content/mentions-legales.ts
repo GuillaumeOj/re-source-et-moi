@@ -4,6 +4,7 @@
 // are left as bracketed placeholders to complete before launch.
 
 import type { LegalPage } from "./legal";
+import { brainGymTrademark, soiEnMouvementTrademark } from "./marques";
 
 export const mentionsLegales: LegalPage = {
   eyebrow: "Informations légales",
@@ -44,7 +45,9 @@ export const mentionsLegales: LegalPage = {
     {
       heading: "Marques déposées",
       body: [
-        "Brain Gym® est une marque déposée. Re-Source Et Moi n'est pas affiliée à Breakthroughs International. Les autres marques et dénominations citées demeurent la propriété de leurs titulaires respectifs.",
+        brainGymTrademark.text,
+        soiEnMouvementTrademark,
+        "Les autres marques et dénominations citées demeurent la propriété de leurs titulaires respectifs.",
       ],
     },
     {

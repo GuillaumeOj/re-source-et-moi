@@ -1,8 +1,14 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import HomePage from "@/app/page";
 import { ateliers } from "@/content/ateliers";
-import { navLinks } from "@/content/site";
+import { brainGym } from "@/content/brain-gym";
+import { faq } from "@/content/faq";
+import { fondatrice } from "@/content/fondatrice";
+import { brainGymTrademark } from "@/content/marques";
+import { pageSections } from "@/content/sections";
+import { navLinks, participateCta } from "@/content/site";
+import { soiEnMouvement } from "@/content/soi-en-mouvement";
 
 // React's client renderer cannot resolve an async Server Component, so the two that fetch
 // from the backend are stubbed out. Workshops itself is NOT mocked — it is synchronous, so
@@ -35,36 +41,76 @@ describe("HomePage", () => {
     for (const title of [
       "Notre raison d'être",
       "Bouger pour mieux apprendre",
-      "Une intention dans chaque geste",
+      "Un mouvement qui naît du ressenti",
       "Nos prochains ateliers",
       "À l'origine de Re-Source Et Moi",
       "Ce qu'ils en retiennent",
-      "Vous vous demandez peut-être…",
       "Parlons mouvement",
     ]) {
       expect(screen.getByRole("heading", { name: title })).toBeInTheDocument();
     }
   });
 
-  it("exposes a nav link to every in-page section anchor", () => {
+  it("links the navigation to pages, not to home page anchors", () => {
     render(<HomePage />);
     const nav = screen.getAllByRole("navigation", { name: "Navigation principale" })[0];
-    for (const link of navLinks) {
-      const anchor = screen.getAllByRole("link", { name: link.label })[0];
-      expect(anchor).toHaveAttribute("href", link.href);
-      // Nav hrefs are root-relative (`/#id`) so they also work from sub-routes;
-      // strip the leading slash to get the in-page id selector.
-      const selector = link.href.replace(/^\//, "");
-      const target = document.querySelector(selector);
-      expect(target, `section ${selector} should exist`).not.toBeNull();
-    }
-    expect(nav).toBeInTheDocument();
+    expect(
+      within(nav)
+        .getAllByRole("link")
+        .map((link) => link.getAttribute("href")),
+    ).toEqual([...navLinks.map((link) => link.href), participateCta.href]);
+    expect(navLinks.map((link) => link.href)).toEqual([
+      "/nos-pratiques",
+      "/ateliers",
+      "/a-propos",
+      "/questions",
+    ]);
   });
 
-  it("links from the workshops to the full agenda", () => {
+  it("no longer carries the questions, which have their own page", () => {
+    render(<HomePage />);
+    expect(document.getElementById("faq")).toBeNull();
+    expect(screen.queryByRole("heading", { name: faq.title })).not.toBeInTheDocument();
+  });
+
+  it("gives every step of the indicator a section to land on", () => {
+    render(<HomePage />);
+    for (const section of pageSections) {
+      expect(document.getElementById(section.id), `#${section.id} should exist`).not.toBeNull();
+    }
+  });
+
+  it("links from the workshops to the full workshops page", () => {
     // In the section's synchronous shell, so it shows even when the list below is empty
     // or the backend is down.
     render(<HomePage />);
-    expect(screen.getByRole("link", { name: ateliers.seeAll })).toHaveAttribute("href", "/agenda");
+    expect(screen.getByRole("link", { name: ateliers.seeAll })).toHaveAttribute(
+      "href",
+      "/ateliers",
+    );
+  });
+
+  it("links each summary to its detail page", () => {
+    render(<HomePage />);
+    for (const { label, href } of [brainGym.more, soiEnMouvement.more, fondatrice.more]) {
+      expect(screen.getByRole("link", { name: label })).toHaveAttribute("href", href);
+    }
+  });
+
+  it("carries the Brain Gym trademark notice word for word, with its site linked", () => {
+    render(<HomePage />);
+    const notice = screen.getByText(
+      (_, element) => element?.textContent === brainGymTrademark.text,
+    );
+    expect(notice.tagName).toBe("P");
+    expect(screen.getByRole("link", { name: "www.braingym.org" })).toHaveAttribute(
+      "href",
+      "https://www.braingym.org",
+    );
+  });
+
+  it("shows Cécile's portrait", () => {
+    render(<HomePage />);
+    expect(screen.getByRole("img", { name: fondatrice.photoAlt })).toBeInTheDocument();
   });
 });

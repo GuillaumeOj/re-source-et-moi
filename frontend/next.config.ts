@@ -9,6 +9,12 @@ const nextConfig: NextConfig = {
   // (e.g. a real phone) without cross-origin warnings.
   allowedDevOrigins: ["192.168.1.*"],
 
+  // The agenda moved to /ateliers when it gained the tariffs. Permanent, so search engines
+  // move the old address over; Next carries the query (?vue=, ?mois=) across.
+  async redirects() {
+    return [{ source: "/agenda", destination: "/ateliers", permanent: true }];
+  },
+
   /**
    * Locally, send the browser's /api/* calls on to Django.
    *

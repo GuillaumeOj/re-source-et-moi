@@ -1,7 +1,8 @@
 // Site-wide configuration and navigation. French copy lives here (not in JSX)
 // so it is centralised and maps cleanly onto a future Payload "Globals" entry.
 
-import { pageSections } from "./sections";
+import { routes } from "./routes";
+import type { LinkTarget } from "./types";
 
 export const site = {
   name: "Re-Source Et Moi",
@@ -16,17 +17,18 @@ export const site = {
   social: [] as Array<{ label: string; href: string }>,
 } as const;
 
-export type NavLink = { label: string; href: string };
-
-// Derived from the page sections flagged `nav` — single source of truth, so
-// the nav and the step indicator can never drift apart.
-export const navLinks: NavLink[] = pageSections
-  .filter((section) => section.nav)
-  .map((section) => ({ label: section.label, href: `/#${section.id}` }));
+// The header and footer navigation: one link per page, not per home page section, so
+// the menu reads the same from every page.
+export const navLinks: LinkTarget[] = [
+  routes.pratiques,
+  routes.ateliers,
+  routes.aPropos,
+  routes.questions,
+].map((route) => ({ label: route.label, href: route.path }));
 
 // Header call-to-action — short label on desktop, long label on the mobile menu.
 export const participateCta = {
-  href: "/#ateliers",
+  href: routes.ateliers.path,
   label: "Participer",
   labelLong: "Participer à un atelier",
 } as const;

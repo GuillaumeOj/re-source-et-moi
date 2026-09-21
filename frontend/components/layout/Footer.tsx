@@ -1,3 +1,4 @@
+import { BrainGymTrademark } from "@/components/brand/BrainGymTrademark";
 import { Logo } from "@/components/brand/Logo";
 import { footer } from "@/content/cta";
 import { navLinks, site } from "@/content/site";
@@ -58,7 +59,7 @@ export function Footer() {
           <p>
             © {site.name} · {footer.rights}
           </p>
-          <p className="max-w-md md:text-right">{footer.legalNote}</p>
+          <BrainGymTrademark className="max-w-md md:text-right" />
         </div>
       </div>
     </footer>

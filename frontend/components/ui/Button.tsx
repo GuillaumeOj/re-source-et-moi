@@ -1,3 +1,4 @@
+import { ArrowRight } from "lucide-react";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
@@ -20,15 +21,26 @@ type CommonProps = {
   variant?: Variant;
   children: ReactNode;
   iconRight?: ReactNode;
+  /** A trailing arrow that nudges right on hover — for links that lead somewhere. */
+  arrow?: boolean;
   className?: string;
 };
+
+const arrowIcon = (
+  <ArrowRight
+    size={16}
+    aria-hidden="true"
+    className="transition-transform group-hover:translate-x-1"
+  />
+);
 
 type ButtonAsLink = CommonProps & { href: string };
 type ButtonAsButton = CommonProps & ButtonHTMLAttributes<HTMLButtonElement> & { href?: undefined };
 
 export function Button(props: ButtonAsLink | ButtonAsButton) {
-  const { variant = "primary", children, iconRight, className } = props;
+  const { variant = "primary", children, arrow, className } = props;
   const classes = cn(base, variants[variant], className);
+  const iconRight = arrow ? arrowIcon : props.iconRight;
 
   if ("href" in props && props.href !== undefined) {
     return (
@@ -39,7 +51,7 @@ export function Button(props: ButtonAsLink | ButtonAsButton) {
     );
   }
 
-  const { variant: _v, children: _c, iconRight: _i, className: _cn, ...rest } = props;
+  const { variant: _v, children: _c, iconRight: _i, arrow: _a, className: _cn, ...rest } = props;
   return (
     <button type="button" className={classes} {...rest}>
       {children}

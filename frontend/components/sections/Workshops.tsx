@@ -1,12 +1,12 @@
-import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { ateliers } from "@/content/ateliers";
+import { routes } from "@/content/routes";
 import { AgendaList } from "./workshops/AgendaList";
 import { PricingSection } from "./workshops/PricingSection";
 
-/** How many upcoming workshops the home page shows; the rest are on /agenda. */
+/** How many upcoming workshops the home page shows; the rest are on /ateliers. */
 const HOME_LIMIT = 4;
 
 /**
@@ -27,17 +27,7 @@ export function Workshops() {
       {/* Outside AgendaList on purpose: even with nothing upcoming, or the backend down,
           the agenda page's calendar of past workshops is still worth a visit. */}
       <div className="mt-8">
-        <Button
-          href="/agenda"
-          variant="secondary"
-          iconRight={
-            <ArrowRight
-              size={16}
-              aria-hidden="true"
-              className="transition-transform group-hover:translate-x-1"
-            />
-          }
-        >
+        <Button href={routes.ateliers.path} arrow>
           {ateliers.seeAll}
         </Button>
       </div>
