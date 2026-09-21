@@ -4,8 +4,9 @@ import uuid
 import pytest
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
+from django.db.models import ProtectedError
 
-from agenda.models import Event
+from agenda.models import Address, Event
 
 pytestmark = pytest.mark.django_db
 
@@ -55,43 +56,49 @@ class TestLocationLabel:
 
         assert event.location_label == "En ligne"
 
-    def test_defaults_to_the_city_when_on_site(self, make_event):
-        event = make_event(location_kind=Event.LocationKind.ONSITE, city="Lyon")
+    def test_defaults_to_the_city_of_the_address_when_on_site(self, make_event, make_address):
+        event = make_event(
+            location_kind=Event.LocationKind.ONSITE, address=make_address(city="Lyon")
+        )
 
         assert event.location_label == "Lyon"
 
+    def test_is_blank_for_an_on_site_workshop_without_an_address(self, today):
+        """Only reachable by skipping clean(), but it must not crash the page."""
+        event = Event(location_kind=Event.LocationKind.ONSITE, date=today)
+
+        assert event.location_label == ""
+
     def test_an_override_wins(self, make_event):
         event = make_event(
-            location_kind=Event.LocationKind.ONSITE, city="Lyon", location_label_override="Lyon 6e"
+            location_kind=Event.LocationKind.ONSITE, location_label_override="Lyon 6e"
         )
 
         assert event.location_label == "Lyon 6e"
 
-    def test_follows_the_city(self, make_event):
-        """Editing the city must not leave the agenda row naming the old one."""
-        make_event(location_kind=Event.LocationKind.ONSITE, city="Lyon")
+    def test_follows_an_edit_of_the_address(self, make_event):
+        """Correcting the saved address corrects every workshop held there."""
+        make_event(location_kind=Event.LocationKind.ONSITE)
+        make_event(location_kind=Event.LocationKind.ONSITE, address=Address.objects.get())
 
-        Event.objects.update(city="Paris")
+        Address.objects.update(city="Paris")
 
-        # .update() writes straight to SQL. A stored label would still read "Lyon" here.
-        assert Event.objects.get().location_label == "Paris"
+        assert [event.location_label for event in Event.objects.all()] == ["Paris", "Paris"]
 
     def test_follows_a_switch_to_online(self, make_event):
         """clean() forces the address off when a workshop moves online; the label, which is
         what the site actually displays, moves with it."""
-        make_event(location_kind=Event.LocationKind.ONSITE, city="Lyon")
+        make_event(location_kind=Event.LocationKind.ONSITE)
 
-        Event.objects.update(location_kind=Event.LocationKind.ONLINE, city="")
+        Event.objects.update(location_kind=Event.LocationKind.ONLINE, address=None)
 
         assert Event.objects.get().location_label == "En ligne"
 
     def test_an_override_survives_an_edit(self, make_event):
         """The override is the owner's wording and is never recomputed."""
-        make_event(
-            location_kind=Event.LocationKind.ONSITE, city="Lyon", location_label_override="Lyon 6e"
-        )
+        make_event(location_kind=Event.LocationKind.ONSITE, location_label_override="Lyon 6e")
 
-        Event.objects.update(city="Paris")
+        Address.objects.update(city="Paris")
 
         assert Event.objects.get().location_label == "Lyon 6e"
 
@@ -115,46 +122,75 @@ class TestClean:
 
         assert "end_time" in excinfo.value.message_dict
 
-    def test_rejects_an_online_workshop_carrying_a_postal_address(self, make_event):
+    def test_rejects_an_online_workshop_carrying_an_address(self, make_event, make_address):
         """A leftover address would make the site show a city nobody travels to."""
         event = make_event(location_kind=Event.LocationKind.ONLINE)
-        event.city = "Lyon"
+        event.address = make_address()
 
         with pytest.raises(ValidationError) as excinfo:
             event.clean()
 
-        assert "city" in excinfo.value.message_dict
+        assert excinfo.value.message_dict == {
+            "address": ["Un atelier en ligne ne doit pas porter d'adresse postale."]
+        }
 
-    def test_flags_the_address_field_that_actually_holds_the_leftover(self, make_event):
-        """An error parked on an empty "Ville" would point the editor at the wrong box."""
-        event = make_event(location_kind=Event.LocationKind.ONLINE)
-        event.address_line1 = "12 rue de la Charité"
-
-        with pytest.raises(ValidationError) as excinfo:
-            event.clean()
-
-        assert "address_line1" in excinfo.value.message_dict
-        assert "city" not in excinfo.value.message_dict
-
-    def test_rejects_an_on_site_workshop_without_a_city(self, make_event):
-        """The city is what the agenda row displays; without it the row renders blank."""
-        event = make_event(location_kind=Event.LocationKind.ONSITE, city="Lyon")
-        event.city = ""
+    def test_rejects_an_on_site_workshop_without_an_address(self, make_event):
+        """The address's city is what the agenda row displays; without one it renders
+        blank."""
+        event = make_event(location_kind=Event.LocationKind.ONSITE)
+        event.address = None
 
         with pytest.raises(ValidationError) as excinfo:
             event.clean()
 
-        assert "city" in excinfo.value.message_dict
+        assert excinfo.value.message_dict == {
+            "address": ["Une adresse est requise pour un atelier sur place."]
+        }
 
     def test_accepts_a_valid_on_site_workshop(self, make_event):
-        event = make_event(
-            location_kind=Event.LocationKind.ONSITE, city="Lyon", postal_code="69002"
-        )
-
-        event.clean()  # must not raise
+        make_event(location_kind=Event.LocationKind.ONSITE).clean()  # must not raise
 
     def test_accepts_a_valid_online_workshop(self, make_event):
         make_event(location_kind=Event.LocationKind.ONLINE).clean()  # must not raise
+
+
+class TestAddress:
+    def test_primary_key_is_a_uuid4(self, make_address):
+        assert make_address().pk.version == 4
+
+    def test_one_line_joins_every_part(self, make_address):
+        address = make_address(
+            line1="12 rue de la Charité", line2="Bâtiment B", postal_code="69002", city="Lyon"
+        )
+
+        assert address.one_line == "12 rue de la Charité, Bâtiment B, 69002 Lyon"
+
+    def test_one_line_omits_the_blank_parts(self, make_address):
+        address = make_address(line1="", line2="", postal_code="", city="Lyon")
+
+        assert address.one_line == "Lyon"
+
+    def test_the_name_is_unique(self, make_address):
+        make_address(name="Salle Paul Éluard")
+
+        with transaction.atomic(), pytest.raises(IntegrityError):
+            make_address(name="Salle Paul Éluard")
+
+    def test_str_is_its_name(self, make_address):
+        assert str(make_address(name="Salle Paul Éluard")) == "Salle Paul Éluard"
+
+    def test_is_listed_by_name(self, make_address):
+        make_address(name="Salle B")
+        make_address(name="Salle A")
+
+        assert [address.name for address in Address.objects.all()] == ["Salle A", "Salle B"]
+
+    def test_cannot_be_deleted_while_a_workshop_uses_it(self, make_event):
+        """PROTECT: deleting it would leave on-site workshops with nowhere to be."""
+        event = make_event(location_kind=Event.LocationKind.ONSITE)
+
+        with pytest.raises(ProtectedError):
+            event.address.delete()
 
 
 def test_the_database_also_refuses_an_end_before_the_start(make_event, today):

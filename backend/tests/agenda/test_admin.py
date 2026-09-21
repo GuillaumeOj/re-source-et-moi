@@ -25,10 +25,7 @@ VALID = {
     "location_kind": "online",
     "location_label_override": "",
     "online_url": "",
-    "address_line1": "",
-    "address_line2": "",
-    "postal_code": "",
-    "city": "",
+    "address": "",
     "description": "",
     "is_published": "on",
 }
@@ -53,15 +50,24 @@ def test_shows_an_error_when_the_end_is_before_the_start(admin_client):
     assert "postérieure" in response.content.decode()
 
 
-def test_shows_an_error_for_an_on_site_workshop_without_a_city(admin_client):
+def test_accepts_an_on_site_workshop_at_a_saved_address(admin_client, make_address):
+    address = make_address()
+
+    response = post(admin_client, location_kind="onsite", address=address.pk)
+
+    assert response.status_code == 302
+    assert Event.objects.get().address == address
+
+
+def test_shows_an_error_for_an_on_site_workshop_without_an_address(admin_client):
     response = post(admin_client, location_kind="onsite")
 
     assert response.status_code == 200
-    assert "ville est requise" in response.content.decode()
+    assert "adresse est requise" in response.content.decode()
 
 
-def test_shows_an_error_for_an_online_workshop_carrying_an_address(admin_client):
-    response = post(admin_client, location_kind="online", city="Lyon")
+def test_shows_an_error_for_an_online_workshop_carrying_an_address(admin_client, make_address):
+    response = post(admin_client, location_kind="online", address=make_address().pk)
 
     assert response.status_code == 200
     assert "adresse postale" in response.content.decode()
@@ -70,9 +76,34 @@ def test_shows_an_error_for_an_online_workshop_carrying_an_address(admin_client)
 def test_the_changelist_shows_the_label_the_site_displays(admin_client, make_event):
     """`location_label` is a property, not a column, so the changelist column is a
     ModelAdmin method — this catches it being dropped or renamed."""
-    make_event(location_kind=Event.LocationKind.ONSITE, city="Lyon")
+    make_event(location_kind=Event.LocationKind.ONSITE)
 
     response = admin_client.get("/api/admin/agenda/event/")
 
     assert response.status_code == 200
     assert "Lyon" in response.content.decode()
+
+
+def test_the_address_changelist_counts_the_workshops_using_each(admin_client, make_event):
+    make_event(location_kind=Event.LocationKind.ONSITE)
+
+    response = admin_client.get("/api/admin/agenda/address/")
+
+    assert response.status_code == 200
+    content = response.content.decode()
+    assert "12 rue de la Charité, 69002 Lyon" in content
+    assert 'class="field-event_count">1<' in content
+
+
+def test_the_workshop_form_searches_addresses_by_name(admin_client, make_address):
+    """The event form's autocomplete asks this endpoint, which needs search_fields."""
+    make_address(name="Salle Paul Éluard")
+    make_address(name="Maison des associations")
+
+    response = admin_client.get(
+        "/api/admin/autocomplete/",
+        {"app_label": "agenda", "model_name": "event", "field_name": "address", "term": "Éluard"},
+    )
+
+    assert response.status_code == 200
+    assert [item["text"] for item in response.json()["results"]] == ["Salle Paul Éluard"]

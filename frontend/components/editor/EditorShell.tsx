@@ -12,7 +12,7 @@ import { pill } from "./styles";
 
 /**
  * The frame around every editor page: it decides between the login form and the editor,
- * and holds the header (back to the site, the two tabs, the account link).
+ * and holds the header (back to the site, the tabs, the account link).
  *
  * The session lives in Django. This asks for it on load, then listens for the fetch
  * layer's "session lost" (any 401) to show the login form again. After such an expiry the
@@ -51,6 +51,7 @@ export function EditorShell({ basePath, children }: { basePath: string; children
 
   const tabs = [
     { href: `${basePath}/ateliers`, label: "Ateliers" },
+    { href: `${basePath}/adresses`, label: "Adresses" },
     { href: `${basePath}/tarifs`, label: "Tarifs" },
   ];
   const accountHref = `${basePath}/compte`;

@@ -1,9 +1,10 @@
 import pytest
 from django.core.management import call_command
 from django.core.management.base import CommandError
+from django.db.models import Count
 from django.utils import timezone
 
-from agenda.models import Event
+from agenda.models import Address, Event
 
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("dev_environment")]
 
@@ -38,15 +39,31 @@ def test_has_past_workshops_in_two_different_months():
 
 def test_is_rerunnable_without_piling_up():
     call_command("seed_agenda")
-    first = Event.objects.count()
+    first = (Event.objects.count(), Address.objects.count())
 
     call_command("seed_agenda")
 
-    assert Event.objects.count() == first
+    assert (Event.objects.count(), Address.objects.count()) == first
+
+
+def test_every_on_site_workshop_has_an_address():
+    call_command("seed_agenda")
+
+    assert not Event.objects.filter(location_kind=Event.LocationKind.ONSITE, address=None)
+
+
+def test_has_a_shared_address_and_an_unused_one():
+    """A shared address shows an edit moving several workshops at once; an unused one is
+    the only kind the editor lets you delete."""
+    call_command("seed_agenda")
+
+    counts = sorted(Address.objects.annotate(n=Count("events")).values_list("n", flat=True))
+    assert counts[0] == 0
+    assert counts[-1] >= 2
 
 
 def test_every_workshop_has_a_label_to_display():
-    """The label is derived from the kind or the city, so a seeded row that set neither
+    """The label is derived from the kind or the address's city, so a seeded row that set neither
     would render a blank location on the site."""
     call_command("seed_agenda")
 

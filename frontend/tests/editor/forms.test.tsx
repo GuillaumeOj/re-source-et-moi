@@ -1,8 +1,7 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { EditorContext } from "@/components/editor/EditorContext";
+import { AddressForm } from "@/components/editor/AddressForm";
 import { draftFrom, EMPTY_EVENT, EventForm } from "@/components/editor/EventForm";
 import { LoginForm } from "@/components/editor/LoginForm";
 import {
@@ -17,6 +16,7 @@ import {
   type ManagedPricingType,
   SAVED_LIVE,
 } from "@/lib/editor/api";
+import { address, SESSION, withEditor } from "./fixtures";
 
 vi.mock("@/lib/editor/api", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/editor/api")>();
@@ -26,6 +26,9 @@ vi.mock("@/lib/editor/api", async (importOriginal) => {
       login: vi.fn(),
       createEvent: vi.fn(),
       updateEvent: vi.fn(),
+      listAddresses: vi.fn(),
+      createAddress: vi.fn(),
+      updateAddress: vi.fn(),
       createPricingType: vi.fn(),
       updatePricingType: vi.fn(),
     },
@@ -37,18 +40,14 @@ vi.mock("@/lib/editor/refresh", () => ({ refreshPublicSite: vi.fn().mockResolved
 
 const { editorApi } = await import("@/lib/editor/api");
 
-const SESSION = { username: "cecile", email: "cecile@example.org" };
-
-function withEditor(children: ReactNode) {
-  return (
-    <EditorContext.Provider value={{ session: SESSION, setSession: vi.fn() }}>
-      {children}
-    </EditorContext.Provider>
-  );
-}
+const ADDRESSES = [
+  address({}),
+  address({ id: "a2", name: "Maison des associations", one_line: "Lyon", line1: "" }),
+];
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.mocked(editorApi.listAddresses).mockResolvedValue(ADDRESSES);
 });
 
 describe("LoginForm", () => {
@@ -199,16 +198,34 @@ describe("EventForm", () => {
     expect(screen.getByLabelText("Fin — minutes")).toHaveValue("30");
   });
 
-  it("shows the address fields only for an on-site workshop", async () => {
+  it("asks for a saved address only for an on-site workshop", async () => {
     renderForm();
 
     expect(screen.getByLabelText("Lien de visioconférence")).toBeInTheDocument();
-    expect(screen.queryByLabelText("Ville")).not.toBeInTheDocument();
+    expect(screen.queryByRole("combobox", { name: "Adresse" })).not.toBeInTheDocument();
 
     await userEvent.click(screen.getByLabelText("Sur place"));
 
-    expect(screen.getByLabelText("Ville")).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Adresse" })).toBeInTheDocument();
     expect(screen.queryByLabelText("Lien de visioconférence")).not.toBeInTheDocument();
+  });
+
+  it("sends the chosen address and shows it in full", async () => {
+    vi.mocked(editorApi.createEvent).mockResolvedValue({} as never);
+    renderForm();
+
+    await userEvent.click(screen.getByLabelText("Sur place"));
+    const picker = screen.getByRole("combobox", { name: "Adresse" });
+    await screen.findByRole("option", { name: "Salle de la Charité — Lyon" });
+    await userEvent.selectOptions(picker, "a1");
+
+    expect(screen.getByText("12 rue de la Charité, 69002 Lyon")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Enregistrer" }));
+    expect(vi.mocked(editorApi.createEvent).mock.calls[0][0]).toMatchObject({
+      location_kind: "onsite",
+      address: "a1",
+      online_url: "",
+    });
   });
 
   it("doesn't send an address hidden by switching back to online", async () => {
@@ -218,14 +235,57 @@ describe("EventForm", () => {
     renderForm();
 
     await userEvent.click(screen.getByLabelText("Sur place"));
-    await userEvent.type(screen.getByLabelText("Ville"), "Lyon");
+    await screen.findByRole("option", { name: "Salle de la Charité — Lyon" });
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Adresse" }), "a1");
     await userEvent.click(screen.getByLabelText("En ligne"));
     await userEvent.click(screen.getByRole("button", { name: "Enregistrer" }));
 
     expect(vi.mocked(editorApi.createEvent).mock.calls[0][0]).toMatchObject({
       location_kind: "online",
-      city: "",
+      address: null,
     });
+  });
+
+  it("creates a new address in place and picks it", async () => {
+    vi.mocked(editorApi.createAddress).mockResolvedValue(
+      address({ id: "a3", name: "Salle Paul Éluard", city: "Villeurbanne" }),
+    );
+    vi.mocked(editorApi.createEvent).mockResolvedValue({} as never);
+    renderForm();
+
+    await userEvent.click(screen.getByLabelText("Sur place"));
+    await screen.findByRole("option", { name: "Salle de la Charité — Lyon" });
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Adresse" }), "new");
+    const group = screen.getByRole("group", { name: "Nouvelle adresse" });
+    await userEvent.type(within(group).getByLabelText("Nom"), "Salle Paul Éluard");
+    // Enter in the nested form saves the address, not the workshop around it.
+    await userEvent.type(within(group).getByLabelText("Ville"), "Villeurbanne{Enter}");
+
+    expect(editorApi.createAddress).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "Salle Paul Éluard", city: "Villeurbanne" }),
+    );
+    expect(editorApi.createEvent).not.toHaveBeenCalled();
+    expect(screen.queryByRole("group", { name: "Nouvelle adresse" })).not.toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Adresse" })).toHaveValue("a3");
+
+    await userEvent.click(screen.getByRole("button", { name: "Enregistrer" }));
+    expect(vi.mocked(editorApi.createEvent).mock.calls[0][0]).toMatchObject({ address: "a3" });
+  });
+
+  it("puts the address rule under the picker", async () => {
+    vi.mocked(editorApi.createEvent).mockRejectedValue(
+      new ApiError(400, { address: ["Une adresse est requise pour un atelier sur place."] }),
+    );
+    renderForm();
+
+    await userEvent.click(screen.getByLabelText("Sur place"));
+    await userEvent.click(screen.getByRole("button", { name: "Enregistrer" }));
+
+    await screen.findByText("Une adresse est requise pour un atelier sur place.");
+    expect(screen.getByRole("combobox", { name: "Adresse" })).toHaveAttribute(
+      "aria-invalid",
+      "true",
+    );
   });
 
   it("puts the backend's messages under the fields they concern", async () => {
@@ -256,6 +316,77 @@ describe("EventForm", () => {
     await userEvent.click(screen.getByRole("button", { name: "Enregistrer" }));
 
     expect(onSaved).toHaveBeenCalledOnce();
+  });
+});
+
+describe("AddressForm", () => {
+  it("creates an address and hands it over", async () => {
+    const saved = address({ id: "a3", name: "Salle Paul Éluard" });
+    vi.mocked(editorApi.createAddress).mockResolvedValue(saved);
+    const onSaved = vi.fn();
+    render(withEditor(<AddressForm address={null} onSaved={onSaved} onRemove={vi.fn()} />));
+
+    await userEvent.type(screen.getByLabelText("Nom"), "Salle Paul Éluard");
+    await userEvent.type(screen.getByLabelText("Adresse"), "4 place Paul Éluard");
+    await userEvent.type(screen.getByLabelText("Code postal"), "69100");
+    await userEvent.type(screen.getByLabelText("Ville"), "Villeurbanne");
+    await userEvent.click(screen.getByRole("button", { name: "Enregistrer" }));
+
+    expect(editorApi.createAddress).toHaveBeenCalledWith({
+      name: "Salle Paul Éluard",
+      line1: "4 place Paul Éluard",
+      line2: "",
+      postal_code: "69100",
+      city: "Villeurbanne",
+    });
+    expect(onSaved).toHaveBeenCalledWith(saved);
+  });
+
+  it("confirms an edit once the workshops showing it are refreshed", async () => {
+    vi.mocked(editorApi.updateAddress).mockResolvedValue(address({ city: "Villeurbanne" }));
+    render(withEditor(<AddressForm address={address({})} onSaved={vi.fn()} onRemove={vi.fn()} />));
+
+    await userEvent.clear(screen.getByLabelText("Ville"));
+    await userEvent.type(screen.getByLabelText("Ville"), "Villeurbanne");
+    await userEvent.click(screen.getByRole("button", { name: "Enregistrer" }));
+
+    expect(editorApi.updateAddress).toHaveBeenCalledWith(
+      "a1",
+      expect.objectContaining({ city: "Villeurbanne" }),
+    );
+    expect(await screen.findByText(SAVED_LIVE)).toBeInTheDocument();
+  });
+
+  it("shows the backend's message under the field", async () => {
+    vi.mocked(editorApi.createAddress).mockRejectedValue(
+      new ApiError(400, { name: ["Un objet adresse avec ce champ nom existe déjà."] }),
+    );
+    render(withEditor(<AddressForm address={null} onSaved={vi.fn()} onRemove={vi.fn()} />));
+
+    await userEvent.click(screen.getByRole("button", { name: "Enregistrer" }));
+
+    await screen.findByText("Un objet adresse avec ce champ nom existe déjà.");
+    expect(screen.getByLabelText("Nom")).toHaveAttribute("aria-invalid", "true");
+  });
+
+  it("offers no delete for an address a workshop uses, and says why", () => {
+    render(
+      withEditor(
+        <AddressForm address={address({ event_count: 2 })} onSaved={vi.fn()} onRemove={vi.fn()} />,
+      ),
+    );
+
+    expect(screen.queryByRole("button", { name: "Supprimer l'adresse" })).not.toBeInTheDocument();
+    expect(screen.getByText(/Utilisée par 2 ateliers/)).toBeInTheDocument();
+  });
+
+  it("offers the delete for an unused address", async () => {
+    const onRemove = vi.fn();
+    render(withEditor(<AddressForm address={address({})} onSaved={vi.fn()} onRemove={onRemove} />));
+
+    await userEvent.click(screen.getByRole("button", { name: "Supprimer l'adresse" }));
+
+    expect(onRemove).toHaveBeenCalledOnce();
   });
 });
 

@@ -10,6 +10,9 @@ the "published and upcoming" filtering is visible in dev rather than only in tes
 published upcoming workshops, one more than the home page shows, so its "Voir tout
 l'agenda" link has something to reveal; two past ones in different months, so the agenda's
 calendar has history to look back on.
+
+Three saved addresses: one shared by two workshops (editing it moves both), one with a city
+only, and one no workshop uses — the only one the editor lets you delete.
 """
 
 from __future__ import annotations
@@ -20,7 +23,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
 
-from agenda.models import Event
+from agenda.models import Address, Event
 from config.seeding import guard_dev_only
 
 MORNING_START = datetime.time(10, 0)
@@ -34,8 +37,29 @@ class Command(BaseCommand):
     def handle(self, *args: object, **options: object) -> None:
         guard_dev_only()
 
+        # Events first: their addresses are PROTECTed while anything points at them.
         deleted, _ = Event.objects.all().delete()
+        Address.objects.all().delete()
         today = timezone.localdate()
+
+        charite, lyon_centre, _unused = Address.objects.bulk_create(
+            [
+                Address(
+                    name="Salle de la Charité",
+                    line1="12 rue de la Charité",
+                    postal_code="69002",
+                    city="Lyon",
+                ),
+                Address(name="Lyon centre", city="Lyon"),
+                Address(
+                    name="Maison des associations",
+                    line1="28 rue Denfert-Rochereau",
+                    line2="2e étage, salle 4",
+                    postal_code="69004",
+                    city="Lyon",
+                ),
+            ]
+        )
 
         events = [
             Event(
@@ -52,9 +76,7 @@ class Command(BaseCommand):
                 start_time=MORNING_START,
                 end_time=MORNING_END,
                 location_kind=Event.LocationKind.ONSITE,
-                address_line1="12 rue de la Charité",
-                postal_code="69002",
-                city="Lyon",
+                address=charite,
             ),
             Event(
                 title="La ligne médiane, pas à pas",
@@ -69,7 +91,7 @@ class Command(BaseCommand):
                 start_time=datetime.time(14, 0),
                 end_time=datetime.time(16, 0),
                 location_kind=Event.LocationKind.ONSITE,
-                city="Lyon",
+                address=lyon_centre,
             ),
             Event(
                 title="Mouvements de l'hiver",
@@ -95,7 +117,7 @@ class Command(BaseCommand):
                 start_time=MORNING_START,
                 end_time=MORNING_END,
                 location_kind=Event.LocationKind.ONSITE,
-                city="Lyon",
+                address=charite,
             ),
             Event(
                 title="ECAP & apprentissage — session passée",

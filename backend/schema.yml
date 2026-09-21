@@ -275,6 +275,187 @@ paths:
                   status:
                     type: string
           description: ''
+  /manage/addresses/:
+    get:
+      operationId: manage_addresses_list
+      description: |-
+        The saved addresses workshops point at, editable by staff.
+
+        Unpaginated: it is a short list of places, which the event form loads whole into its
+        picker. A delete is refused while a workshop still uses the address — the foreign key
+        is PROTECT — with a message saying so, rather than the 500 the ProtectedError would be.
+      tags:
+      - manage
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AddressManage'
+          description: ''
+    post:
+      operationId: manage_addresses_create
+      description: |-
+        The saved addresses workshops point at, editable by staff.
+
+        Unpaginated: it is a short list of places, which the event form loads whole into its
+        picker. A delete is refused while a workshop still uses the address — the foreign key
+        is PROTECT — with a message saying so, rather than the 500 the ProtectedError would be.
+      tags:
+      - manage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddressManageRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AddressManageRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AddressManageRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressManage'
+          description: ''
+  /manage/addresses/{id}/:
+    get:
+      operationId: manage_addresses_retrieve
+      description: |-
+        The saved addresses workshops point at, editable by staff.
+
+        Unpaginated: it is a short list of places, which the event form loads whole into its
+        picker. A delete is refused while a workshop still uses the address — the foreign key
+        is PROTECT — with a message saying so, rather than the 500 the ProtectedError would be.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) adresse.
+        required: true
+      tags:
+      - manage
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressManage'
+          description: ''
+    put:
+      operationId: manage_addresses_update
+      description: |-
+        The saved addresses workshops point at, editable by staff.
+
+        Unpaginated: it is a short list of places, which the event form loads whole into its
+        picker. A delete is refused while a workshop still uses the address — the foreign key
+        is PROTECT — with a message saying so, rather than the 500 the ProtectedError would be.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) adresse.
+        required: true
+      tags:
+      - manage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddressManageRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AddressManageRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AddressManageRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressManage'
+          description: ''
+    patch:
+      operationId: manage_addresses_partial_update
+      description: |-
+        The saved addresses workshops point at, editable by staff.
+
+        Unpaginated: it is a short list of places, which the event form loads whole into its
+        picker. A delete is refused while a workshop still uses the address — the foreign key
+        is PROTECT — with a message saying so, rather than the 500 the ProtectedError would be.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) adresse.
+        required: true
+      tags:
+      - manage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAddressManageRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAddressManageRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAddressManageRequest'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressManage'
+          description: ''
+    delete:
+      operationId: manage_addresses_destroy
+      description: |-
+        The saved addresses workshops point at, editable by staff.
+
+        Unpaginated: it is a short list of places, which the event form loads whole into its
+        picker. A delete is refused while a workshop still uses the address — the foreign key
+        is PROTECT — with a message saying so, rather than the 500 the ProtectedError would be.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) adresse.
+        required: true
+      tags:
+      - manage
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
   /manage/events/:
     get:
       operationId: manage_events_list
@@ -753,6 +934,94 @@ components:
       - current_password
       - email
       - username
+    AddressManage:
+      type: object
+      description: |-
+        A saved address as the editor's "Adresses" tab reads and writes it.
+
+        `event_count` is how many workshops use it, so the editor can say why one cannot be
+        deleted before she tries. It comes from the viewset's annotation; a freshly created
+        address has none, and uses nothing. `one_line` is the address as the site prints it, so
+        the editor shows the same thing without formatting it a second time.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          title: Nom
+          description: Pour la retrouver dans la liste, par exemple « Salle Paul Éluard
+            ».
+          maxLength: 120
+        line1:
+          type: string
+          title: Adresse
+          maxLength: 200
+        line2:
+          type: string
+          title: Complément d'adresse
+          maxLength: 200
+        postal_code:
+          type: string
+          title: Code postal
+          maxLength: 16
+        city:
+          type: string
+          title: Ville
+          maxLength: 120
+        one_line:
+          type: string
+          readOnly: true
+        event_count:
+          type: integer
+          readOnly: true
+      required:
+      - id
+      - name
+      - line1
+      - line2
+      - postal_code
+      - city
+      - one_line
+      - event_count
+    AddressManageRequest:
+      type: object
+      description: |-
+        A saved address as the editor's "Adresses" tab reads and writes it.
+
+        `event_count` is how many workshops use it, so the editor can say why one cannot be
+        deleted before she tries. It comes from the viewset's annotation; a freshly created
+        address has none, and uses nothing. `one_line` is the address as the site prints it, so
+        the editor shows the same thing without formatting it a second time.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          title: Nom
+          description: Pour la retrouver dans la liste, par exemple « Salle Paul Éluard
+            ».
+          maxLength: 120
+        line1:
+          type: string
+          title: Adresse
+          maxLength: 200
+        line2:
+          type: string
+          title: Complément d'adresse
+          maxLength: 200
+        postal_code:
+          type: string
+          title: Code postal
+          maxLength: 16
+        city:
+          type: string
+          minLength: 1
+          title: Ville
+          maxLength: 120
+      required:
+      - city
+      - name
     Event:
       type: object
       description: |-
@@ -764,8 +1033,8 @@ components:
         again, which is the exact problem this replaced.
 
         The postal address is flattened into a single `address` string: the site shows one
-        line, and the separate fields exist so the admin form can guide input, not because
-        anything downstream wants them apart.
+        line, and the saved Address keeps its parts apart so the forms can guide input, not
+        because anything downstream wants them apart.
       properties:
         id:
           type: string
@@ -820,8 +1089,8 @@ components:
       description: |-
         A workshop as the site owner's editor reads and writes it.
 
-        Not the public shape. It carries the stored address parts and the label override
-        (what the form edits) and `is_published`. The derived `location_label` is read-only,
+        Not the public shape. It carries the chosen Address's id and the label override (what
+        the form edits) and `is_published`. The derived `location_label` is read-only,
         so the list can show what the site will display. Validation reuses `Event.clean()`
         through ModelCleanMixin, so the editor gets the admin's French field messages.
       properties:
@@ -851,7 +1120,8 @@ components:
         location_label_override:
           type: string
           title: Libellé du lieu
-          description: Laisser vide pour le déduire du lieu (« En ligne », ou la ville).
+          description: Laisser vide pour le déduire du lieu (« En ligne », ou la ville
+            de l'adresse).
           maxLength: 120
         location_label:
           type: string
@@ -861,22 +1131,11 @@ components:
           format: uri
           title: Lien de visioconférence
           maxLength: 200
-        address_line1:
+        address:
           type: string
+          format: uuid
+          nullable: true
           title: Adresse
-          maxLength: 200
-        address_line2:
-          type: string
-          title: Complément d'adresse
-          maxLength: 200
-        postal_code:
-          type: string
-          title: Code postal
-          maxLength: 16
-        city:
-          type: string
-          title: Ville
-          maxLength: 120
         description:
           type: string
         is_published:
@@ -893,10 +1152,7 @@ components:
       - location_label_override
       - location_label
       - online_url
-      - address_line1
-      - address_line2
-      - postal_code
-      - city
+      - address
       - description
       - is_published
     EventManageRequest:
@@ -904,8 +1160,8 @@ components:
       description: |-
         A workshop as the site owner's editor reads and writes it.
 
-        Not the public shape. It carries the stored address parts and the label override
-        (what the form edits) and `is_published`. The derived `location_label` is read-only,
+        Not the public shape. It carries the chosen Address's id and the label override (what
+        the form edits) and `is_published`. The derived `location_label` is read-only,
         so the list can show what the site will display. Validation reuses `Event.clean()`
         through ModelCleanMixin, so the editor gets the admin's French field messages.
       properties:
@@ -932,29 +1188,19 @@ components:
         location_label_override:
           type: string
           title: Libellé du lieu
-          description: Laisser vide pour le déduire du lieu (« En ligne », ou la ville).
+          description: Laisser vide pour le déduire du lieu (« En ligne », ou la ville
+            de l'adresse).
           maxLength: 120
         online_url:
           type: string
           format: uri
           title: Lien de visioconférence
           maxLength: 200
-        address_line1:
+        address:
           type: string
+          format: uuid
+          nullable: true
           title: Adresse
-          maxLength: 200
-        address_line2:
-          type: string
-          title: Complément d'adresse
-          maxLength: 200
-        postal_code:
-          type: string
-          title: Code postal
-          maxLength: 16
-        city:
-          type: string
-          title: Ville
-          maxLength: 120
         description:
           type: string
         is_published:
@@ -1068,13 +1314,47 @@ components:
           readOnly: true
       required:
       - rules
+    PatchedAddressManageRequest:
+      type: object
+      description: |-
+        A saved address as the editor's "Adresses" tab reads and writes it.
+
+        `event_count` is how many workshops use it, so the editor can say why one cannot be
+        deleted before she tries. It comes from the viewset's annotation; a freshly created
+        address has none, and uses nothing. `one_line` is the address as the site prints it, so
+        the editor shows the same thing without formatting it a second time.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          title: Nom
+          description: Pour la retrouver dans la liste, par exemple « Salle Paul Éluard
+            ».
+          maxLength: 120
+        line1:
+          type: string
+          title: Adresse
+          maxLength: 200
+        line2:
+          type: string
+          title: Complément d'adresse
+          maxLength: 200
+        postal_code:
+          type: string
+          title: Code postal
+          maxLength: 16
+        city:
+          type: string
+          minLength: 1
+          title: Ville
+          maxLength: 120
     PatchedEventManageRequest:
       type: object
       description: |-
         A workshop as the site owner's editor reads and writes it.
 
-        Not the public shape. It carries the stored address parts and the label override
-        (what the form edits) and `is_published`. The derived `location_label` is read-only,
+        Not the public shape. It carries the chosen Address's id and the label override (what
+        the form edits) and `is_published`. The derived `location_label` is read-only,
         so the list can show what the site will display. Validation reuses `Event.clean()`
         through ModelCleanMixin, so the editor gets the admin's French field messages.
       properties:
@@ -1101,29 +1381,19 @@ components:
         location_label_override:
           type: string
           title: Libellé du lieu
-          description: Laisser vide pour le déduire du lieu (« En ligne », ou la ville).
+          description: Laisser vide pour le déduire du lieu (« En ligne », ou la ville
+            de l'adresse).
           maxLength: 120
         online_url:
           type: string
           format: uri
           title: Lien de visioconférence
           maxLength: 200
-        address_line1:
+        address:
           type: string
+          format: uuid
+          nullable: true
           title: Adresse
-          maxLength: 200
-        address_line2:
-          type: string
-          title: Complément d'adresse
-          maxLength: 200
-        postal_code:
-          type: string
-          title: Code postal
-          maxLength: 16
-        city:
-          type: string
-          title: Ville
-          maxLength: 120
         description:
           type: string
         is_published:

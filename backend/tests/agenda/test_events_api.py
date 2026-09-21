@@ -93,13 +93,12 @@ def test_an_online_workshop_reports_its_kind_and_no_address(client, make_event):
     assert event["online_url"] == "https://example.test/visio"
 
 
-def test_an_on_site_workshop_flattens_its_address_to_one_line(client, make_event):
+def test_an_on_site_workshop_flattens_its_address_to_one_line(client, make_event, make_address):
     make_event(
         location_kind=Event.LocationKind.ONSITE,
-        address_line1="12 rue de la Charité",
-        address_line2="Bâtiment B",
-        postal_code="69002",
-        city="Lyon",
+        address=make_address(
+            line1="12 rue de la Charité", line2="Bâtiment B", postal_code="69002", city="Lyon"
+        ),
     )
 
     [event] = client.get(URL).json()
@@ -109,12 +108,25 @@ def test_an_on_site_workshop_flattens_its_address_to_one_line(client, make_event
     assert event["address"] == "12 rue de la Charité, Bâtiment B, 69002 Lyon"
 
 
-def test_address_omits_the_parts_that_are_blank(client, make_event):
-    make_event(location_kind=Event.LocationKind.ONSITE, city="Lyon")
+def test_address_omits_the_parts_that_are_blank(client, make_event, make_address):
+    make_event(
+        location_kind=Event.LocationKind.ONSITE,
+        address=make_address(line1="", postal_code="", city="Lyon"),
+    )
 
     [event] = client.get(URL).json()
 
     assert event["address"] == "Lyon"
+
+
+def test_reads_every_address_in_the_same_query(client, make_event, django_assert_num_queries):
+    """Each row's label and address read its Address. Without select_related that is one
+    query per workshop."""
+    for _ in range(3):
+        make_event(location_kind=Event.LocationKind.ONSITE)
+
+    with django_assert_num_queries(1):
+        client.get(URL)
 
 
 def test_empty_agenda_is_an_empty_list_not_an_error(client):

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { cn } from "@/lib/cn";
 import { type EventInput, editorApi, type ManagedEvent } from "@/lib/editor/api";
+import { AddressPicker } from "./AddressPicker";
 import { DateField } from "./DateField";
 import { FormError, StatusMessage } from "./StatusMessage";
 import { Switch } from "./Switch";
@@ -25,10 +26,7 @@ export const EMPTY_EVENT: EventDraft = {
   location_kind: "online",
   location_label_override: "",
   online_url: "",
-  address_line1: "",
-  address_line2: "",
-  postal_code: "",
-  city: "",
+  address: null,
   description: "",
   is_published: true,
 };
@@ -43,25 +41,22 @@ export function draftFrom(event: ManagedEvent): EventDraft {
     location_kind: event.location_kind,
     location_label_override: event.location_label_override,
     online_url: event.online_url,
-    address_line1: event.address_line1,
-    address_line2: event.address_line2,
-    postal_code: event.postal_code,
-    city: event.city,
+    address: event.address,
     description: event.description,
     is_published: event.is_published,
   };
 }
 
 /**
- * What goes to the API. The fields of the location kind not chosen are sent empty.
- * Switching from "Sur place" to "En ligne" hides the address fields but keeps their
- * values in the draft (so switching back loses nothing). Sending those hidden values
- * would trip the backend's "an online workshop carries no address" rule on fields she
- * can no longer see.
+ * What goes to the API. The field of the location kind not chosen is sent empty.
+ * Switching from "Sur place" to "En ligne" hides the address picker but keeps the choice
+ * in the draft (so switching back loses nothing). Sending that hidden choice would trip
+ * the backend's "an online workshop carries no address" rule on a field she can no
+ * longer see.
  */
 function payloadFrom(draft: EventDraft): EventInput {
   if (draft.location_kind === "online") {
-    return { ...draft, address_line1: "", address_line2: "", postal_code: "", city: "" };
+    return { ...draft, address: null };
   }
   return { ...draft, online_url: "" };
 }
@@ -190,46 +185,11 @@ export function EventForm({ event, initial, onSaved, onCancel }: EventFormProps)
             error={errorFor("online_url")}
           />
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="sm:col-span-2">
-              <Field
-                label="Adresse"
-                id="event-address1"
-                autoComplete="off"
-                value={draft.address_line1}
-                onChange={(e) => set("address_line1", e.target.value)}
-                error={errorFor("address_line1")}
-              />
-            </div>
-            <div className="sm:col-span-2">
-              <Field
-                label="Complément d'adresse"
-                id="event-address2"
-                autoComplete="off"
-                value={draft.address_line2}
-                onChange={(e) => set("address_line2", e.target.value)}
-                error={errorFor("address_line2")}
-              />
-            </div>
-            <Field
-              label="Code postal"
-              id="event-postal-code"
-              inputMode="numeric"
-              autoComplete="off"
-              value={draft.postal_code}
-              onChange={(e) => set("postal_code", e.target.value)}
-              error={errorFor("postal_code")}
-            />
-            <Field
-              label="Ville"
-              id="event-city"
-              required
-              autoComplete="off"
-              value={draft.city}
-              onChange={(e) => set("city", e.target.value)}
-              error={errorFor("city")}
-            />
-          </div>
+          <AddressPicker
+            value={draft.address}
+            onChange={(id) => set("address", id)}
+            error={errorFor("address")}
+          />
         )}
 
         <Field
@@ -237,7 +197,7 @@ export function EventForm({ event, initial, onSaved, onCancel }: EventFormProps)
           id="event-location-label"
           value={draft.location_label_override}
           onChange={(e) => set("location_label_override", e.target.value)}
-          hint="Laisser vide pour le déduire du lieu (« En ligne », ou la ville)."
+          hint="Laisser vide pour le déduire du lieu (« En ligne », ou la ville de l'adresse)."
           error={errorFor("location_label_override")}
         />
       </fieldset>

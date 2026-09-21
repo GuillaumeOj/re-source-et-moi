@@ -17,7 +17,7 @@ def detail(event: Event) -> str:
 
 
 @pytest.fixture
-def payload(today):
+def payload(today, make_address):
     """A complete, valid on-site workshop, as the editor's form sends it."""
     return {
         "title": "Atelier découverte",
@@ -27,10 +27,7 @@ def payload(today):
         "location_kind": "onsite",
         "location_label_override": "",
         "online_url": "",
-        "address_line1": "12 rue de la République",
-        "address_line2": "",
-        "postal_code": "69002",
-        "city": "Lyon",
+        "address": str(make_address(name="Salle de la République", city="Lyon").pk),
         "description": "Pour découvrir le Brain Gym®.",
         "is_published": False,
     }
@@ -62,12 +59,11 @@ def test_lists_drafts_and_past_workshops_too(staff_client, make_event, today):
 
 
 def test_exposes_the_editable_fields_and_the_derived_label(staff_client, make_event):
-    make_event(location_kind=Event.LocationKind.ONSITE, city="Lyon", postal_code="69002")
+    stored = make_event(location_kind=Event.LocationKind.ONSITE)
 
     [event] = staff_client.get(URL).json()["results"]
 
-    assert event["city"] == "Lyon"
-    assert event["postal_code"] == "69002"
+    assert event["address"] == str(stored.address_id)
     assert event["location_label"] == "Lyon"
     assert event["is_published"] is True
 
@@ -78,7 +74,8 @@ def test_creates_a_workshop(staff_client, payload):
     assert response.status_code == 201
     event = Event.objects.get()
     assert event.title == "Atelier découverte"
-    assert event.city == "Lyon"
+    assert event.address is not None
+    assert event.address.name == "Salle de la République"
     assert event.is_published is False
     assert response.json()["location_label"] == "Lyon"
 
@@ -132,17 +129,40 @@ def test_rejects_an_online_workshop_that_still_carries_an_address(staff_client, 
     response = staff_client.post(URL, payload, format="json")
 
     assert response.status_code == 400
-    errors = response.json()
-    assert set(errors) == {"address_line1", "postal_code", "city"}
+    assert response.json() == {
+        "address": ["Un atelier en ligne ne doit pas porter d'adresse postale."]
+    }
 
 
-def test_rejects_an_onsite_workshop_without_a_city(staff_client, payload):
-    payload.update(city="")
+def test_rejects_an_onsite_workshop_without_an_address(staff_client, payload):
+    payload.update(address=None)
 
     response = staff_client.post(URL, payload, format="json")
 
     assert response.status_code == 400
-    assert response.json() == {"city": ["Une ville est requise pour un atelier sur place."]}
+    assert response.json() == {"address": ["Une adresse est requise pour un atelier sur place."]}
+
+
+def test_rejects_an_address_that_does_not_exist(staff_client, payload):
+    payload.update(address="00000000-0000-4000-8000-000000000000")
+
+    response = staff_client.post(URL, payload, format="json")
+
+    assert response.status_code == 400
+    assert "address" in response.json()
+
+
+def test_the_list_reads_the_addresses_in_one_query(
+    staff_client, make_event, django_assert_num_queries
+):
+    """The derived label reads each row's address. Without select_related that is one
+    query per workshop."""
+    for _ in range(3):
+        make_event(location_kind=Event.LocationKind.ONSITE)
+
+    # Session and user, then the count and the page.
+    with django_assert_num_queries(4):
+        staff_client.get(URL)
 
 
 def test_a_patch_is_validated_against_the_stored_values(staff_client, make_event):

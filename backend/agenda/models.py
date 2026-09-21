@@ -10,10 +10,59 @@ rendering is the frontend's job.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from django.core.exceptions import ValidationError
 from django.db import models
 
 from config.models import UUIDModel
+
+
+class Address(UUIDModel):
+    """A place workshops happen, saved once and picked from a list after that.
+
+    Events point at it rather than carrying their own copy, so correcting a street name
+    corrects every workshop held there. The name is what the owner calls the place ("Salle
+    Paul Éluard") and what the editor's picker shows; the site itself shows the city and
+    the one-line address.
+    """
+
+    if TYPE_CHECKING:
+        # Declared for the type checker only: the reverse accessor is created at runtime by
+        # Event.address's related_name, which ty cannot see. See CLAUDE.md, "ty does not
+        # run django-stubs' plugin".
+        events: models.Manager[Event]
+
+    name = models.CharField(
+        "nom",
+        max_length=120,
+        unique=True,
+        help_text="Pour la retrouver dans la liste, par exemple « Salle Paul Éluard ».",
+    )
+    line1 = models.CharField("adresse", max_length=200, blank=True)
+    line2 = models.CharField("complément d'adresse", max_length=200, blank=True)
+    postal_code = models.CharField("code postal", max_length=16, blank=True)
+    # Required: the city is what the agenda row displays for an on-site workshop.
+    city = models.CharField("ville", max_length=120)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "adresse"
+        verbose_name_plural = "adresses"
+        ordering = ["name"]
+
+    def __str__(self) -> str:
+        return self.name
+
+    @property
+    def one_line(self) -> str:
+        """The postal address on one line: "12 rue de la Charité, 69002 Lyon"."""
+        # The postcode and city share a line; everything else is comma-separated. Blanks
+        # drop out of both joins.
+        locality = " ".join(filter(None, (self.postal_code, self.city)))
+        return ", ".join(filter(None, (self.line1, self.line2, locality)))
 
 
 class Event(UUIDModel):
@@ -42,13 +91,19 @@ class Event(UUIDModel):
         "libellé du lieu",
         max_length=120,
         blank=True,
-        help_text="Laisser vide pour le déduire du lieu (« En ligne », ou la ville).",
+        help_text="Laisser vide pour le déduire du lieu (« En ligne », ou la ville de l'adresse).",
     )
     online_url = models.URLField("lien de visioconférence", blank=True)
-    address_line1 = models.CharField("adresse", max_length=200, blank=True)
-    address_line2 = models.CharField("complément d'adresse", max_length=200, blank=True)
-    postal_code = models.CharField("code postal", max_length=16, blank=True)
-    city = models.CharField("ville", max_length=120, blank=True)
+    # PROTECT: deleting a place still in use would silently turn its workshops into
+    # on-site events with nowhere to go. The owner moves them first.
+    address = models.ForeignKey(
+        Address,
+        verbose_name="adresse",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="events",
+    )
 
     description = models.TextField("description", blank=True)
     is_published = models.BooleanField(
@@ -83,7 +138,9 @@ class Event(UUIDModel):
         """The short label the agenda row shows — "En ligne", "Lyon", or an override."""
         if self.location_label_override:
             return self.location_label_override
-        return str(self.LocationKind.ONLINE.label) if self.is_online else self.city
+        if self.is_online:
+            return str(self.LocationKind.ONLINE.label)
+        return self.address.city if self.address else ""
 
     def clean(self) -> None:
         """Validate the two things the admin form can get wrong.
@@ -98,18 +155,16 @@ class Event(UUIDModel):
         if self.start_time and self.end_time and self.end_time <= self.start_time:
             errors["end_time"] = "L'heure de fin doit être postérieure à l'heure de début."
 
-        if self.is_online:
-            # An online workshop with a postal address is a copy/paste leftover: the
-            # frontend would show a city for something nobody travels to. The message goes
-            # on every field that still holds one, so the admin highlights exactly what
-            # needs clearing — an address left in `address_line1` is invisible if the only
-            # error sits on an already-empty "Ville".
-            for field in ("address_line1", "address_line2", "postal_code", "city"):
-                if getattr(self, field):
-                    errors[field] = "Un atelier en ligne ne doit pas porter d'adresse postale."
-        elif not self.city:
-            # The city is what the agenda row displays, so on-site without one renders blank.
-            errors["city"] = "Une ville est requise pour un atelier sur place."
+        # Both editing UIs set `address` to the chosen object before calling this, so
+        # reading it costs no query.
+        if self.is_online and self.address is not None:
+            # A leftover address is a copy/paste mistake: the frontend would show a city
+            # for something nobody travels to.
+            errors["address"] = "Un atelier en ligne ne doit pas porter d'adresse postale."
+        elif not self.is_online and self.address is None:
+            # The address's city is what the agenda row displays, so on-site without one
+            # renders blank.
+            errors["address"] = "Une adresse est requise pour un atelier sur place."
 
         if errors:
             raise ValidationError(errors)
