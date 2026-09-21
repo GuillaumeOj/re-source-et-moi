@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { site } from "@/content/site";
-import { buildJsonLd } from "@/lib/jsonld";
+import { buildOrganizationJsonLd } from "@/lib/jsonld";
 import { cormorant, nunito } from "./fonts";
 import "./globals.css";
 
@@ -16,6 +17,8 @@ export const metadata: Metadata = {
   keywords: [
     "éducation kinesthésique",
     "Brain Gym",
+    "Le Soi en Mouvement",
+    "Tai-Chi",
     "mouvement",
     "apprentissage",
     "association",
@@ -40,19 +43,12 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-// Structured data is built from static content — stringify once at module load.
-const JSON_LD = JSON.stringify(buildJsonLd());
-
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="fr" className={`${cormorant.variable} ${nunito.variable}`}>
       <body>
         {children}
-        <script
-          type="application/ld+json"
-          // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD is static, server-generated
-          dangerouslySetInnerHTML={{ __html: JSON_LD }}
-        />
+        <JsonLd data={buildOrganizationJsonLd()} />
       </body>
     </html>
   );

@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { EventCard } from "@/components/sections/workshops/EventCard";
 import { Notice } from "@/components/sections/workshops/Notice";
 import { agenda, ateliers } from "@/content/ateliers";
+import { routes } from "@/content/routes";
 import { type Event, getEvents } from "@/lib/api/client";
 import {
   addMonths,
@@ -23,7 +24,7 @@ const CHIPS_PER_DAY = 2;
 
 /** The agenda page's calendar view of `month`. */
 export function calendarHref(month: Month): string {
-  return `/agenda?vue=calendrier&mois=${formatMonthParam(month)}`;
+  return `${routes.ateliers.path}?vue=calendrier&mois=${formatMonthParam(month)}`;
 }
 
 /** The anchor of a day's workshops in the list under the grid. */

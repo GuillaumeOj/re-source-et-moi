@@ -1,6 +1,6 @@
-import { render, screen, within } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import AgendaPage from "@/app/agenda/page";
+import AteliersPage from "@/app/ateliers/page";
 import { agenda, ateliers } from "@/content/ateliers";
 import type { Event } from "@/lib/api/client";
 
@@ -21,6 +21,9 @@ vi.mock("@/components/agenda/AgendaCalendar", async (importOriginal) => {
 });
 vi.mock("@/components/sections/workshops/AgendaList", () => ({
   AgendaList: () => <ul data-testid="list" />,
+}));
+vi.mock("@/components/sections/workshops/PricingSection", () => ({
+  PricingSection: () => <div data-testid="pricing" />,
 }));
 
 const { getEvents } = await import("@/lib/api/client");
@@ -45,7 +48,7 @@ function makeEvent(overrides: Partial<Event> = {}): Event {
 }
 
 async function renderPage(searchParams: Record<string, string | string[]> = {}) {
-  render(await AgendaPage({ searchParams: Promise.resolve(searchParams) }));
+  render(await AteliersPage({ searchParams: Promise.resolve(searchParams) }));
 }
 
 beforeEach(() => {
@@ -59,7 +62,22 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe("AgendaPage", () => {
+describe("AteliersPage", () => {
+  it("has a breadcrumb from Accueil", async () => {
+    await renderPage();
+    const trail = screen.getByRole("navigation", { name: "Fil d'Ariane" });
+    expect(within(trail).getByRole("link", { name: "Accueil" })).toHaveAttribute("href", "/");
+    expect(within(trail).getByText(agenda.eyebrow)).toHaveAttribute("aria-current", "page");
+  });
+
+  it("shows the tariffs under both views", async () => {
+    await renderPage();
+    expect(screen.getByTestId("pricing")).toBeInTheDocument();
+    cleanup();
+    await renderPage({ vue: "calendrier" });
+    expect(screen.getByTestId("pricing")).toBeInTheDocument();
+  });
+
   it("renders one h1 and the site's landmarks", async () => {
     await renderPage();
 
@@ -129,10 +147,10 @@ describe("AgendaCalendar", () => {
     expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent("Octobre 2026");
     expect(
       screen.getByRole("link", { name: `${agenda.previousMonth} : Septembre 2026` }),
-    ).toHaveAttribute("href", "/agenda?vue=calendrier&mois=2026-09");
+    ).toHaveAttribute("href", "/ateliers?vue=calendrier&mois=2026-09");
     expect(
       screen.getByRole("link", { name: `${agenda.nextMonth} : Novembre 2026` }),
-    ).toHaveAttribute("href", "/agenda?vue=calendrier&mois=2026-11");
+    ).toHaveAttribute("href", "/ateliers?vue=calendrier&mois=2026-11");
   });
 
   it("offers a way back to today only from another month", async () => {
@@ -142,7 +160,7 @@ describe("AgendaCalendar", () => {
     render(await RealAgendaCalendar({ month: { year: 2027, month: 1 } }));
     expect(screen.getByRole("link", { name: agenda.today })).toHaveAttribute(
       "href",
-      "/agenda?vue=calendrier&mois=2026-10",
+      "/ateliers?vue=calendrier&mois=2026-10",
     );
   });
 
@@ -163,7 +181,7 @@ describe("AgendaCalendar", () => {
 
     expect(screen.getByRole("link", { name: "mardi 3 novembre 2026, 1 atelier" })).toHaveAttribute(
       "href",
-      "/agenda?vue=calendrier&mois=2026-11#jour-2026-11-03",
+      "/ateliers?vue=calendrier&mois=2026-11#jour-2026-11-03",
     );
     // Not this month's, so not in the list under the grid.
     expect(screen.getByText(agenda.emptyMonth)).toBeInTheDocument();

@@ -1,11 +1,16 @@
-// "Questions fréquentes". Also feeds the FAQPage JSON-LD for SEO.
+// "Questions fréquentes" — the /questions page. Also feeds that page's FAQPage JSON-LD.
 // Note: answers avoid medical / "guérison" language per the brand voice.
 
 export type FaqItem = { question: string; answer: string };
 
 export const faq = {
+  metaTitle: "Questions fréquentes",
+  metaDescription:
+    "Pour qui, comment se déroule un atelier, combien de temps dure une séance : les réponses aux questions les plus fréquentes sur les ateliers de Re-Source Et Moi.",
   eyebrow: "Questions fréquentes",
   title: "Vous vous demandez peut-être…",
+  intro: "Les réponses aux questions que l'on nous pose le plus souvent sur les ateliers.",
+  more: "Vous ne trouvez pas votre réponse ? Écrivez-nous, nous vous répondons avec plaisir.",
   items: [
     {
       question: "C'est pour qui ?",

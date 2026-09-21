@@ -1,5 +1,7 @@
 // Contact and footer copy.
 
+import { routes } from "./routes";
+
 export const contact = {
   eyebrow: "Écrire à l'association",
   title: "Parlons mouvement",
@@ -17,11 +19,12 @@ export const contact = {
 
 export const footer = {
   tagline: "Activer son potentiel par le mouvement.",
-  legalNote:
-    "Brain Gym® est une marque déposée. Re-Source Et Moi n'est pas affiliée à Breakthroughs International.",
   rights: "Re-Source Et Moi — Association loi 1901.",
   legalLinks: [
-    { label: "Mentions légales", href: "/mentions-legales" },
-    { label: "Confidentialité", href: "/politique-de-confidentialite" },
+    { label: routes.mentionsLegales.label, href: routes.mentionsLegales.path },
+    { label: "Confidentialité", href: routes.confidentialite.path },
   ],
 } as const;
+
+// The way from a page about the practices or about Cécile to the workshops.
+export const ateliersCta = { label: "Voir les prochains ateliers", href: routes.ateliers.path };
