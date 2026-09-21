@@ -3,14 +3,20 @@ import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { EditorContext } from "@/components/editor/EditorContext";
-import { EMPTY_EVENT, EventForm } from "@/components/editor/EventForm";
+import { draftFrom, EMPTY_EVENT, EventForm } from "@/components/editor/EventForm";
 import { LoginForm } from "@/components/editor/LoginForm";
 import {
   amountForApi,
   amountForInput,
   PricingGroupForm,
 } from "@/components/editor/PricingGroupForm";
-import { ApiError, FIX_FIELDS, type ManagedPricingType, SAVED_LIVE } from "@/lib/editor/api";
+import {
+  ApiError,
+  FIX_FIELDS,
+  type ManagedEvent,
+  type ManagedPricingType,
+  SAVED_LIVE,
+} from "@/lib/editor/api";
 
 vi.mock("@/lib/editor/api", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/editor/api")>();
@@ -94,6 +100,104 @@ describe("EventForm", () => {
     );
     return { onSaved };
   }
+
+  it("takes a date and times written and read the way they are in France", async () => {
+    // The browser's own date and time pickers speak the browser's language, which is not
+    // necessarily French — hence the editor's own controls. What leaves them is ISO.
+    vi.mocked(editorApi.createEvent).mockResolvedValue({} as never);
+    renderForm();
+
+    await userEvent.type(screen.getByLabelText("Date"), "14/06/2026");
+    await userEvent.selectOptions(screen.getByLabelText("Début"), "10");
+    await userEvent.selectOptions(screen.getByLabelText("Début — minutes"), "00");
+    await userEvent.selectOptions(screen.getByLabelText("Fin"), "12");
+    await userEvent.selectOptions(screen.getByLabelText("Fin — minutes"), "30");
+    await userEvent.click(screen.getByRole("button", { name: "Enregistrer" }));
+
+    expect(vi.mocked(editorApi.createEvent).mock.calls[0][0]).toMatchObject({
+      date: "2026-06-14",
+      start_time: "10:00",
+      end_time: "12:30",
+    });
+  });
+
+  it("says so when the date is left half-written, and doesn't send the old one", async () => {
+    // What is written has to be what gets saved. A date cut back to "14/06" is no date,
+    // so the draft holds none — keeping the last complete one would save a day she is no
+    // longer looking at.
+    vi.mocked(editorApi.createEvent).mockResolvedValue({} as never);
+    renderForm();
+
+    const date = screen.getByLabelText("Date");
+    await userEvent.type(date, "14/06/2026");
+    await userEvent.clear(date);
+    await userEvent.type(date, "14/06");
+    await userEvent.tab();
+
+    expect(await screen.findByText(/Date incomplète/)).toBeInTheDocument();
+    expect(date).toHaveValue("14/06");
+
+    await userEvent.click(screen.getByRole("button", { name: "Enregistrer" }));
+
+    expect(vi.mocked(editorApi.createEvent).mock.calls[0][0]).toMatchObject({ date: "" });
+  });
+
+  it("keeps a half-chosen time to itself rather than inventing midnight", async () => {
+    // Choosing the minutes first is an ordinary way to fill this in. Completing the hour
+    // as "00" would save a workshop at 00:30 for someone who means 14:30.
+    vi.mocked(editorApi.createEvent).mockResolvedValue({} as never);
+    renderForm();
+
+    await userEvent.selectOptions(screen.getByLabelText("Début — minutes"), "30");
+    await userEvent.click(screen.getByRole("button", { name: "Enregistrer" }));
+
+    expect(screen.getByLabelText("Début")).toHaveValue("");
+    expect(screen.getByLabelText("Début — minutes")).toHaveValue("30");
+    expect(vi.mocked(editorApi.createEvent).mock.calls[0][0]).toMatchObject({ start_time: "" });
+  });
+
+  it("tells a date that doesn't exist from one that isn't finished", async () => {
+    // 2026 is not a leap year. "Date incomplète" would send her back to count the
+    // characters she has already typed, all ten of them.
+    renderForm();
+
+    await userEvent.type(screen.getByLabelText("Date"), "29/02/2026");
+    await userEvent.tab();
+
+    expect(await screen.findByText(/n'existe pas/)).toBeInTheDocument();
+  });
+
+  it("fills the date from the calendar, in French", async () => {
+    renderForm();
+
+    // The calendar opens on the month of the date already in the field — here June 2026,
+    // so the test doesn't depend on the day it runs.
+    await userEvent.type(screen.getByLabelText("Date"), "14/06/2026");
+    await userEvent.click(screen.getByLabelText("Choisir dans le calendrier"));
+    await userEvent.click(screen.getByLabelText("lundi 15 juin 2026"));
+
+    expect(screen.getByLabelText("Date")).toHaveValue("15/06/2026");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("shows a stored workshop's date and times as they are written here", () => {
+    const event = {
+      ...EMPTY_EVENT,
+      id: "e1",
+      date: "2026-06-14",
+      start_time: "10:00:00",
+      end_time: "12:30:00",
+    } as unknown as ManagedEvent;
+    render(
+      withEditor(
+        <EventForm event={event} initial={draftFrom(event)} onSaved={vi.fn()} onCancel={vi.fn()} />,
+      ),
+    );
+
+    expect(screen.getByLabelText("Date")).toHaveValue("14/06/2026");
+    expect(screen.getByLabelText("Début")).toHaveValue("10");
+    expect(screen.getByLabelText("Fin — minutes")).toHaveValue("30");
+  });
 
   it("shows the address fields only for an on-site workshop", async () => {
     renderForm();

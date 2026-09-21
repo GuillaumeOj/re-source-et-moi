@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { cn } from "@/lib/cn";
 import { type EventInput, editorApi, type ManagedEvent } from "@/lib/editor/api";
+import { DateField } from "./DateField";
 import { FormError, StatusMessage } from "./StatusMessage";
 import { Switch } from "./Switch";
 import { editorCard } from "./styles";
+import { TimeField } from "./TimeField";
 import { useSubmit } from "./useSubmit";
 import { useUnsavedChangesWarning } from "./useUnsavedChangesWarning";
 
@@ -31,7 +33,7 @@ export const EMPTY_EVENT: EventDraft = {
   is_published: true,
 };
 
-/** The editable part of a stored event. Times are cut to HH:MM, which is what <input type="time"> shows. */
+/** The editable part of a stored event. Times are cut to HH:MM, which is what TimeField holds. */
 export function draftFrom(event: ManagedEvent): EventDraft {
   return {
     title: event.title,
@@ -119,31 +121,28 @@ export function EventForm({ event, initial, onSaved, onCancel }: EventFormProps)
 
       <fieldset className="grid gap-4 sm:grid-cols-3">
         <legend className="mb-3 font-display text-xl text-rose-sombre">Quand</legend>
-        <Field
+        <DateField
           label="Date"
           id="event-date"
-          type="date"
           required
           value={draft.date}
-          onChange={(e) => set("date", e.target.value)}
+          onChange={(date) => set("date", date)}
           error={errorFor("date")}
         />
-        <Field
+        <TimeField
           label="Début"
           id="event-start"
-          type="time"
           required
           value={draft.start_time}
-          onChange={(e) => set("start_time", e.target.value)}
+          onChange={(time) => set("start_time", time)}
           error={errorFor("start_time")}
         />
-        <Field
+        <TimeField
           label="Fin"
           id="event-end"
-          type="time"
           required
           value={draft.end_time}
-          onChange={(e) => set("end_time", e.target.value)}
+          onChange={(time) => set("end_time", time)}
           error={errorFor("end_time")}
         />
       </fieldset>

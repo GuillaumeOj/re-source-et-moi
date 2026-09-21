@@ -7,7 +7,9 @@ import {
   isInMonth,
   monthGrid,
   monthOf,
+  parseFrenchDate,
   parseMonth,
+  toFrenchDate,
 } from "@/lib/calendar";
 
 describe("monthGrid", () => {
@@ -69,5 +71,36 @@ describe("the ?mois= parameter", () => {
     for (const value of [undefined, "", "2026-13", "2026-00", "2026-3", "mars", "2026-03-01"]) {
       expect(parseMonth(value), String(value)).toBeNull();
     }
+  });
+});
+
+describe("French dates", () => {
+  it("writes an ISO date the way it is written here", () => {
+    expect(toFrenchDate("2026-06-14")).toBe("14/06/2026");
+    expect(toFrenchDate("")).toBe("");
+  });
+
+  it("reads one back", () => {
+    expect(parseFrenchDate("14/06/2026")).toBe("2026-06-14");
+    // The leading zero is dropped while typing, and often for good.
+    expect(parseFrenchDate("14/6/2026")).toBe("2026-06-14");
+    expect(parseFrenchDate(" 14/06/2026 ")).toBe("2026-06-14");
+  });
+
+  it("refuses a date that is still being typed", () => {
+    expect(parseFrenchDate("")).toBeNull();
+    expect(parseFrenchDate("14")).toBeNull();
+    expect(parseFrenchDate("14/06")).toBeNull();
+    expect(parseFrenchDate("14/06/26")).toBeNull();
+  });
+
+  it("refuses a day that does not exist, and keeps the one that does", () => {
+    expect(parseFrenchDate("31/02/2026")).toBeNull();
+    expect(parseFrenchDate("31/04/2026")).toBeNull();
+    expect(parseFrenchDate("29/02/2026")).toBeNull();
+    expect(parseFrenchDate("00/06/2026")).toBeNull();
+    expect(parseFrenchDate("2026-06-14")).toBeNull();
+    // 2028 is a leap year.
+    expect(parseFrenchDate("29/02/2028")).toBe("2028-02-29");
   });
 });
