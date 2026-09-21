@@ -45,6 +45,15 @@ ALLOWED_HOSTS = env(
     "DJANGO_ALLOWED_HOSTS", cast=list, default=["localhost", "127.0.0.1", ".vercel.app"]
 )
 
+# The Next.js service calls Django through a Vercel service binding (BACKEND_INTERNAL_URL),
+# whose host is backend.<project-hash>.services.vercel-infra.com. Added in code rather than
+# left to DJANGO_ALLOWED_HOSTS so no environment can miss it: without it every server-side
+# fetch gets a DisallowedHost 400 and the site shows no workshops and no tariffs. The host
+# is only reachable from inside Vercel, and nothing here builds a URL from the Host header
+# (reset links use EDITOR_URL), so accepting it opens nothing.
+if ON_VERCEL:
+    ALLOWED_HOSTS.append(".services.vercel-infra.com")
+
 # Django admin lives at a secret, per-environment path so bots can't hammer a well-known
 # /admin/. It's mounted under /api/ (config/urls.py) so Vercel's /api -> backend rewrite
 # reaches it — a shared vercel.json can't encode a per-env secret, so Django owns it at
