@@ -3,10 +3,12 @@ import {
   addMonths,
   firstOf,
   formatMonthHeading,
+  formatMonthParam,
   isInMonth,
   monthGrid,
   monthOf,
-} from "@/lib/editor/calendar";
+  parseMonth,
+} from "@/lib/calendar";
 
 describe("monthGrid", () => {
   it("starts on the Monday on or before the 1st", () => {
@@ -54,5 +56,18 @@ describe("month helpers", () => {
     expect(isInMonth("2026-11-01", { year: 2026, month: 10 })).toBe(false);
     expect(monthOf("2026-10-31")).toEqual({ year: 2026, month: 10 });
     expect(firstOf({ year: 2026, month: 3 })).toBe("2026-03-01");
+  });
+});
+
+describe("the ?mois= parameter", () => {
+  it("round-trips a month", () => {
+    expect(formatMonthParam({ year: 2026, month: 3 })).toBe("2026-03");
+    expect(parseMonth("2026-03")).toEqual({ year: 2026, month: 3 });
+  });
+
+  it("rejects anything that is not a real month", () => {
+    for (const value of [undefined, "", "2026-13", "2026-00", "2026-3", "mars", "2026-03-01"]) {
+      expect(parseMonth(value), String(value)).toBeNull();
+    }
   });
 });

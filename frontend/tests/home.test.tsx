@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import HomePage from "@/app/page";
+import { ateliers } from "@/content/ateliers";
 import { navLinks } from "@/content/site";
 
 // React's client renderer cannot resolve an async Server Component, so the two that fetch
@@ -58,5 +59,12 @@ describe("HomePage", () => {
       expect(target, `section ${selector} should exist`).not.toBeNull();
     }
     expect(nav).toBeInTheDocument();
+  });
+
+  it("links from the workshops to the full agenda", () => {
+    // In the section's synchronous shell, so it shows even when the list below is empty
+    // or the backend is down.
+    render(<HomePage />);
+    expect(screen.getByRole("link", { name: ateliers.seeAll })).toHaveAttribute("href", "/agenda");
   });
 });

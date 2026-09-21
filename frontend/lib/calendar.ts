@@ -1,5 +1,6 @@
 /**
- * Date arithmetic for the editor's month calendar, on ISO "YYYY-MM-DD" strings.
+ * Date arithmetic for the month calendars — the editor's and the public agenda's — on ISO
+ * "YYYY-MM-DD" strings.
  *
  * Everything goes through UTC dates, never the browser's local midnight: a local date can
  * land on the previous day in a timezone behind UTC, and daylight-saving days are 23 or
@@ -20,6 +21,24 @@ const monthHeadingFormatter = new Intl.DateTimeFormat("fr-FR", {
 export function monthOf(isoDate: string): Month {
   const [year, month] = isoDate.split("-").map(Number);
   return { year, month };
+}
+
+/**
+ * The `?mois=` value of the agenda's calendar ("2026-10") as a Month, or null when it is
+ * missing or not a real month — the page then falls back to the current one.
+ */
+export function parseMonth(value: string | undefined): Month | null {
+  const match = value?.match(/^(\d{4})-(\d{2})$/);
+  if (!match) {
+    return null;
+  }
+  const month = { year: Number(match[1]), month: Number(match[2]) };
+  return month.month >= 1 && month.month <= 12 ? month : null;
+}
+
+/** A Month as the `?mois=` value `parseMonth` reads back — "2026-10". */
+export function formatMonthParam({ year, month }: Month): string {
+  return `${year}-${String(month).padStart(2, "0")}`;
 }
 
 export function addMonths({ year, month }: Month, offset: number): Month {

@@ -3,8 +3,6 @@
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { cn } from "@/lib/cn";
-import { editorApi, type ManagedEvent } from "@/lib/editor/api";
 import {
   addMonths,
   firstOf,
@@ -14,7 +12,9 @@ import {
   monthGrid,
   monthOf,
   WEEKDAYS,
-} from "@/lib/editor/calendar";
+} from "@/lib/calendar";
+import { cn } from "@/lib/cn";
+import { editorApi, type ManagedEvent } from "@/lib/editor/api";
 import { capitalise, formatFullDate, formatTime, parisToday } from "@/lib/format";
 import { type EventActions, EventRow } from "./EventRow";
 import { IconButton } from "./IconButton";
