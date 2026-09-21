@@ -284,8 +284,10 @@ Two consequences worth knowing:
 - Bindings are injected **at runtime only, never during the build**, which is why
   `Workshops.tsx` calls `connection()`. Without it the section would be prerendered at
   build time with no binding available, baking the "unavailable" notice into the page.
-- If Django rejects the binding's hostname with `DisallowedHost`, add that host to
-  `DJANGO_ALLOWED_HOSTS`. This is the one part of the deploy that has not been exercised
-  against a real Vercel project yet.
+- The binding's requests arrive with the host
+  `backend.<project-hash>.services.vercel-infra.com`. `settings.py` allows
+  `.services.vercel-infra.com` on every deployment, so `DJANGO_ALLOWED_HOSTS` only needs
+  the public domains. Without it Django answers each server-side fetch with a
+  `DisallowedHost` 400, and the site shows no workshops and no tariffs.
 
 Locally there is no binding, so `API_BASE_URL` is set explicitly in `docker-compose.yml`.
