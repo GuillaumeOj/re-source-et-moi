@@ -8,6 +8,7 @@ import { cn } from "@/lib/cn";
 import { editorApi, onSessionLost, SESSION_ENDED, type Session } from "@/lib/editor/api";
 import { EditorContext } from "./EditorContext";
 import { LoginForm } from "./LoginForm";
+import { ShellSkeleton } from "./Skeleton";
 import { pill } from "./styles";
 
 /**
@@ -42,11 +43,7 @@ export function EditorShell({ basePath, children }: { basePath: string; children
   }
 
   if (session === undefined) {
-    return (
-      <p role="status" className="p-8 text-charbon/60">
-        Chargement…
-      </p>
-    );
+    return <ShellSkeleton />;
   }
 
   const tabs = [

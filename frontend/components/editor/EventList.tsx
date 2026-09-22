@@ -5,6 +5,7 @@ import { cn } from "@/lib/cn";
 import { ApiError, EVENTS_PAGE_SIZE, editorApi } from "@/lib/editor/api";
 import { type EventActions, EventRow } from "./EventRow";
 import { Pagination } from "./Pagination";
+import { EventRowSkeleton, SkeletonRegion } from "./Skeleton";
 import { LoadError } from "./StatusMessage";
 import { useLoad } from "./useLoad";
 
@@ -67,9 +68,11 @@ export function EventList({ reloadKey, ...actions }: { reloadKey: number } & Eve
       </div>
 
       {data === null && !failed && (
-        <p role="status" className="text-charbon/60">
-          Chargement des ateliers…
-        </p>
+        <SkeletonRegion label="Chargement des ateliers…" className="flex flex-col gap-3">
+          <EventRowSkeleton />
+          <EventRowSkeleton />
+          <EventRowSkeleton />
+        </SkeletonRegion>
       )}
       {failed && <LoadError what="les ateliers" onRetry={reload} />}
 

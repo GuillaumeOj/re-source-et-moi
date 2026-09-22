@@ -56,12 +56,15 @@ export function AddressPicker({ value, onChange, error }: AddressPickerProps) {
               onChange(e.target.value || null);
             }
           }}
-          className={cn(fieldControl, error && "border-rose-sombre")}
+          aria-busy={addresses === null && !failed}
+          className={cn(
+            fieldControl,
+            error && "border-rose-sombre",
+            addresses === null && !failed && "animate-pulse disabled:bg-rose-tendre/70",
+          )}
           {...fieldAria("event-address", chosen?.one_line, error)}
         >
-          <option value="">
-            {addresses === null ? "Chargement des adresses…" : "Choisir une adresse…"}
-          </option>
+          <option value="">{addresses === null ? "" : "Choisir une adresse…"}</option>
           {addresses?.map((address) => (
             <option key={address.id} value={address.id}>
               {address.name} — {address.city}

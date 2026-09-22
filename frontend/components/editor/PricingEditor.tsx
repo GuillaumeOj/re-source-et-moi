@@ -8,6 +8,7 @@ import { ConfirmDialog } from "./ConfirmDialog";
 import { confirmSaved } from "./EditorContext";
 import { IconButton } from "./IconButton";
 import { PricingGroupForm } from "./PricingGroupForm";
+import { FormCardSkeleton, SkeletonRegion } from "./Skeleton";
 import { LoadError, type Status, StatusMessage } from "./StatusMessage";
 import { useLoad } from "./useLoad";
 
@@ -88,9 +89,10 @@ export function PricingEditor() {
       <StatusMessage status={status} />
 
       {groups === null && !failed && (
-        <p role="status" className="text-charbon/60">
-          Chargement des tarifs…
-        </p>
+        <SkeletonRegion label="Chargement des tarifs…" className="flex flex-col gap-8">
+          <FormCardSkeleton actions={2} />
+          <FormCardSkeleton actions={2} />
+        </SkeletonRegion>
       )}
       {failed && <LoadError what="les tarifs" onRetry={reload} />}
 

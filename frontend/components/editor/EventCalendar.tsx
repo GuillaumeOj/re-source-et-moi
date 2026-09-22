@@ -18,6 +18,7 @@ import { editorApi, type ManagedEvent } from "@/lib/editor/api";
 import { capitalise, formatFullDate, formatTime, parisToday } from "@/lib/format";
 import { type EventActions, EventRow } from "./EventRow";
 import { IconButton } from "./IconButton";
+import { EventRowSkeleton, Skeleton, SkeletonRegion } from "./Skeleton";
 import { LoadError } from "./StatusMessage";
 import { useLoad } from "./useLoad";
 
@@ -156,6 +157,10 @@ export function EventCalendar({ reloadKey, onCreate, ...actions }: EventCalendar
                       />
                     )}
 
+                    {events === null && inMonth && !failed && (
+                      <Skeleton className="mt-1 hidden h-4 w-4/5 sm:block" rounded="rounded-lg" />
+                    )}
+
                     <ul className="mt-1 hidden flex-col gap-1 sm:flex">
                       {dayEvents.slice(0, CHIPS_PER_DAY).map((event) => (
                         <li key={event.id}>
@@ -209,7 +214,11 @@ export function EventCalendar({ reloadKey, onCreate, ...actions }: EventCalendar
             Ajouter un atelier ce jour
           </Button>
         </div>
-        {selectedEvents.length === 0 ? (
+        {events === null && !failed ? (
+          <SkeletonRegion label="Chargement des ateliers…">
+            <EventRowSkeleton />
+          </SkeletonRegion>
+        ) : selectedEvents.length === 0 ? (
           <p className="text-sm text-charbon/60">Aucun atelier ce jour-là.</p>
         ) : (
           <ul className="flex flex-col gap-3">
