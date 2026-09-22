@@ -32,13 +32,13 @@ that swallows `tox -e schema`.
 
 ### The seed commands are how anyone sees your feature
 
-`config/seed_admin`, `agenda/seed_agenda` and `pricing/seed_pricing` build what the dev
-stack runs on (`uv run tox -e seed`) — the admin login, then the content it edits. A
-feature the seed never creates is one nobody looks at until it surprises them in
-production.
+`config/seed_admin`, `agenda/seed_agenda`, `pricing/seed_pricing` and
+`reviews/seed_reviews` build what the dev stack runs on (`uv run tox -e seed`) — the admin
+login, then the content it edits. A feature the seed never creates is one nobody looks at
+until it surprises them in production.
 
 One command per app, because no app owns another's data; `seed_admin` lives in `config`
-because a `django.contrib.auth` account belongs to neither `agenda` nor `pricing`.
+because a `django.contrib.auth` account belongs to none of the content apps.
 
 When you add or change a model, extend the matching seed command in the same change:
 

@@ -96,6 +96,7 @@ INSTALLED_APPS = [
     "config",
     "agenda",
     "pricing",
+    "reviews",
 ]
 
 MIDDLEWARE = [

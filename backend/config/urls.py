@@ -50,4 +50,5 @@ urlpatterns = [
     path("api/health/", views.health, name="health"),
     path("api/", include("agenda.urls")),
     path("api/", include("pricing.urls")),
+    path("api/", include("reviews.urls")),
 ]

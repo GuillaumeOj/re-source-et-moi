@@ -7,6 +7,11 @@ export type PageSection = {
   label: string;
   /** Section has a dark (rose-sombre) background — the indicator inverts over it. */
   dark?: boolean;
+  /**
+   * The section renders only when it has something to show — Témoignages hides itself with
+   * no review published. The indicator drops the dot of a section missing from the page.
+   */
+  optional?: boolean;
 };
 
 export const pageSections: PageSection[] = [
@@ -16,6 +21,6 @@ export const pageSections: PageSection[] = [
   { id: "soi-en-mouvement", label: "Soi en Mouvement®" },
   { id: "ateliers", label: "Ateliers & tarifs" },
   { id: "a-propos", label: "À propos" },
-  { id: "temoignages", label: "Témoignages" },
+  { id: "temoignages", label: "Témoignages", optional: true },
   { id: "contact", label: "Contact" },
 ];

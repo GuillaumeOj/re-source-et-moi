@@ -18,6 +18,7 @@ import type { components } from "@/lib/api/generated";
 export type Event = components["schemas"]["Event"];
 export type PricingType = components["schemas"]["PricingType"];
 export type Price = components["schemas"]["Price"];
+export type Review = components["schemas"]["Review"];
 
 /**
  * Where the backend service lives.
@@ -75,4 +76,9 @@ export function getEvents(range?: { from: string; to: string }): Promise<Event[]
 /** Published tariff groups, each with its published lines nested. */
 export function getPricingTypes(): Promise<PricingType[]> {
   return get<PricingType[]>("/pricing-types/", "pricing");
+}
+
+/** The most recent published reviews, newest first — the backend already keeps only three. */
+export function getReviews(): Promise<Review[]> {
+  return get<Review[]>("/reviews/", "reviews");
 }

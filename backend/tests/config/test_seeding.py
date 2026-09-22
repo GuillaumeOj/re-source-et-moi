@@ -40,7 +40,7 @@ def test_refuses_debug_off(settings):
 def test_every_seed_command_is_discovered():
     """Guards the guard below: if the naming convention changes, the parametrised test
     would silently cover nothing."""
-    assert SEED_COMMANDS == ["seed_admin", "seed_agenda", "seed_pricing"]
+    assert SEED_COMMANDS == ["seed_admin", "seed_agenda", "seed_pricing", "seed_reviews"]
 
 
 @pytest.mark.django_db

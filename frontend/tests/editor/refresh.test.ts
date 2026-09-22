@@ -8,6 +8,7 @@ vi.mock("next/headers", () => ({
 
 const { updateTag } = await import("next/cache");
 const { refreshPublicSite } = await import("@/lib/editor/refresh");
+const { PUBLIC_TAGS } = await import("@/lib/api/cache");
 
 const fetchMock = vi.fn();
 
@@ -33,6 +34,13 @@ describe("refreshPublicSite", () => {
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe("http://backend:8000/api/auth/session/");
     expect(init.headers.Cookie).toBe("sessionid=abc; csrftoken=xyz");
+  });
+
+  it.each(PUBLIC_TAGS)("accepts the %s feed's tag", async (tag) => {
+    fetchMock.mockResolvedValue(new Response("{}", { status: 200 }));
+
+    expect(await refreshPublicSite(tag)).toBe(true);
+    expect(updateTag).toHaveBeenCalledWith(tag);
   });
 
   it("leaves the cache alone for a caller without a staff session", async () => {
