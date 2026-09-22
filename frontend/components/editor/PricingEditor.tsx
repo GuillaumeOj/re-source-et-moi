@@ -96,8 +96,8 @@ export function PricingEditor() {
 
       {loading && (
         <SkeletonRegion label="Chargement des tarifs…" className="flex flex-col gap-8">
-          <FormCardSkeleton arrows />
-          <FormCardSkeleton arrows />
+          <FormCardSkeleton aside="arrows" />
+          <FormCardSkeleton aside="arrows" />
         </SkeletonRegion>
       )}
       {failed && <LoadError what="les tarifs" onRetry={reload} />}

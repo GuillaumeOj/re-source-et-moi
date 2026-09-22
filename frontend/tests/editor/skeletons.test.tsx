@@ -4,6 +4,7 @@ import { AddressesEditor } from "@/components/editor/AddressesEditor";
 import { EditorShell } from "@/components/editor/EditorShell";
 import { EventList } from "@/components/editor/EventList";
 import { PricingEditor } from "@/components/editor/PricingEditor";
+import { ReviewsEditor } from "@/components/editor/ReviewsEditor";
 import { address, SESSION, withEditor } from "./fixtures";
 
 vi.mock("@/lib/editor/api", async (importOriginal) => {
@@ -16,6 +17,7 @@ vi.mock("@/lib/editor/api", async (importOriginal) => {
       listEvents: vi.fn(),
       listAddresses: vi.fn(),
       listPricingTypes: vi.fn(),
+      listReviews: vi.fn(),
     },
   };
 });
@@ -92,6 +94,13 @@ describe("loading skeletons", () => {
       mock: editorApi.listPricingTypes,
       value: [],
       loaded: "Tarifs",
+    },
+    {
+      label: "Chargement des avis…",
+      view: () => withEditor(<ReviewsEditor />),
+      mock: editorApi.listReviews,
+      value: [],
+      loaded: "Aucun avis enregistré pour l'instant.",
     },
   ])("shows skeletons for $label", async ({ label, view, mock, value, loaded }) => {
     const request = pending<unknown>();

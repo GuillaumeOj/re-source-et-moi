@@ -64,18 +64,22 @@ export function EventRowSkeleton() {
   );
 }
 
-/** The shape of a titled form card: an address, or a pricing group with its arrows. */
-export function FormCardSkeleton({ arrows = false }: { arrows?: boolean }) {
+/**
+ * The shape of a titled form card: an address, a pricing group with its arrows, or a
+ * review with its publish switch.
+ */
+export function FormCardSkeleton({ aside }: { aside?: "arrows" | "switch" }) {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-2">
         <Skeleton className="h-8 w-56" />
-        {arrows && (
+        {aside === "arrows" && (
           <div className="flex gap-1">
             <IconSkeleton />
             <IconSkeleton />
           </div>
         )}
+        {aside === "switch" && <Skeleton className="h-6 w-11" />}
       </div>
       <div className={editorCard}>
         {[0, 1, 2].map((field) => (
@@ -104,6 +108,7 @@ export function ShellSkeleton() {
             <Skeleton className="h-9 w-24" />
             <Skeleton className="h-9 w-24" />
             <Skeleton className="h-9 w-20" />
+            <Skeleton className="h-9 w-32" />
           </div>
           <div className="flex gap-2">
             <Skeleton className="h-8 w-28" />
