@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
-import { editorCard, editorHeader, editorHeaderRow, eventRowCard } from "./styles";
+import { editorCard, eventRowCard } from "./styles";
 
 /**
  * One placeholder shape. The caller gives it its size, and its corners when it stands for
@@ -91,39 +91,5 @@ export function FormCardSkeleton({ aside }: { aside?: "arrows" | "switch" }) {
         <Skeleton className="h-11 w-36" />
       </div>
     </div>
-  );
-}
-
-/** The editor's frame while the session check is in flight: header, then a page. */
-export function ShellSkeleton() {
-  return (
-    <SkeletonRegion label="Chargement…" className="min-h-screen">
-      <div className={editorHeader}>
-        <div className={editorHeaderRow}>
-          <div className="flex flex-col gap-2">
-            <Skeleton className="h-7 w-44" />
-            <Skeleton className="h-4 w-28" />
-          </div>
-          <div className="flex gap-2">
-            <Skeleton className="h-9 w-24" />
-            <Skeleton className="h-9 w-24" />
-            <Skeleton className="h-9 w-20" />
-            <Skeleton className="h-9 w-32" />
-          </div>
-          <div className="flex gap-2">
-            <Skeleton className="h-8 w-28" />
-            <Skeleton className="h-8 w-32" />
-          </div>
-        </div>
-      </div>
-      <div className="mx-auto flex max-w-5xl flex-col gap-8 px-4 py-10">
-        <Skeleton className="h-10 w-48" />
-        <Skeleton className="h-4 w-full max-w-2xl" />
-        <div className="flex flex-col gap-3">
-          <EventRowSkeleton />
-          <EventRowSkeleton />
-        </div>
-      </div>
-    </SkeletonRegion>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, UserRound } from "lucide-react";
+import { ArrowLeft, LoaderCircle, UserRound } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
@@ -8,8 +8,7 @@ import { cn } from "@/lib/cn";
 import { editorApi, onSessionLost, SESSION_ENDED, type Session } from "@/lib/editor/api";
 import { EditorContext } from "./EditorContext";
 import { LoginForm } from "./LoginForm";
-import { ShellSkeleton } from "./Skeleton";
-import { editorHeader, editorHeaderRow, pill } from "./styles";
+import { pill } from "./styles";
 
 /**
  * The frame around every editor page: it decides between the login form and the editor,
@@ -43,7 +42,14 @@ export function EditorShell({ basePath, children }: { basePath: string; children
   }
 
   if (session === undefined) {
-    return <ShellSkeleton />;
+    // A spinner, not a skeleton: until the answer comes, this may as well be the login
+    // form as the editor, and a shape of either would be wrong half the time.
+    return (
+      <div role="status" className="flex min-h-screen items-center justify-center">
+        <LoaderCircle size={32} aria-hidden="true" className="animate-spin text-rose-sombre/60" />
+        <span className="sr-only">Chargement…</span>
+      </div>
+    );
   }
 
   const tabs = [
@@ -70,8 +76,8 @@ export function EditorShell({ basePath, children }: { basePath: string; children
       {context && (
         <EditorContext.Provider value={context}>
           <div hidden={showLogin} className="min-h-screen">
-            <header className={editorHeader}>
-              <div className={editorHeaderRow}>
+            <header className="border-rose-sombre/10 border-b bg-white">
+              <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-4">
                 <div className="flex flex-col">
                   <p className="font-display text-2xl leading-tight text-rose-sombre">
                     Espace d'édition

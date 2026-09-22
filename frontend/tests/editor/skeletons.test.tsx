@@ -5,6 +5,7 @@ import { EditorShell } from "@/components/editor/EditorShell";
 import { EventList } from "@/components/editor/EventList";
 import { PricingEditor } from "@/components/editor/PricingEditor";
 import { ReviewsEditor } from "@/components/editor/ReviewsEditor";
+import { ApiError } from "@/lib/editor/api";
 import { address, SESSION, withEditor } from "./fixtures";
 
 vi.mock("@/lib/editor/api", async (importOriginal) => {
@@ -29,10 +30,12 @@ const { editorApi } = await import("@/lib/editor/api");
 /** A promise the test settles itself, to look at the page while the request is in flight. */
 function pending<T>() {
   let resolve!: (value: T) => void;
-  const promise = new Promise<T>((settle) => {
-    resolve = settle;
+  let reject!: (reason: unknown) => void;
+  const promise = new Promise<T>((onResolve, onReject) => {
+    resolve = onResolve;
+    reject = onReject;
   });
-  return { promise, resolve };
+  return { promise, resolve, reject };
 }
 
 const noActions = {
@@ -57,20 +60,31 @@ beforeEach(() => {
 });
 
 describe("loading skeletons", () => {
-  it("frames the editor while the session check is in flight", async () => {
-    const session = pending<typeof SESSION>();
-    vi.mocked(editorApi.session).mockReturnValue(session.promise);
+  // Until the session check answers, it may be the editor or the login form: a spinner,
+  // not the shape of either.
+  it.each([
+    { outcome: "the editor", loggedIn: true, shown: "Contenu" },
+    { outcome: "the login form", loggedIn: false, shown: "Se connecter" },
+  ])("spins during the session check, then shows $outcome", async ({ loggedIn, shown }) => {
+    const check = pending<typeof SESSION>();
+    vi.mocked(editorApi.session).mockReturnValue(check.promise);
     render(
       <EditorShell basePath="/edition">
         <p>Contenu</p>
       </EditorShell>,
     );
 
-    const region = expectSkeleton("Chargement…");
-    session.resolve(SESSION);
+    const spinner = screen.getByRole("status");
+    expect(spinner).toHaveTextContent("Chargement…");
+    expect(screen.queryByRole("banner")).not.toBeInTheDocument();
+    if (loggedIn) {
+      check.resolve(SESSION);
+    } else {
+      check.reject(new ApiError(401, {}));
+    }
 
-    expect(await screen.findByText("Contenu")).toBeInTheDocument();
-    expect(region).not.toBeInTheDocument();
+    expect(await screen.findByText(shown)).toBeInTheDocument();
+    expect(spinner).not.toBeInTheDocument();
   });
 
   it.each([
