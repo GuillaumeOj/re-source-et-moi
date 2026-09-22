@@ -56,7 +56,7 @@ function makePricingType(overrides: Partial<PricingType> = {}): PricingType {
 
 /** Every notice offers a way out: a link to the contact form. */
 function expectContactLink() {
-  expect(screen.getByRole("link", { name: contact.cta })).toHaveAttribute("href", "/#contact");
+  expect(screen.getByRole("link", { name: contact.cta })).toHaveAttribute("href", "/contact");
 }
 
 /** Silences the deliberate console.error a failure path logs. */
@@ -159,13 +159,12 @@ describe("AgendaList", () => {
     expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(6);
   });
 
-  it("links a workshop's sign-up to the contact form from any page", async () => {
-    // Root-relative, because the list also renders on /agenda, which has no #contact.
+  it("links a workshop's sign-up to the contact page, naming the workshop", async () => {
     render(await AgendaList());
 
     expect(
       screen.getByRole("link", { name: "S'inscrire à Brain Gym® en mouvement" }),
-    ).toHaveAttribute("href", "/#contact");
+    ).toHaveAttribute("href", "/contact?atelier=11111111-1111-4111-8111-111111111111");
   });
 
   it("says so when the agenda is empty, and points at the contact form", async () => {

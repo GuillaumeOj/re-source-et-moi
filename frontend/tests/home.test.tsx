@@ -3,11 +3,12 @@ import { describe, expect, it, vi } from "vitest";
 import HomePage from "@/app/page";
 import { ateliers } from "@/content/ateliers";
 import { brainGym } from "@/content/brain-gym";
+import { contact } from "@/content/cta";
 import { faq } from "@/content/faq";
 import { fondatrice } from "@/content/fondatrice";
 import { brainGymTrademark } from "@/content/marques";
 import { pageSections } from "@/content/sections";
-import { navLinks, participateCta } from "@/content/site";
+import { contactCta, navLinks } from "@/content/site";
 import { soiEnMouvement } from "@/content/soi-en-mouvement";
 
 // React's client renderer cannot resolve an async Server Component, so the two that fetch
@@ -63,7 +64,7 @@ describe("HomePage", () => {
       within(nav)
         .getAllByRole("link")
         .map((link) => link.getAttribute("href")),
-    ).toEqual([...navLinks.map((link) => link.href), participateCta.href]);
+    ).toEqual([...navLinks.map((link) => link.href), contactCta.href]);
     expect(navLinks.map((link) => link.href)).toEqual([
       "/nos-pratiques",
       "/ateliers",
@@ -93,6 +94,18 @@ describe("HomePage", () => {
     for (const target of targets) {
       expect(document.querySelector(target as string), `${target} should exist`).not.toBeNull();
     }
+  });
+
+  it("leads from the contact section to the contact page", () => {
+    // The form lives on /contact; the home page only points at it.
+    render(<HomePage />);
+    const section = document.getElementById("contact");
+    expect(section).not.toBeNull();
+    expect(within(section as HTMLElement).queryByRole("textbox")).toBeNull();
+    expect(within(section as HTMLElement).getByRole("link", { name: contact.cta })).toHaveAttribute(
+      "href",
+      "/contact",
+    );
   });
 
   it("links from the workshops to the full workshops page", () => {

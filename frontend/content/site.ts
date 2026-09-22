@@ -1,6 +1,7 @@
 // Site-wide configuration and navigation. French copy lives here (not in JSX)
 // so it is centralised and maps cleanly onto a future Payload "Globals" entry.
 
+import { contact } from "./cta";
 import { routes } from "./routes";
 import type { LinkTarget } from "./types";
 
@@ -26,9 +27,5 @@ export const navLinks: LinkTarget[] = [
   routes.questions,
 ].map((route) => ({ label: route.label, href: route.path }));
 
-// Header call-to-action — short label on desktop, long label on the mobile menu.
-export const participateCta = {
-  href: routes.ateliers.path,
-  label: "Participer",
-  labelLong: "Participer à un atelier",
-} as const;
+// Header call-to-action, on desktop and in the mobile menu.
+export const contactCta = { href: routes.contact.path, label: contact.cta } as const;

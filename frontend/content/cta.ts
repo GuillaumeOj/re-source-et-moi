@@ -13,8 +13,31 @@ export const contact = {
     message: "Message",
   },
   button: "Envoyer",
-  // The link to this form from elsewhere on the page (e.g. under an empty agenda).
+  // The link to the contact page from elsewhere (e.g. under an empty agenda).
   cta: "Nous contacter",
+  metaTitle: "Contact",
+  metaDescription:
+    "Écrivez à Re-Source Et Moi : une question sur nos ateliers, une inscription, un projet — nous vous répondons avec plaisir.",
+  // The workshop a visitor arrived with, from an agenda row's "S'inscrire".
+  event: {
+    heading: "Votre inscription",
+    remove: "Retirer cet atelier",
+    unavailable: "Cet atelier n'est plus proposé — écrivez-nous quand même.",
+    seeWorkshops: "Voir les prochains ateliers",
+  },
+  optionalMessage: "Un mot à ajouter ? (facultatif)",
+  errors: {
+    name: "Indiquez votre nom.",
+    email: "Indiquez une adresse email valide.",
+    message: "Écrivez-nous quelques mots.",
+  },
+  demo: "Formulaire de démonstration — bientôt connecté.",
+} as const;
+
+// The home page's contact section: a pointer to the contact page, not the form itself.
+export const contactTeaser = {
+  intro:
+    "Vous souhaitez en savoir plus sur les ateliers que nous proposons, sur nos méthodes d'apprentissage, etc. ? Écrivez-nous, nous vous répondons avec plaisir.",
 } as const;
 
 export const footer = {

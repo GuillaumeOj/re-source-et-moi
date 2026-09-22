@@ -3,7 +3,7 @@
 import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Logo } from "@/components/brand/Logo";
-import { navLinks, participateCta, site } from "@/content/site";
+import { contactCta, navLinks, site } from "@/content/site";
 import { cn } from "@/lib/cn";
 
 /** `currentPath` marks the matching nav link as the current page (none on the home page). */
@@ -51,10 +51,11 @@ export function Header({ currentPath }: { currentPath?: string }) {
             </a>
           ))}
           <a
-            href={participateCta.href}
+            href={contactCta.href}
+            aria-current={current(contactCta.href)}
             className="whitespace-nowrap rounded-full bg-rose-sombre px-5 py-2.5 text-sm font-semibold text-creme transition-all hover:-translate-y-0.5 hover:bg-rose-sombre-deep"
           >
-            {participateCta.label}
+            {contactCta.label}
           </a>
         </nav>
 
@@ -91,11 +92,12 @@ export function Header({ currentPath }: { currentPath?: string }) {
             ))}
             <li>
               <a
-                href={participateCta.href}
+                href={contactCta.href}
+                aria-current={current(contactCta.href)}
                 className="mt-2 block rounded-full bg-rose-sombre px-5 py-3 text-center font-semibold text-creme"
                 onClick={() => setMenuOpen(false)}
               >
-                {participateCta.labelLong}
+                {contactCta.label}
               </a>
             </li>
           </ul>

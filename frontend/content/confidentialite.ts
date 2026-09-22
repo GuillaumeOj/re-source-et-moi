@@ -22,7 +22,7 @@ export const confidentialite: LegalPage = {
     {
       heading: "Données que nous collectons",
       body: [
-        "Lorsque vous utilisez le formulaire de contact, nous collectons les données que vous nous transmettez : votre nom, votre adresse e-mail et le contenu de votre message.",
+        "Lorsque vous utilisez le formulaire de la page contact, nous collectons les données que vous nous transmettez : votre nom, votre adresse e-mail, le contenu de votre message et, si vous vous inscrivez à un atelier, l'atelier choisi.",
         "Aucune autre donnée personnelle n'est collectée à votre insu lors de votre navigation.",
       ],
     },
