@@ -5,6 +5,7 @@ import type { ManagedEvent } from "@/lib/editor/api";
 import { formatFullDate, formatTimeRange } from "@/lib/format";
 import { IconButton } from "./IconButton";
 import { Switch } from "./Switch";
+import { eventRowCard } from "./styles";
 
 export type EventActions = {
   onEdit: (event: ManagedEvent) => void;
@@ -26,7 +27,7 @@ export function EventRow({
   onTogglePublished,
 }: { event: ManagedEvent; showDate?: boolean } & EventActions) {
   return (
-    <li className="flex flex-col gap-4 rounded-3xl bg-white p-5 shadow-soft sm:flex-row sm:items-center">
+    <li className={eventRowCard}>
       <div className="flex-1">
         <h3 className="font-body text-lg font-semibold text-charbon">{event.title}</h3>
         <p className="text-sm text-charbon/70">

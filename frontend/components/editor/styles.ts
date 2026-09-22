@@ -14,3 +14,7 @@ export function pill(active: boolean): string {
     active ? "bg-rose-sombre text-creme" : "text-rose-sombre hover:bg-rose-tendre",
   );
 }
+
+/** The white card of one workshop in the list, and of its loading placeholder. */
+export const eventRowCard =
+  "flex flex-col gap-4 rounded-3xl bg-white p-5 shadow-soft sm:flex-row sm:items-center";

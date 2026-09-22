@@ -8,6 +8,7 @@ import { ConfirmDialog } from "./ConfirmDialog";
 import { confirmSaved } from "./EditorContext";
 import { IconButton } from "./IconButton";
 import { PricingGroupForm } from "./PricingGroupForm";
+import { FormCardSkeleton, SkeletonRegion } from "./Skeleton";
 import { LoadError, type Status, StatusMessage } from "./StatusMessage";
 import { useLoad } from "./useLoad";
 
@@ -17,7 +18,13 @@ import { useLoad } from "./useLoad";
  * cards is not part of any one card's form.
  */
 export function PricingEditor() {
-  const { data: groups, setData: setGroups, failed, reload } = useLoad(editorApi.listPricingTypes);
+  const {
+    data: groups,
+    setData: setGroups,
+    loading,
+    failed,
+    reload,
+  } = useLoad(editorApi.listPricingTypes);
   const [adding, setAdding] = useState(false);
   const [deleting, setDeleting] = useState<ManagedPricingType | null>(null);
   const [status, setStatus] = useState<Status>(null);
@@ -87,10 +94,11 @@ export function PricingEditor() {
 
       <StatusMessage status={status} />
 
-      {groups === null && !failed && (
-        <p role="status" className="text-charbon/60">
-          Chargement des tarifs…
-        </p>
+      {loading && (
+        <SkeletonRegion label="Chargement des tarifs…" className="flex flex-col gap-8">
+          <FormCardSkeleton aside="arrows" />
+          <FormCardSkeleton aside="arrows" />
+        </SkeletonRegion>
       )}
       {failed && <LoadError what="les tarifs" onRetry={reload} />}
 

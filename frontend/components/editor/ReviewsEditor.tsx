@@ -7,6 +7,7 @@ import { describeError, editorApi, type ManagedReview } from "@/lib/editor/api";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { confirmSaved } from "./EditorContext";
 import { ReviewForm } from "./ReviewForm";
+import { FormCardSkeleton, SkeletonRegion } from "./Skeleton";
 import { LoadError, type Status, StatusMessage } from "./StatusMessage";
 import { Switch } from "./Switch";
 import { useLoad } from "./useLoad";
@@ -17,7 +18,13 @@ import { useLoad } from "./useLoad";
  * the oldest of those off the page, and hiding one brings the next back.
  */
 export function ReviewsEditor() {
-  const { data: reviews, setData: setReviews, failed, reload } = useLoad(editorApi.listReviews);
+  const {
+    data: reviews,
+    setData: setReviews,
+    loading,
+    failed,
+    reload,
+  } = useLoad(editorApi.listReviews);
   const [adding, setAdding] = useState(false);
   const [deleting, setDeleting] = useState<ManagedReview | null>(null);
   const [status, setStatus] = useState<Status>(null);
@@ -71,10 +78,11 @@ export function ReviewsEditor() {
 
       <StatusMessage status={status} />
 
-      {reviews === null && !failed && (
-        <p role="status" className="text-charbon/60">
-          Chargement des avis…
-        </p>
+      {loading && (
+        <SkeletonRegion label="Chargement des avis…" className="flex flex-col gap-8">
+          <FormCardSkeleton aside="switch" />
+          <FormCardSkeleton aside="switch" />
+        </SkeletonRegion>
       )}
       {failed && <LoadError what="les avis" onRetry={reload} />}
       {reviews?.length === 0 && !adding && (

@@ -5,6 +5,7 @@ import { cn } from "@/lib/cn";
 import { ApiError, EVENTS_PAGE_SIZE, editorApi } from "@/lib/editor/api";
 import { type EventActions, EventRow } from "./EventRow";
 import { Pagination } from "./Pagination";
+import { EventRowSkeleton, SkeletonRegion } from "./Skeleton";
 import { LoadError } from "./StatusMessage";
 import { useLoad } from "./useLoad";
 
@@ -28,7 +29,7 @@ export function EventList({ reloadKey, ...actions }: { reloadKey: number } & Eve
     () => editorApi.listEvents({ period, page, page_size: EVENTS_PAGE_SIZE }),
     [period, page],
   );
-  const { data, failed, reload } = useLoad(fetchPage, reloadKey, (error) => {
+  const { data, loading, failed, reload } = useLoad(fetchPage, reloadKey, (error) => {
     // DRF answers 404 for a page past the end, e.g. once a deletion (or a date moved to
     // the other period) emptied the last page. Step back rather than fail.
     if (error instanceof ApiError && error.status === 404 && page > 1) {
@@ -66,10 +67,12 @@ export function EventList({ reloadKey, ...actions }: { reloadKey: number } & Eve
         ))}
       </div>
 
-      {data === null && !failed && (
-        <p role="status" className="text-charbon/60">
-          Chargement des ateliers…
-        </p>
+      {loading && (
+        <SkeletonRegion label="Chargement des ateliers…" className="flex flex-col gap-3">
+          <EventRowSkeleton />
+          <EventRowSkeleton />
+          <EventRowSkeleton />
+        </SkeletonRegion>
       )}
       {failed && <LoadError what="les ateliers" onRetry={reload} />}
 

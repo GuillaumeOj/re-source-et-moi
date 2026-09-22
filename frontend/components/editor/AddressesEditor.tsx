@@ -12,6 +12,7 @@ import {
 } from "@/lib/editor/api";
 import { AddressForm, byName } from "./AddressForm";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { FormCardSkeleton, SkeletonRegion } from "./Skeleton";
 import { LoadError, type Status, StatusMessage } from "./StatusMessage";
 import { useLoad } from "./useLoad";
 
@@ -24,6 +25,7 @@ export function AddressesEditor() {
   const {
     data: addresses,
     setData: setAddresses,
+    loading,
     failed,
     reload,
   } = useLoad(editorApi.listAddresses);
@@ -78,10 +80,11 @@ export function AddressesEditor() {
 
       <StatusMessage status={status} />
 
-      {addresses === null && !failed && (
-        <p role="status" className="text-charbon/60">
-          Chargement des adresses…
-        </p>
+      {loading && (
+        <SkeletonRegion label="Chargement des adresses…" className="flex flex-col gap-8">
+          <FormCardSkeleton />
+          <FormCardSkeleton />
+        </SkeletonRegion>
       )}
       {failed && <LoadError what="les adresses" onRetry={reload} />}
       {addresses?.length === 0 && !adding && (

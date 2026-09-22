@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, UserRound } from "lucide-react";
+import { ArrowLeft, LoaderCircle, UserRound } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
@@ -42,10 +42,13 @@ export function EditorShell({ basePath, children }: { basePath: string; children
   }
 
   if (session === undefined) {
+    // A spinner, not a skeleton: until the answer comes, this may as well be the login
+    // form as the editor, and a shape of either would be wrong half the time.
     return (
-      <p role="status" className="p-8 text-charbon/60">
-        Chargement…
-      </p>
+      <div role="status" className="flex min-h-screen items-center justify-center">
+        <LoaderCircle size={32} aria-hidden="true" className="animate-spin text-rose-sombre/60" />
+        <span className="sr-only">Chargement…</span>
+      </div>
     );
   }
 

@@ -18,6 +18,7 @@ import { editorApi, type ManagedEvent } from "@/lib/editor/api";
 import { capitalise, formatFullDate, formatTime, parisToday } from "@/lib/format";
 import { type EventActions, EventRow } from "./EventRow";
 import { IconButton } from "./IconButton";
+import { EventRowSkeleton, SkeletonRegion } from "./Skeleton";
 import { LoadError } from "./StatusMessage";
 import { useLoad } from "./useLoad";
 
@@ -48,7 +49,7 @@ export function EventCalendar({ reloadKey, onCreate, ...actions }: EventCalendar
     () => editorApi.listAllEvents(weeks[0][0], weeks[weeks.length - 1][6]),
     [weeks],
   );
-  const { data: events, failed, reload } = useLoad(fetchMonth, reloadKey);
+  const { data: events, loading, failed, reload } = useLoad(fetchMonth, reloadKey);
 
   const byDay = useMemo(() => {
     const map = new Map<string, ManagedEvent[]>();
@@ -209,7 +210,11 @@ export function EventCalendar({ reloadKey, onCreate, ...actions }: EventCalendar
             Ajouter un atelier ce jour
           </Button>
         </div>
-        {selectedEvents.length === 0 ? (
+        {loading ? (
+          <SkeletonRegion label="Chargement des ateliers…">
+            <EventRowSkeleton />
+          </SkeletonRegion>
+        ) : selectedEvents.length === 0 ? (
           <p className="text-sm text-charbon/60">Aucun atelier ce jour-là.</p>
         ) : (
           <ul className="flex flex-col gap-3">
