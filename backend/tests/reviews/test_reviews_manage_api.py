@@ -52,7 +52,6 @@ def test_creates_a_review(staff_client):
     review = Review.objects.get()
     assert review.author == "Camille"
     assert review.is_published is False
-    assert response.json()["created_at"]
 
 
 def test_the_context_is_optional(staff_client):
@@ -96,7 +95,7 @@ def test_patch_flips_the_publish_toggle_alone(staff_client, make_review):
 
 
 def test_created_at_cannot_be_rewritten(staff_client, make_review):
-    """It decides what reaches the home page, so the editor may read it but not set it."""
+    """It decides what reaches the home page, so the editor cannot set it."""
     review = make_review()
     created_at = review.created_at
 

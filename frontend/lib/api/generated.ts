@@ -930,12 +930,7 @@ export interface components {
             is_published?: boolean;
             prices?: components["schemas"]["PriceManageRequest"][];
         };
-        /**
-         * @description A review as the editor reads and writes it, drafts included.
-         *
-         *     `created_at` is sent back read-only: it is what decides which reviews reach the home
-         *     page, so the editor can show it.
-         */
+        /** @description A review as the editor reads and writes it, drafts included. */
         PatchedReviewManageRequest: {
             /** Avis */
             text?: string;
@@ -1113,12 +1108,7 @@ export interface components {
              */
             context: string;
         };
-        /**
-         * @description A review as the editor reads and writes it, drafts included.
-         *
-         *     `created_at` is sent back read-only: it is what decides which reviews reach the home
-         *     page, so the editor can show it.
-         */
+        /** @description A review as the editor reads and writes it, drafts included. */
         ReviewManage: {
             /** Format: uuid */
             readonly id: string;
@@ -1136,18 +1126,8 @@ export interface components {
              * @description Décocher pour garder l'avis sans l'afficher sur le site.
              */
             is_published: boolean;
-            /**
-             * Ajouté le
-             * Format: date-time
-             */
-            readonly created_at: string;
         };
-        /**
-         * @description A review as the editor reads and writes it, drafts included.
-         *
-         *     `created_at` is sent back read-only: it is what decides which reviews reach the home
-         *     page, so the editor can show it.
-         */
+        /** @description A review as the editor reads and writes it, drafts included. */
         ReviewManageRequest: {
             /** Avis */
             text: string;

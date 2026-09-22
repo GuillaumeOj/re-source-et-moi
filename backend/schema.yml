@@ -1618,11 +1618,7 @@ components:
             $ref: '#/components/schemas/PriceManageRequest'
     PatchedReviewManageRequest:
       type: object
-      description: |-
-        A review as the editor reads and writes it, drafts included.
-
-        `created_at` is sent back read-only: it is what decides which reviews reach the home
-        page, so the editor can show it.
+      description: A review as the editor reads and writes it, drafts included.
       properties:
         text:
           type: string
@@ -1903,11 +1899,7 @@ components:
       - context
     ReviewManage:
       type: object
-      description: |-
-        A review as the editor reads and writes it, drafts included.
-
-        `created_at` is sent back read-only: it is what decides which reviews reach the home
-        page, so the editor can show it.
+      description: A review as the editor reads and writes it, drafts included.
       properties:
         id:
           type: string
@@ -1929,25 +1921,15 @@ components:
           type: boolean
           title: Publié
           description: Décocher pour garder l'avis sans l'afficher sur le site.
-        created_at:
-          type: string
-          format: date-time
-          readOnly: true
-          title: Ajouté le
       required:
       - id
       - text
       - author
       - context
       - is_published
-      - created_at
     ReviewManageRequest:
       type: object
-      description: |-
-        A review as the editor reads and writes it, drafts included.
-
-        `created_at` is sent back read-only: it is what decides which reviews reach the home
-        page, so the editor can show it.
+      description: A review as the editor reads and writes it, drafts included.
       properties:
         text:
           type: string

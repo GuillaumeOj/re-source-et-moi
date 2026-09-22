@@ -36,7 +36,6 @@ export function review(fields: Partial<ManagedReview>): ManagedReview {
     author: "Camille",
     context: "Atelier découverte",
     is_published: true,
-    created_at: "2026-09-20T10:00:00Z",
     ...fields,
   };
 }

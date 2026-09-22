@@ -78,21 +78,21 @@ describe("HomePage", () => {
     expect(screen.queryByRole("heading", { name: faq.title })).not.toBeInTheDocument();
   });
 
-  it("gives every step of the indicator a section to land on", () => {
-    render(<HomePage />);
-    for (const section of pageSections.filter((step) => !step.optional)) {
-      expect(document.getElementById(section.id), `#${section.id} should exist`).not.toBeNull();
-    }
-  });
-
-  it("leaves no indicator step pointing at a section the page left out", () => {
+  it("gives the indicator one step per section on the page, and none for a missing one", () => {
+    // Testimonials is stubbed absent above, so its step is the one that must go.
     render(<HomePage />);
     const indicator = screen.getByRole("navigation", { name: "Progression dans la page" });
     const targets = within(indicator)
       .getAllByRole("link")
       .map((link) => link.getAttribute("href"));
-    expect(targets).not.toContain("#temoignages");
-    expect(targets).toContain("#contact");
+    expect(targets).toEqual(
+      pageSections
+        .filter((section) => section.id !== "temoignages")
+        .map((section) => `#${section.id}`),
+    );
+    for (const target of targets) {
+      expect(document.querySelector(target as string), `${target} should exist`).not.toBeNull();
+    }
   });
 
   it("links from the workshops to the full workshops page", () => {

@@ -14,13 +14,8 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class ReviewManageSerializer(ModelCleanMixin):
-    """A review as the editor reads and writes it, drafts included.
-
-    `created_at` is sent back read-only: it is what decides which reviews reach the home
-    page, so the editor can show it.
-    """
+    """A review as the editor reads and writes it, drafts included."""
 
     class Meta:
         model = Review
-        fields = ("id", "text", "author", "context", "is_published", "created_at")
-        read_only_fields = ("created_at",)
+        fields = ("id", "text", "author", "context", "is_published")
