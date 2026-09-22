@@ -881,6 +881,169 @@ paths:
       responses:
         '204':
           description: No response body
+  /manage/reviews/:
+    get:
+      operationId: manage_reviews_list
+      description: |-
+        Every review, hidden ones included, editable by staff. Backs the editor's
+        "Témoignages" tab.
+      tags:
+      - manage
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReviewManage'
+          description: ''
+    post:
+      operationId: manage_reviews_create
+      description: |-
+        Every review, hidden ones included, editable by staff. Backs the editor's
+        "Témoignages" tab.
+      tags:
+      - manage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewManageRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReviewManageRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReviewManageRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewManage'
+          description: ''
+  /manage/reviews/{id}/:
+    get:
+      operationId: manage_reviews_retrieve
+      description: |-
+        Every review, hidden ones included, editable by staff. Backs the editor's
+        "Témoignages" tab.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) avis.
+        required: true
+      tags:
+      - manage
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewManage'
+          description: ''
+    put:
+      operationId: manage_reviews_update
+      description: |-
+        Every review, hidden ones included, editable by staff. Backs the editor's
+        "Témoignages" tab.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) avis.
+        required: true
+      tags:
+      - manage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewManageRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReviewManageRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReviewManageRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewManage'
+          description: ''
+    patch:
+      operationId: manage_reviews_partial_update
+      description: |-
+        Every review, hidden ones included, editable by staff. Backs the editor's
+        "Témoignages" tab.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) avis.
+        required: true
+      tags:
+      - manage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedReviewManageRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedReviewManageRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedReviewManageRequest'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewManage'
+          description: ''
+    delete:
+      operationId: manage_reviews_destroy
+      description: |-
+        Every review, hidden ones included, editable by staff. Backs the editor's
+        "Témoignages" tab.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Un(une) Chaîne UUID identifiant ce(cette) avis.
+        required: true
+      tags:
+      - manage
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
   /pricing-types/:
     get:
       operationId: pricing_types_list
@@ -902,6 +1065,28 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/PricingType'
+          description: ''
+  /reviews/:
+    get:
+      operationId: reviews_list
+      description: |-
+        The most recent published reviews, newest first.
+
+        Public and unpaginated for the same reasons as the agenda and the tariffs: the content
+        is already on the website, and a plain array generates a plain TypeScript array.
+      tags:
+      - reviews
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Review'
           description: ''
 components:
   schemas:
@@ -1431,6 +1616,28 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/PriceManageRequest'
+    PatchedReviewManageRequest:
+      type: object
+      description: A review as the editor reads and writes it, drafts included.
+      properties:
+        text:
+          type: string
+          minLength: 1
+          title: Avis
+        author:
+          type: string
+          minLength: 1
+          title: Nom
+          maxLength: 100
+        context:
+          type: string
+          title: Description
+          description: Par ex. « Atelier découverte », « Parent d'élève ».
+          maxLength: 100
+        is_published:
+          type: boolean
+          title: Publié
+          description: Décocher pour garder l'avis sans l'afficher sur le site.
     Price:
       type: object
       description: |-
@@ -1663,6 +1870,88 @@ components:
             format: uuid
       required:
       - ids
+    Review:
+      type: object
+      description: |-
+        A review as the home page renders it. `is_published` stays out: the public feed
+        only ever holds published reviews.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        text:
+          type: string
+          title: Avis
+        author:
+          type: string
+          title: Nom
+          maxLength: 100
+        context:
+          type: string
+          title: Description
+          description: Par ex. « Atelier découverte », « Parent d'élève ».
+          maxLength: 100
+      required:
+      - id
+      - text
+      - author
+      - context
+    ReviewManage:
+      type: object
+      description: A review as the editor reads and writes it, drafts included.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        text:
+          type: string
+          title: Avis
+        author:
+          type: string
+          title: Nom
+          maxLength: 100
+        context:
+          type: string
+          title: Description
+          description: Par ex. « Atelier découverte », « Parent d'élève ».
+          maxLength: 100
+        is_published:
+          type: boolean
+          title: Publié
+          description: Décocher pour garder l'avis sans l'afficher sur le site.
+      required:
+      - id
+      - text
+      - author
+      - context
+      - is_published
+    ReviewManageRequest:
+      type: object
+      description: A review as the editor reads and writes it, drafts included.
+      properties:
+        text:
+          type: string
+          minLength: 1
+          title: Avis
+        author:
+          type: string
+          minLength: 1
+          title: Nom
+          maxLength: 100
+        context:
+          type: string
+          title: Description
+          description: Par ex. « Atelier découverte », « Parent d'élève ».
+          maxLength: 100
+        is_published:
+          type: boolean
+          title: Publié
+          description: Décocher pour garder l'avis sans l'afficher sur le site.
+      required:
+      - author
+      - text
     Session:
       type: object
       properties:

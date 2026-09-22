@@ -485,6 +485,62 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/manage/reviews/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Every review, hidden ones included, editable by staff. Backs the editor's
+         *     "Témoignages" tab.
+         */
+        get: operations["manage_reviews_list"];
+        put?: never;
+        /**
+         * @description Every review, hidden ones included, editable by staff. Backs the editor's
+         *     "Témoignages" tab.
+         */
+        post: operations["manage_reviews_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/manage/reviews/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Every review, hidden ones included, editable by staff. Backs the editor's
+         *     "Témoignages" tab.
+         */
+        get: operations["manage_reviews_retrieve"];
+        /**
+         * @description Every review, hidden ones included, editable by staff. Backs the editor's
+         *     "Témoignages" tab.
+         */
+        put: operations["manage_reviews_update"];
+        post?: never;
+        /**
+         * @description Every review, hidden ones included, editable by staff. Backs the editor's
+         *     "Témoignages" tab.
+         */
+        delete: operations["manage_reviews_destroy"];
+        options?: never;
+        head?: never;
+        /**
+         * @description Every review, hidden ones included, editable by staff. Backs the editor's
+         *     "Témoignages" tab.
+         */
+        patch: operations["manage_reviews_partial_update"];
+        trace?: never;
+    };
     "/pricing-types/": {
         parameters: {
             query?: never;
@@ -499,6 +555,28 @@ export interface paths {
          *     already on the website, and a plain array generates a plain TypeScript array.
          */
         get: operations["pricing_types_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reviews/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description The most recent published reviews, newest first.
+         *
+         *     Public and unpaginated for the same reasons as the agenda and the tariffs: the content
+         *     is already on the website, and a plain array generates a plain TypeScript array.
+         */
+        get: operations["reviews_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -852,6 +930,23 @@ export interface components {
             is_published?: boolean;
             prices?: components["schemas"]["PriceManageRequest"][];
         };
+        /** @description A review as the editor reads and writes it, drafts included. */
+        PatchedReviewManageRequest: {
+            /** Avis */
+            text?: string;
+            /** Nom */
+            author?: string;
+            /**
+             * Description
+             * @description Par ex. « Atelier découverte », « Parent d'élève ».
+             */
+            context?: string;
+            /**
+             * Publié
+             * @description Décocher pour garder l'avis sans l'afficher sur le site.
+             */
+            is_published?: boolean;
+        };
         /**
          * @description One tariff line.
          *
@@ -995,6 +1090,59 @@ export interface components {
         /** @description Every group's id, in the order the site should show them. */
         PricingTypeOrderRequest: {
             ids: string[];
+        };
+        /**
+         * @description A review as the home page renders it. `is_published` stays out: the public feed
+         *     only ever holds published reviews.
+         */
+        Review: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Avis */
+            text: string;
+            /** Nom */
+            author: string;
+            /**
+             * Description
+             * @description Par ex. « Atelier découverte », « Parent d'élève ».
+             */
+            context: string;
+        };
+        /** @description A review as the editor reads and writes it, drafts included. */
+        ReviewManage: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Avis */
+            text: string;
+            /** Nom */
+            author: string;
+            /**
+             * Description
+             * @description Par ex. « Atelier découverte », « Parent d'élève ».
+             */
+            context: string;
+            /**
+             * Publié
+             * @description Décocher pour garder l'avis sans l'afficher sur le site.
+             */
+            is_published: boolean;
+        };
+        /** @description A review as the editor reads and writes it, drafts included. */
+        ReviewManageRequest: {
+            /** Avis */
+            text: string;
+            /** Nom */
+            author: string;
+            /**
+             * Description
+             * @description Par ex. « Atelier découverte », « Parent d'élève ».
+             */
+            context?: string;
+            /**
+             * Publié
+             * @description Décocher pour garder l'avis sans l'afficher sur le site.
+             */
+            is_published?: boolean;
         };
         Session: {
             readonly username: string;
@@ -1716,6 +1864,149 @@ export interface operations {
             };
         };
     };
+    manage_reviews_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewManage"][];
+                };
+            };
+        };
+    };
+    manage_reviews_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewManageRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["ReviewManageRequest"];
+                "multipart/form-data": components["schemas"]["ReviewManageRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewManage"];
+                };
+            };
+        };
+    };
+    manage_reviews_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Un(une) Chaîne UUID identifiant ce(cette) avis. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewManage"];
+                };
+            };
+        };
+    };
+    manage_reviews_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Un(une) Chaîne UUID identifiant ce(cette) avis. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewManageRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["ReviewManageRequest"];
+                "multipart/form-data": components["schemas"]["ReviewManageRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewManage"];
+                };
+            };
+        };
+    };
+    manage_reviews_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Un(une) Chaîne UUID identifiant ce(cette) avis. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    manage_reviews_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Un(une) Chaîne UUID identifiant ce(cette) avis. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedReviewManageRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedReviewManageRequest"];
+                "multipart/form-data": components["schemas"]["PatchedReviewManageRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewManage"];
+                };
+            };
+        };
+    };
     pricing_types_list: {
         parameters: {
             query?: never;
@@ -1731,6 +2022,25 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PricingType"][];
+                };
+            };
+        };
+    };
+    reviews_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Review"][];
                 };
             };
         };

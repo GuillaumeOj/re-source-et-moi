@@ -8,9 +8,13 @@ import { cn } from "@/lib/cn";
  * Desktop-only vertical step indicator on the left. Highlights the section
  * crossing the viewport centre (via IntersectionObserver) and lets the user
  * jump between steps. Inverts its colours over dark sections so it stays visible.
+ *
+ * Only sections actually on the page get a dot: an optional one (Témoignages, with no
+ * review published) renders nothing, and a dot pointing at it would lead nowhere.
  */
 export function StepIndicator() {
   const [activeId, setActiveId] = useState(pageSections[0].id);
+  const [sections, setSections] = useState(pageSections);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -23,10 +27,12 @@ export function StepIndicator() {
       { rootMargin: "-50% 0px -50% 0px", threshold: 0 },
     );
 
-    for (const section of pageSections) {
+    const present = pageSections.filter((section) => {
       const el = document.getElementById(section.id);
       if (el) observer.observe(el);
-    }
+      return el !== null;
+    });
+    setSections(present);
     return () => observer.disconnect();
   }, []);
 
@@ -38,7 +44,7 @@ export function StepIndicator() {
       className="fixed top-1/2 left-5 z-40 hidden -translate-y-1/2 lg:block"
     >
       <ol className="flex flex-col gap-4">
-        {pageSections.map((section) => {
+        {sections.map((section) => {
           const isActive = activeId === section.id;
           return (
             <li key={section.id}>

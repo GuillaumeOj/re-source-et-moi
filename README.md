@@ -78,18 +78,19 @@ frontend/
 ### Editing content
 
 Static copy lives in `content/*.ts`, not hardcoded in components — edit those files to
-change text, the FAQ, testimonials, and so on.
+change text, the FAQ, and so on.
 
-The **workshop dates and the tariffs are the exception**: they come from the backend so
-Cécile can change them in her editor without a deploy (see below). `content/ateliers.ts` and
-`content/tarifs.ts` keep only the editorial copy around those lists — the headings, the
+The **workshop dates, the tariffs and the testimonials are the exception**: they come from
+the backend so Cécile can change them in her editor without a deploy (see below).
+`content/ateliers.ts`, `content/tarifs.ts` and `content/temoignages.ts` keep only the
+editorial copy around those lists — the headings, the
 empty-agenda line, and the notice shown when the backend cannot be reached. That notice
 deliberately names no dates and no amounts: a stale price is worse than no price, because
 someone could arrive expecting it.
 
 ### Cécile's editor
 
-A French editing interface for the workshops and the tariffs, part of the site itself at a
+A French editing interface for the workshops, the tariffs and the testimonials, part of the site itself at a
 secret URL: `/<EDITOR_PATH>`, e.g. `/admin-3f2c…` (`/admin-local` in development). It
 replaces the Django admin for everyday use. The admin stays available as a fallback.
 
@@ -112,6 +113,10 @@ What it offers:
   calendar, clicking a workshop opens it, and clicking a day lists that day's workshops
   with an "Ajouter un atelier ce jour" button.
 - **Tarifs**: one card per group, its lines edited and saved with it.
+- **Témoignages**: one card per review (the quote, a name, an optional description such
+  as « Parent d'élève »), newest first, with a switch that publishes or hides it at once.
+  The home page shows the three most recent published reviews, and hides the section
+  when none is published.
 - **Mon compte** (the username in the header): username, e-mail and password, each change
   confirmed with the current password.
 - **Mot de passe oublié ?** on the login form: a reset link sent by e-mail through Brevo,
@@ -203,6 +208,7 @@ and never removes a volume.
 | ------------------------- | ----------------------------------------------------------- |
 | `GET /api/events/`        | Published, still-upcoming workshops, soonest first           |
 | `GET /api/pricing-types/` | Published tariff groups, each with its published lines nested |
+| `GET /api/reviews/`       | The three most recent published reviews, newest first        |
 | `GET /api/health/`        | Liveness probe                                               |
 | `GET /api/schema/`        | OpenAPI schema (`/api/schema/swagger/` to browse it)          |
 | `GET /api/auth/csrf/`     | Sets the CSRF cookie (the editor calls it before its first write) |
@@ -216,8 +222,9 @@ and never removes a volume.
 | `/api/manage/events/`     | Staff CRUD on every workshop, drafts and past ones included. Paginated (`page`, `page_size` ≤ 200), filtered by `period=upcoming\|past` or `date_from`/`date_to` |
 | `/api/manage/pricing-types/` | Staff CRUD on every tariff group, its lines saved with it |
 | `POST /api/manage/pricing-types/reorder/` | The order of every group at once, all-or-nothing |
+| `/api/manage/reviews/`    | Staff CRUD on every review, hidden ones included, newest first |
 
-The two public list endpoints are unpaginated. The `auth` and `manage` endpoints back the
+The public list endpoints are unpaginated. The `auth` and `manage` endpoints back the
 editor. They accept only a Django session (no Basic auth), enforce CSRF on writes, and
 validate through the models' own `clean()`, so the editor and the admin share every rule
 and every French message. A missing session is a 401 and anything else refused is a 403.

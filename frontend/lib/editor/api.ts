@@ -31,6 +31,9 @@ export type ManagedAddress = Schemas["AddressManage"];
 export type AddressInput = Schemas["AddressManageRequest"];
 export type ManagedPricingType = Schemas["PricingTypeManage"];
 export type PricingTypeInput = Schemas["PricingTypeManageRequest"];
+export type ManagedReview = Schemas["ReviewManage"];
+export type ReviewInput = Schemas["ReviewManageRequest"];
+export type ReviewPatch = Schemas["PatchedReviewManageRequest"];
 
 /** The list's query: a period tab and a page, or the calendar's date range. */
 export type EventQuery = {
@@ -242,4 +245,13 @@ export const editorApi = {
   /** Set the order of every group in one all-or-nothing request. */
   reorderPricingTypes: (ids: string[]) =>
     request<void>("POST", "/manage/pricing-types/reorder/", { ids }),
+
+  /** Every review, hidden ones included, newest first. */
+  listReviews: () => request<ManagedReview[]>("GET", "/manage/reviews/"),
+  createReview: (input: ReviewInput) => request<ManagedReview>("POST", "/manage/reviews/", input),
+  updateReview: (id: string, input: ReviewInput) =>
+    request<ManagedReview>("PUT", `/manage/reviews/${id}/`, input),
+  patchReview: (id: string, patch: ReviewPatch) =>
+    request<ManagedReview>("PATCH", `/manage/reviews/${id}/`, patch),
+  deleteReview: (id: string) => request<void>("DELETE", `/manage/reviews/${id}/`),
 };

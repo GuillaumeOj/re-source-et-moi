@@ -1,6 +1,8 @@
 // The ordered home page sections. Drives the desktop step indicator and its light/dark
-// inversion (`dark`). Each id matches a <section id="…"> in the page. The header and
-// footer navigation is separate — it links to routes, not to these anchors (see site.ts).
+// inversion (`dark`). Each id matches a <section id="…"> in the page, when that section
+// renders: Témoignages hides itself with no review published, and the indicator then drops
+// its dot. The header and footer navigation is separate — it links to routes, not to these
+// anchors (see site.ts).
 
 export type PageSection = {
   id: string;

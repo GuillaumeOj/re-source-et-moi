@@ -22,6 +22,12 @@ vi.mock("@/components/sections/workshops/AgendaList", () => ({
 vi.mock("@/components/sections/workshops/PricingSection", () => ({
   PricingSection: () => <div />,
 }));
+// Testimonials is async and hides itself entirely with no review published, so its
+// heading is covered in testimonials.test.tsx. Stubbed absent here, which also exercises
+// the page without it.
+vi.mock("@/components/sections/Testimonials", () => ({
+  Testimonials: () => null,
+}));
 
 describe("HomePage", () => {
   it("renders exactly one h1", () => {
@@ -44,7 +50,6 @@ describe("HomePage", () => {
       "Un mouvement qui naît du ressenti",
       "Nos prochains ateliers",
       "À l'origine de Re-Source Et Moi",
-      "Ce qu'ils en retiennent",
       "Parlons mouvement",
     ]) {
       expect(screen.getByRole("heading", { name: title })).toBeInTheDocument();
@@ -73,10 +78,20 @@ describe("HomePage", () => {
     expect(screen.queryByRole("heading", { name: faq.title })).not.toBeInTheDocument();
   });
 
-  it("gives every step of the indicator a section to land on", () => {
+  it("gives the indicator one step per section on the page, and none for a missing one", () => {
+    // Testimonials is stubbed absent above, so its step is the one that must go.
     render(<HomePage />);
-    for (const section of pageSections) {
-      expect(document.getElementById(section.id), `#${section.id} should exist`).not.toBeNull();
+    const indicator = screen.getByRole("navigation", { name: "Progression dans la page" });
+    const targets = within(indicator)
+      .getAllByRole("link")
+      .map((link) => link.getAttribute("href"));
+    expect(targets).toEqual(
+      pageSections
+        .filter((section) => section.id !== "temoignages")
+        .map((section) => `#${section.id}`),
+    );
+    for (const target of targets) {
+      expect(document.querySelector(target as string), `${target} should exist`).not.toBeNull();
     }
   });
 

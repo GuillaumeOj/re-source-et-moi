@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { vi } from "vitest";
 import { EditorContext } from "@/components/editor/EditorContext";
-import type { ManagedAddress } from "@/lib/editor/api";
+import type { ManagedAddress, ManagedReview } from "@/lib/editor/api";
 
 export const SESSION = { username: "cecile", email: "cecile@example.org" };
 
@@ -25,6 +25,17 @@ export function address(fields: Partial<ManagedAddress>): ManagedAddress {
     city: "Lyon",
     one_line: "12 rue de la Charité, 69002 Lyon",
     event_count: 0,
+    ...fields,
+  };
+}
+
+export function review(fields: Partial<ManagedReview>): ManagedReview {
+  return {
+    id: "r1",
+    text: "J'ai retrouvé le plaisir d'apprendre.",
+    author: "Camille",
+    context: "Atelier découverte",
+    is_published: true,
     ...fields,
   };
 }

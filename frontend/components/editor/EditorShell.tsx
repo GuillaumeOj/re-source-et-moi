@@ -53,6 +53,7 @@ export function EditorShell({ basePath, children }: { basePath: string; children
     { href: `${basePath}/ateliers`, label: "Ateliers" },
     { href: `${basePath}/adresses`, label: "Adresses" },
     { href: `${basePath}/tarifs`, label: "Tarifs" },
+    { href: `${basePath}/temoignages`, label: "Témoignages" },
   ];
   const accountHref = `${basePath}/compte`;
   const showLogin = session === null || expired;

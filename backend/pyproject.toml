@@ -48,7 +48,7 @@ python_files = ["test_*.py", "*_test.py", "tests.py"]
 # --cov names each app package explicitly rather than measuring whatever happens to be
 # imported: a new app that ships without tests then drags the number below the gate
 # instead of quietly sitting outside the measurement.
-addopts = "--cov=config --cov=agenda --cov=pricing --cov-report=term-missing --cov-fail-under=90"
+addopts = "--cov=config --cov=agenda --cov=pricing --cov=reviews --cov-report=term-missing --cov-fail-under=90"
 
 [tool.coverage.run]
 omit = [
