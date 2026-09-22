@@ -44,5 +44,7 @@ export function useLoad<T>(
   }, [fetcher, trigger, retries]);
 
   const reload = useCallback(() => setRetries((count) => count + 1), []);
-  return { data, setData, failed, reload };
+  // Nothing yet and nothing wrong: the first answer is still on its way.
+  const loading = data === null && !failed;
+  return { data, setData, loading, failed, reload };
 }

@@ -14,3 +14,12 @@ export function pill(active: boolean): string {
     active ? "bg-rose-sombre text-creme" : "text-rose-sombre hover:bg-rose-tendre",
   );
 }
+
+/** The white card of one workshop in the list, and of its loading placeholder. */
+export const eventRowCard =
+  "flex flex-col gap-4 rounded-3xl bg-white p-5 shadow-soft sm:flex-row sm:items-center";
+
+/** The editor's header bar, and the row inside it, shared with its loading placeholder. */
+export const editorHeader = "border-rose-sombre/10 border-b bg-white";
+export const editorHeaderRow =
+  "mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-4";

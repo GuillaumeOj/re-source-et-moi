@@ -1,5 +1,4 @@
 import { render, screen } from "@testing-library/react";
-import type { ReactElement } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AddressesEditor } from "@/components/editor/AddressesEditor";
 import { EditorShell } from "@/components/editor/EditorShell";
@@ -46,7 +45,7 @@ function expectSkeleton(label: string) {
   const text = screen.getByText(label);
   expect(text).toHaveClass("sr-only");
   const region = text.closest("[role=status]");
-  expect(region).toHaveAttribute("aria-busy", "true");
+  expect(region).not.toHaveAttribute("aria-busy");
   expect(region?.textContent).toBe(label);
   return region;
 }
@@ -72,45 +71,35 @@ describe("loading skeletons", () => {
     expect(region).not.toBeInTheDocument();
   });
 
-  it.each<[string, () => ReactElement, () => { resolve: () => void }, string]>([
-    [
-      "Chargement des ateliers…",
-      () => <EventList reloadKey={0} {...noActions} />,
-      () => {
-        const request = pending<Awaited<ReturnType<typeof editorApi.listEvents>>>();
-        vi.mocked(editorApi.listEvents).mockReturnValue(request.promise);
-        return {
-          resolve: () => request.resolve({ count: 0, next: null, previous: null, results: [] }),
-        };
-      },
-      "Aucun atelier à venir.",
-    ],
-    [
-      "Chargement des adresses…",
-      () => withEditor(<AddressesEditor />),
-      () => {
-        const request = pending<Awaited<ReturnType<typeof editorApi.listAddresses>>>();
-        vi.mocked(editorApi.listAddresses).mockReturnValue(request.promise);
-        return { resolve: () => request.resolve([address({ name: "Maison des associations" })]) };
-      },
-      "Maison des associations",
-    ],
-    [
-      "Chargement des tarifs…",
-      () => withEditor(<PricingEditor />),
-      () => {
-        const request = pending<Awaited<ReturnType<typeof editorApi.listPricingTypes>>>();
-        vi.mocked(editorApi.listPricingTypes).mockReturnValue(request.promise);
-        return { resolve: () => request.resolve([]) };
-      },
-      "Tarifs",
-    ],
-  ])("shows skeletons for %s", async (label, view, load, loaded) => {
-    const request = load();
+  it.each([
+    {
+      label: "Chargement des ateliers…",
+      view: () => <EventList reloadKey={0} {...noActions} />,
+      mock: editorApi.listEvents,
+      value: { count: 0, next: null, previous: null, results: [] },
+      loaded: "Aucun atelier à venir.",
+    },
+    {
+      label: "Chargement des adresses…",
+      view: () => withEditor(<AddressesEditor />),
+      mock: editorApi.listAddresses,
+      value: [address({ name: "Maison des associations" })],
+      loaded: "Maison des associations",
+    },
+    {
+      label: "Chargement des tarifs…",
+      view: () => withEditor(<PricingEditor />),
+      mock: editorApi.listPricingTypes,
+      value: [],
+      loaded: "Tarifs",
+    },
+  ])("shows skeletons for $label", async ({ label, view, mock, value, loaded }) => {
+    const request = pending<unknown>();
+    vi.mocked(mock).mockReturnValue(request.promise as never);
     render(view());
 
     const region = expectSkeleton(label);
-    request.resolve();
+    request.resolve(value);
 
     expect((await screen.findAllByText(loaded)).length).toBeGreaterThan(0);
     expect(region).not.toBeInTheDocument();

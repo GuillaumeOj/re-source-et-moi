@@ -5,6 +5,7 @@ import { FieldShell, fieldAria, fieldControl } from "@/components/ui/Field";
 import { cn } from "@/lib/cn";
 import { editorApi, type ManagedAddress } from "@/lib/editor/api";
 import { AddressForm, byName } from "./AddressForm";
+import { Skeleton, SkeletonRegion } from "./Skeleton";
 import { LoadError } from "./StatusMessage";
 import { useLoad } from "./useLoad";
 
@@ -29,6 +30,7 @@ export function AddressPicker({ value, onChange, error }: AddressPickerProps) {
   const {
     data: addresses,
     setData: setAddresses,
+    loading,
     failed,
     reload,
   } = useLoad(editorApi.listAddresses);
@@ -44,34 +46,35 @@ export function AddressPicker({ value, onChange, error }: AddressPickerProps) {
   return (
     <div className="flex flex-col gap-3">
       <FieldShell label="Adresse" id="event-address" error={error} hint={chosen?.one_line}>
-        <select
-          id="event-address"
-          required
-          disabled={addresses === null || creating}
-          value={value ?? ""}
-          onChange={(e) => {
-            if (e.target.value === NEW_ADDRESS) {
-              setCreating(true);
-            } else {
-              onChange(e.target.value || null);
-            }
-          }}
-          aria-busy={addresses === null && !failed}
-          className={cn(
-            fieldControl,
-            error && "border-rose-sombre",
-            addresses === null && !failed && "animate-pulse disabled:bg-rose-tendre/70",
-          )}
-          {...fieldAria("event-address", chosen?.one_line, error)}
-        >
-          <option value="">{addresses === null ? "" : "Choisir une adresse…"}</option>
-          {addresses?.map((address) => (
-            <option key={address.id} value={address.id}>
-              {address.name} — {address.city}
-            </option>
-          ))}
-          <option value={NEW_ADDRESS}>+ Nouvelle adresse…</option>
-        </select>
+        {loading ? (
+          <SkeletonRegion label="Chargement des adresses…">
+            <Skeleton className="h-12 w-full" rounded="rounded-2xl" />
+          </SkeletonRegion>
+        ) : (
+          <select
+            id="event-address"
+            required
+            disabled={addresses === null || creating}
+            value={value ?? ""}
+            onChange={(e) => {
+              if (e.target.value === NEW_ADDRESS) {
+                setCreating(true);
+              } else {
+                onChange(e.target.value || null);
+              }
+            }}
+            className={cn(fieldControl, error && "border-rose-sombre")}
+            {...fieldAria("event-address", chosen?.one_line, error)}
+          >
+            <option value="">Choisir une adresse…</option>
+            {addresses?.map((address) => (
+              <option key={address.id} value={address.id}>
+                {address.name} — {address.city}
+              </option>
+            ))}
+            <option value={NEW_ADDRESS}>+ Nouvelle adresse…</option>
+          </select>
+        )}
       </FieldShell>
       {failed && <LoadError what="les adresses" onRetry={reload} />}
       {creating && (

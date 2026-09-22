@@ -1,10 +1,11 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
-import { editorCard } from "./styles";
+import { editorCard, editorHeader, editorHeaderRow, eventRowCard } from "./styles";
 
 /**
- * One pulsing placeholder shape. The caller gives it its size, and its corners when it
- * stands for something that isn't a pill (cn doesn't merge conflicting classes).
+ * One placeholder shape. The caller gives it its size, and its corners when it stands for
+ * something that isn't a pill (cn doesn't merge conflicting classes). It doesn't pulse on
+ * its own: the SkeletonRegion around it does, once for all its shapes.
  */
 export function Skeleton({
   className,
@@ -13,14 +14,14 @@ export function Skeleton({
   className?: string;
   rounded?: string;
 }) {
-  return (
-    <div aria-hidden="true" className={cn("animate-pulse bg-rose-tendre/70", rounded, className)} />
-  );
+  return <div aria-hidden="true" className={cn("bg-rose-tendre/70", rounded, className)} />;
 }
 
 /**
- * The live region around a set of skeletons. The shapes are hidden from screen readers,
- * so the label is what they announce: "Chargement des ateliers…".
+ * The live region around a set of skeletons, and their one pulse. The shapes are hidden
+ * from screen readers, so the label is what they announce: "Chargement des ateliers…".
+ * No aria-busy here: on a live region it tells screen readers to hold the announcement
+ * until it clears, and this region is gone by then.
  */
 export function SkeletonRegion({
   label,
@@ -32,17 +33,22 @@ export function SkeletonRegion({
   className?: string;
 }) {
   return (
-    <div role="status" aria-busy="true" className={className}>
+    <div role="status" className={cn("animate-pulse", className)}>
       <span className="sr-only">{label}</span>
       {children}
     </div>
   );
 }
 
+/** A round icon button: edit, duplicate, move up… */
+function IconSkeleton() {
+  return <Skeleton className="h-10 w-10" />;
+}
+
 /** The shape of an EventRow: title, date, place, the publish switch and three actions. */
 export function EventRowSkeleton() {
   return (
-    <div className="flex flex-col gap-4 rounded-3xl bg-white p-5 shadow-soft sm:flex-row sm:items-center">
+    <div className={eventRowCard}>
       <div className="flex flex-1 flex-col gap-2">
         <Skeleton className="h-5 w-2/3 max-w-xs" />
         <Skeleton className="h-4 w-1/2 max-w-56" />
@@ -50,26 +56,24 @@ export function EventRowSkeleton() {
       </div>
       <Skeleton className="h-6 w-11" />
       <div className="flex gap-1">
-        <Skeleton className="h-10 w-10" />
-        <Skeleton className="h-10 w-10" />
-        <Skeleton className="h-10 w-10" />
+        <IconSkeleton />
+        <IconSkeleton />
+        <IconSkeleton />
       </div>
     </div>
   );
 }
 
-/** The shape of a titled form card: an address, a pricing group. */
-export function FormCardSkeleton({ actions = 0 }: { actions?: number }) {
+/** The shape of a titled form card: an address, or a pricing group with its arrows. */
+export function FormCardSkeleton({ arrows = false }: { arrows?: boolean }) {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-2">
         <Skeleton className="h-8 w-56" />
-        {actions > 0 && (
+        {arrows && (
           <div className="flex gap-1">
-            {Array.from({ length: actions }, (_, index) => (
-              // biome-ignore lint/suspicious/noArrayIndexKey: static placeholders
-              <Skeleton key={index} className="h-10 w-10" />
-            ))}
+            <IconSkeleton />
+            <IconSkeleton />
           </div>
         )}
       </div>
@@ -90,8 +94,8 @@ export function FormCardSkeleton({ actions = 0 }: { actions?: number }) {
 export function ShellSkeleton() {
   return (
     <SkeletonRegion label="Chargement…" className="min-h-screen">
-      <div className="border-rose-sombre/10 border-b bg-white">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-4">
+      <div className={editorHeader}>
+        <div className={editorHeaderRow}>
           <div className="flex flex-col gap-2">
             <Skeleton className="h-7 w-44" />
             <Skeleton className="h-4 w-28" />
@@ -111,7 +115,6 @@ export function ShellSkeleton() {
         <Skeleton className="h-10 w-48" />
         <Skeleton className="h-4 w-full max-w-2xl" />
         <div className="flex flex-col gap-3">
-          <EventRowSkeleton />
           <EventRowSkeleton />
           <EventRowSkeleton />
         </div>

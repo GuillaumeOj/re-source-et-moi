@@ -25,6 +25,7 @@ export function AddressesEditor() {
   const {
     data: addresses,
     setData: setAddresses,
+    loading,
     failed,
     reload,
   } = useLoad(editorApi.listAddresses);
@@ -79,7 +80,7 @@ export function AddressesEditor() {
 
       <StatusMessage status={status} />
 
-      {addresses === null && !failed && (
+      {loading && (
         <SkeletonRegion label="Chargement des adresses…" className="flex flex-col gap-8">
           <FormCardSkeleton />
           <FormCardSkeleton />

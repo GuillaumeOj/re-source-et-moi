@@ -18,7 +18,13 @@ import { useLoad } from "./useLoad";
  * cards is not part of any one card's form.
  */
 export function PricingEditor() {
-  const { data: groups, setData: setGroups, failed, reload } = useLoad(editorApi.listPricingTypes);
+  const {
+    data: groups,
+    setData: setGroups,
+    loading,
+    failed,
+    reload,
+  } = useLoad(editorApi.listPricingTypes);
   const [adding, setAdding] = useState(false);
   const [deleting, setDeleting] = useState<ManagedPricingType | null>(null);
   const [status, setStatus] = useState<Status>(null);
@@ -88,10 +94,10 @@ export function PricingEditor() {
 
       <StatusMessage status={status} />
 
-      {groups === null && !failed && (
+      {loading && (
         <SkeletonRegion label="Chargement des tarifs…" className="flex flex-col gap-8">
-          <FormCardSkeleton actions={2} />
-          <FormCardSkeleton actions={2} />
+          <FormCardSkeleton arrows />
+          <FormCardSkeleton arrows />
         </SkeletonRegion>
       )}
       {failed && <LoadError what="les tarifs" onRetry={reload} />}

@@ -9,7 +9,7 @@ import { editorApi, onSessionLost, SESSION_ENDED, type Session } from "@/lib/edi
 import { EditorContext } from "./EditorContext";
 import { LoginForm } from "./LoginForm";
 import { ShellSkeleton } from "./Skeleton";
-import { pill } from "./styles";
+import { editorHeader, editorHeaderRow, pill } from "./styles";
 
 /**
  * The frame around every editor page: it decides between the login form and the editor,
@@ -70,8 +70,8 @@ export function EditorShell({ basePath, children }: { basePath: string; children
       {context && (
         <EditorContext.Provider value={context}>
           <div hidden={showLogin} className="min-h-screen">
-            <header className="border-rose-sombre/10 border-b bg-white">
-              <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-4">
+            <header className={editorHeader}>
+              <div className={editorHeaderRow}>
                 <div className="flex flex-col">
                   <p className="font-display text-2xl leading-tight text-rose-sombre">
                     Espace d'édition
