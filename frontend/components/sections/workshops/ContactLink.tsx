@@ -1,18 +1,16 @@
 import { ArrowRight } from "lucide-react";
 import type { ReactNode } from "react";
-import { CONTACT_HREF } from "@/content/routes";
+import { contactHref } from "@/content/routes";
 
 /**
- * The outlined pill that jumps to the contact form — a workshop row's "S'inscrire", and the
- * way out of every notice. The arrow nudges right when a `group` ancestor is hovered.
- *
- * Root-relative (CONTACT_HREF) because it also renders on the ateliers page, where a bare
- * "#contact" would point at an anchor that page does not have.
+ * The outlined pill that leads to the contact page — a workshop row's "S'inscrire" (with
+ * `eventId`, so the form opens on that workshop), and the way out of every notice. The
+ * arrow nudges right when a `group` ancestor is hovered.
  */
-export function ContactLink({ children }: { children: ReactNode }) {
+export function ContactLink({ eventId, children }: { eventId?: string; children: ReactNode }) {
   return (
     <a
-      href={CONTACT_HREF}
+      href={contactHref(eventId)}
       className="inline-flex items-center gap-1.5 rounded-full border border-rose-sombre/20 px-5 py-2.5 text-sm font-semibold text-rose-sombre transition-colors hover:bg-rose-sombre/5"
     >
       {children}

@@ -5,7 +5,7 @@ import QuestionsPage from "@/app/questions/page";
 import { FaqList } from "@/components/faq/FaqList";
 import { contact } from "@/content/cta";
 import { faq } from "@/content/faq";
-import { CONTACT_HREF } from "@/content/routes";
+import { contactHref } from "@/content/routes";
 
 describe("FaqList", () => {
   it("renders every question", () => {
@@ -43,7 +43,10 @@ describe("QuestionsPage", () => {
 
   it("points to the contact form for anything else", () => {
     render(<QuestionsPage />);
-    expect(screen.getByRole("link", { name: contact.cta })).toHaveAttribute("href", CONTACT_HREF);
+    // In the page body — the header carries a "Nous contacter" of its own.
+    expect(
+      within(screen.getByRole("main")).getByRole("link", { name: contact.cta }),
+    ).toHaveAttribute("href", contactHref());
   });
 
   it("carries the FAQPage structured data for its questions", () => {

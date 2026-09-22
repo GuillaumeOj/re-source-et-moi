@@ -2,7 +2,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { StepIndicator } from "@/components/layout/StepIndicator";
 import { BrainGym } from "@/components/sections/BrainGym";
-import { Contact } from "@/components/sections/Contact";
+import { ContactTeaser } from "@/components/sections/ContactTeaser";
 import { Founder } from "@/components/sections/Founder";
 import { Hero } from "@/components/sections/Hero";
 import { Objet } from "@/components/sections/Objet";
@@ -23,7 +23,7 @@ export default function HomePage() {
         <Workshops />
         <Founder />
         <Testimonials />
-        <Contact />
+        <ContactTeaser />
       </main>
       <Footer />
     </>

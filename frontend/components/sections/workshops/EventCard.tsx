@@ -82,7 +82,7 @@ export function EventCard({ event, delayMs = 0, past = false }: EventCardProps) 
       </div>
 
       {!past && (
-        <ContactLink>
+        <ContactLink eventId={event.id}>
           <span className="sr-only">S'inscrire à {event.title}</span>
           <span aria-hidden="true">S'inscrire</span>
         </ContactLink>

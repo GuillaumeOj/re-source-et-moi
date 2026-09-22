@@ -5,7 +5,7 @@ import { PageShell } from "@/components/layout/PageShell";
 import { Button } from "@/components/ui/Button";
 import { contact } from "@/content/cta";
 import { faq } from "@/content/faq";
-import { CONTACT_HREF, routes } from "@/content/routes";
+import { contactHref, routes } from "@/content/routes";
 import { buildFaqJsonLd } from "@/lib/jsonld";
 
 export const metadata: Metadata = {
@@ -26,7 +26,7 @@ export default function QuestionsPage() {
 
       <div className="mt-12 flex flex-col items-start gap-4">
         <p className="text-base leading-relaxed text-charbon/80">{faq.more}</p>
-        <Button href={CONTACT_HREF} arrow>
+        <Button href={contactHref()} arrow>
           {contact.cta}
         </Button>
       </div>

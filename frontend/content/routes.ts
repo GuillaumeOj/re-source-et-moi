@@ -31,6 +31,11 @@ export const routes = {
     label: "Questions",
     sitemap: { changeFrequency: "monthly", priority: 0.6 },
   },
+  contact: {
+    path: "/contact",
+    label: "Contact",
+    sitemap: { changeFrequency: "yearly", priority: 0.5 },
+  },
   mentionsLegales: {
     path: "/mentions-legales",
     label: "Mentions légales",
@@ -43,5 +48,11 @@ export const routes = {
   },
 } satisfies Record<string, Route>;
 
-/** The contact form, on the home page. Root-relative so it works from every page. */
-export const CONTACT_HREF = "/#contact";
+/** The query parameter that carries the workshop a visitor wants to sign up for. */
+export const CONTACT_EVENT_PARAM = "atelier";
+
+/** The contact page — opened on a workshop to sign up for when `eventId` is given. */
+export function contactHref(eventId?: string): string {
+  const { path } = routes.contact;
+  return eventId ? `${path}?${new URLSearchParams({ [CONTACT_EVENT_PARAM]: eventId })}` : path;
+}

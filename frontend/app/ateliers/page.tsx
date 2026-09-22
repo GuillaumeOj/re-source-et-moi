@@ -10,20 +10,13 @@ import { routes } from "@/content/routes";
 import { monthOf, parseMonth } from "@/lib/calendar";
 import { cn } from "@/lib/cn";
 import { parisToday } from "@/lib/format";
+import { param, type SearchParams } from "@/lib/searchParams";
 
 export const metadata: Metadata = {
   title: agenda.metaTitle,
   description: agenda.metaDescription,
   alternates: { canonical: routes.ateliers.path },
 };
-
-type SearchParams = Record<string, string | string[] | undefined>;
-
-/** A single query value; a repeated one (`?vue=a&vue=b`) counts as absent. */
-function param(params: SearchParams, name: string): string | undefined {
-  const value = params[name];
-  return typeof value === "string" ? value : undefined;
-}
 
 /**
  * Every workshop — the upcoming ones as a list, or month by month in a calendar — and
