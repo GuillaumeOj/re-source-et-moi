@@ -239,6 +239,80 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/manage/addresses/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description The saved addresses workshops point at, editable by staff.
+         *
+         *     Unpaginated: it is a short list of places, which the event form loads whole into its
+         *     picker. A delete is refused while a workshop still uses the address — the foreign key
+         *     is PROTECT — with a message saying so, rather than the 500 the ProtectedError would be.
+         */
+        get: operations["manage_addresses_list"];
+        put?: never;
+        /**
+         * @description The saved addresses workshops point at, editable by staff.
+         *
+         *     Unpaginated: it is a short list of places, which the event form loads whole into its
+         *     picker. A delete is refused while a workshop still uses the address — the foreign key
+         *     is PROTECT — with a message saying so, rather than the 500 the ProtectedError would be.
+         */
+        post: operations["manage_addresses_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/manage/addresses/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description The saved addresses workshops point at, editable by staff.
+         *
+         *     Unpaginated: it is a short list of places, which the event form loads whole into its
+         *     picker. A delete is refused while a workshop still uses the address — the foreign key
+         *     is PROTECT — with a message saying so, rather than the 500 the ProtectedError would be.
+         */
+        get: operations["manage_addresses_retrieve"];
+        /**
+         * @description The saved addresses workshops point at, editable by staff.
+         *
+         *     Unpaginated: it is a short list of places, which the event form loads whole into its
+         *     picker. A delete is refused while a workshop still uses the address — the foreign key
+         *     is PROTECT — with a message saying so, rather than the 500 the ProtectedError would be.
+         */
+        put: operations["manage_addresses_update"];
+        post?: never;
+        /**
+         * @description The saved addresses workshops point at, editable by staff.
+         *
+         *     Unpaginated: it is a short list of places, which the event form loads whole into its
+         *     picker. A delete is refused while a workshop still uses the address — the foreign key
+         *     is PROTECT — with a message saying so, rather than the 500 the ProtectedError would be.
+         */
+        delete: operations["manage_addresses_destroy"];
+        options?: never;
+        head?: never;
+        /**
+         * @description The saved addresses workshops point at, editable by staff.
+         *
+         *     Unpaginated: it is a short list of places, which the event form loads whole into its
+         *     picker. A delete is refused while a workshop still uses the address — the foreign key
+         *     is PROTECT — with a message saying so, rather than the 500 the ProtectedError would be.
+         */
+        patch: operations["manage_addresses_partial_update"];
+        trace?: never;
+    };
     "/manage/events/": {
         parameters: {
             query?: never;
@@ -456,6 +530,56 @@ export interface components {
             current_password: string;
         };
         /**
+         * @description A saved address as the editor's "Adresses" tab reads and writes it.
+         *
+         *     `event_count` is how many workshops use it, so the editor can say why one cannot be
+         *     deleted before she tries. It comes from the viewset's annotation; a freshly created
+         *     address has none, and uses nothing. `one_line` is the address as the site prints it, so
+         *     the editor shows the same thing without formatting it a second time.
+         */
+        AddressManage: {
+            /** Format: uuid */
+            readonly id: string;
+            /**
+             * Nom
+             * @description Pour la retrouver dans la liste, par exemple « Salle Paul Éluard ».
+             */
+            name: string;
+            /** Adresse */
+            line1: string;
+            /** Complément d'adresse */
+            line2: string;
+            /** Code postal */
+            postal_code: string;
+            /** Ville */
+            city: string;
+            readonly one_line: string;
+            readonly event_count: number;
+        };
+        /**
+         * @description A saved address as the editor's "Adresses" tab reads and writes it.
+         *
+         *     `event_count` is how many workshops use it, so the editor can say why one cannot be
+         *     deleted before she tries. It comes from the viewset's annotation; a freshly created
+         *     address has none, and uses nothing. `one_line` is the address as the site prints it, so
+         *     the editor shows the same thing without formatting it a second time.
+         */
+        AddressManageRequest: {
+            /**
+             * Nom
+             * @description Pour la retrouver dans la liste, par exemple « Salle Paul Éluard ».
+             */
+            name: string;
+            /** Adresse */
+            line1?: string;
+            /** Complément d'adresse */
+            line2?: string;
+            /** Code postal */
+            postal_code?: string;
+            /** Ville */
+            city: string;
+        };
+        /**
          * @description A workshop as the public agenda needs it.
          *
          *     Values go out machine-readable — an ISO date, ISO times, a location kind — and the
@@ -464,8 +588,8 @@ export interface components {
          *     again, which is the exact problem this replaced.
          *
          *     The postal address is flattened into a single `address` string: the site shows one
-         *     line, and the separate fields exist so the admin form can guide input, not because
-         *     anything downstream wants them apart.
+         *     line, and the saved Address keeps its parts apart so the forms can guide input, not
+         *     because anything downstream wants them apart.
          */
         Event: {
             /** Format: uuid */
@@ -499,8 +623,8 @@ export interface components {
         /**
          * @description A workshop as the site owner's editor reads and writes it.
          *
-         *     Not the public shape. It carries the stored address parts and the label override
-         *     (what the form edits) and `is_published`. The derived `location_label` is read-only,
+         *     Not the public shape. It carries the chosen Address's id and the label override (what
+         *     the form edits) and `is_published`. The derived `location_label` is read-only,
          *     so the list can show what the site will display. Validation reuses `Event.clean()`
          *     through ModelCleanMixin, so the editor gets the admin's French field messages.
          */
@@ -525,7 +649,7 @@ export interface components {
             location_kind: components["schemas"]["LocationKindEnum"];
             /**
              * Libellé du lieu
-             * @description Laisser vide pour le déduire du lieu (« En ligne », ou la ville).
+             * @description Laisser vide pour le déduire du lieu (« En ligne », ou la ville de l'adresse).
              */
             location_label_override: string;
             readonly location_label: string;
@@ -534,14 +658,11 @@ export interface components {
              * Format: uri
              */
             online_url: string;
-            /** Adresse */
-            address_line1: string;
-            /** Complément d'adresse */
-            address_line2: string;
-            /** Code postal */
-            postal_code: string;
-            /** Ville */
-            city: string;
+            /**
+             * Adresse
+             * Format: uuid
+             */
+            address: string | null;
             description: string;
             /**
              * Publié
@@ -552,8 +673,8 @@ export interface components {
         /**
          * @description A workshop as the site owner's editor reads and writes it.
          *
-         *     Not the public shape. It carries the stored address parts and the label override
-         *     (what the form edits) and `is_published`. The derived `location_label` is read-only,
+         *     Not the public shape. It carries the chosen Address's id and the label override (what
+         *     the form edits) and `is_published`. The derived `location_label` is read-only,
          *     so the list can show what the site will display. Validation reuses `Event.clean()`
          *     through ModelCleanMixin, so the editor gets the admin's French field messages.
          */
@@ -576,7 +697,7 @@ export interface components {
             location_kind?: components["schemas"]["LocationKindEnum"];
             /**
              * Libellé du lieu
-             * @description Laisser vide pour le déduire du lieu (« En ligne », ou la ville).
+             * @description Laisser vide pour le déduire du lieu (« En ligne », ou la ville de l'adresse).
              */
             location_label_override?: string;
             /**
@@ -584,14 +705,11 @@ export interface components {
              * Format: uri
              */
             online_url?: string;
-            /** Adresse */
-            address_line1?: string;
-            /** Complément d'adresse */
-            address_line2?: string;
-            /** Code postal */
-            postal_code?: string;
-            /** Ville */
-            city?: string;
+            /**
+             * Adresse
+             * Format: uuid
+             */
+            address?: string | null;
             description?: string;
             /**
              * Publié
@@ -645,10 +763,33 @@ export interface components {
             readonly rules: string[];
         };
         /**
+         * @description A saved address as the editor's "Adresses" tab reads and writes it.
+         *
+         *     `event_count` is how many workshops use it, so the editor can say why one cannot be
+         *     deleted before she tries. It comes from the viewset's annotation; a freshly created
+         *     address has none, and uses nothing. `one_line` is the address as the site prints it, so
+         *     the editor shows the same thing without formatting it a second time.
+         */
+        PatchedAddressManageRequest: {
+            /**
+             * Nom
+             * @description Pour la retrouver dans la liste, par exemple « Salle Paul Éluard ».
+             */
+            name?: string;
+            /** Adresse */
+            line1?: string;
+            /** Complément d'adresse */
+            line2?: string;
+            /** Code postal */
+            postal_code?: string;
+            /** Ville */
+            city?: string;
+        };
+        /**
          * @description A workshop as the site owner's editor reads and writes it.
          *
-         *     Not the public shape. It carries the stored address parts and the label override
-         *     (what the form edits) and `is_published`. The derived `location_label` is read-only,
+         *     Not the public shape. It carries the chosen Address's id and the label override (what
+         *     the form edits) and `is_published`. The derived `location_label` is read-only,
          *     so the list can show what the site will display. Validation reuses `Event.clean()`
          *     through ModelCleanMixin, so the editor gets the admin's French field messages.
          */
@@ -671,7 +812,7 @@ export interface components {
             location_kind?: components["schemas"]["LocationKindEnum"];
             /**
              * Libellé du lieu
-             * @description Laisser vide pour le déduire du lieu (« En ligne », ou la ville).
+             * @description Laisser vide pour le déduire du lieu (« En ligne », ou la ville de l'adresse).
              */
             location_label_override?: string;
             /**
@@ -679,14 +820,11 @@ export interface components {
              * Format: uri
              */
             online_url?: string;
-            /** Adresse */
-            address_line1?: string;
-            /** Complément d'adresse */
-            address_line2?: string;
-            /** Code postal */
-            postal_code?: string;
-            /** Ville */
-            city?: string;
+            /**
+             * Adresse
+             * Format: uuid
+             */
+            address?: string | null;
             description?: string;
             /**
              * Publié
@@ -1107,6 +1245,149 @@ export interface operations {
                     "application/json": {
                         status?: string;
                     };
+                };
+            };
+        };
+    };
+    manage_addresses_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AddressManage"][];
+                };
+            };
+        };
+    };
+    manage_addresses_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddressManageRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["AddressManageRequest"];
+                "multipart/form-data": components["schemas"]["AddressManageRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AddressManage"];
+                };
+            };
+        };
+    };
+    manage_addresses_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Un(une) Chaîne UUID identifiant ce(cette) adresse. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AddressManage"];
+                };
+            };
+        };
+    };
+    manage_addresses_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Un(une) Chaîne UUID identifiant ce(cette) adresse. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddressManageRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["AddressManageRequest"];
+                "multipart/form-data": components["schemas"]["AddressManageRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AddressManage"];
+                };
+            };
+        };
+    };
+    manage_addresses_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Un(une) Chaîne UUID identifiant ce(cette) adresse. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    manage_addresses_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Un(une) Chaîne UUID identifiant ce(cette) adresse. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedAddressManageRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedAddressManageRequest"];
+                "multipart/form-data": components["schemas"]["PatchedAddressManageRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AddressManage"];
                 };
             };
         };

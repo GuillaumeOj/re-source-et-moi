@@ -1,11 +1,14 @@
-from django.db.models import QuerySet
+from django.db.models import Count, ProtectedError, QuerySet
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import generics, permissions, viewsets
+from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.settings import api_settings
 
-from agenda.models import Event
+from agenda.models import Address, Event
 from agenda.serializers import (
+    AddressManageSerializer,
     EventListFilterSerializer,
     EventManageFilterSerializer,
     EventManageSerializer,
@@ -36,7 +39,8 @@ class EventListView(generics.ListAPIView):
     pagination_class = None
 
     def get_queryset(self) -> QuerySet[Event]:
-        events = Event.objects.filter(is_published=True)
+        # select_related: the label and the address both read the Address row.
+        events = Event.objects.filter(is_published=True).select_related("address")
 
         filters = EventListFilterSerializer(data=self.request.query_params)
         filters.is_valid(raise_exception=True)
@@ -77,7 +81,8 @@ class EventManageViewSet(viewsets.ModelViewSet):
     pagination_class = EventManagePagination
 
     def get_queryset(self) -> QuerySet[Event]:
-        events = Event.objects.all()
+        # select_related: the derived location_label reads the Address row.
+        events = Event.objects.select_related("address")
         if self.action != "list":
             return events
 
@@ -97,3 +102,36 @@ class EventManageViewSet(viewsets.ModelViewSet):
         if "date_to" in params:
             events = events.filter(date__lte=params["date_to"])
         return events
+
+
+class AddressManageViewSet(viewsets.ModelViewSet):
+    """The saved addresses workshops point at, editable by staff.
+
+    Unpaginated: it is a short list of places, which the event form loads whole into its
+    picker. A delete is refused while a workshop still uses the address — the foreign key
+    is PROTECT — with a message saying so, rather than the 500 the ProtectedError would be.
+    """
+
+    serializer_class = AddressManageSerializer
+    permission_classes = [permissions.IsAdminUser]
+    pagination_class = None
+
+    def get_queryset(self) -> QuerySet[Address]:
+        # order_by spelled out: Django drops Meta.ordering from a query that aggregates.
+        return Address.objects.annotate(event_count=Count("events")).order_by("name")
+
+    def perform_destroy(self, instance: Address) -> None:
+        try:
+            instance.delete()
+        except ProtectedError as error:
+            count = len(error.protected_objects)
+            workshops = "atelier" if count == 1 else "ateliers"
+            # Under non_field_errors, where the editor reads errors about a whole record.
+            raise ValidationError(
+                {
+                    api_settings.NON_FIELD_ERRORS_KEY: [
+                        f"Cette adresse est utilisée par {count} {workshops} ; "
+                        "choisissez-leur une autre adresse avant de la supprimer."
+                    ]
+                }
+            ) from error

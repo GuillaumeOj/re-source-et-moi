@@ -1,6 +1,7 @@
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from agenda.models import Event
+from agenda.models import Address, Event
 from config.serializers import ModelCleanMixin
 
 
@@ -13,13 +14,13 @@ class EventSerializer(serializers.ModelSerializer):
     again, which is the exact problem this replaced.
 
     The postal address is flattened into a single `address` string: the site shows one
-    line, and the separate fields exist so the admin form can guide input, not because
-    anything downstream wants them apart.
+    line, and the saved Address keeps its parts apart so the forms can guide input, not
+    because anything downstream wants them apart.
     """
 
-    # Both are read-only model properties: the label falls back to the kind or the city,
-    # the address is assembled from the four stored parts. Neither has a stored copy that
-    # could go stale.
+    # Both are derived on read: the label falls back to the kind or the address's city, the
+    # address is assembled from the saved Address's parts. Neither has a stored copy on the
+    # event that could go stale.
     location_label = serializers.CharField(read_only=True)
     address = serializers.SerializerMethodField()
 
@@ -40,19 +41,16 @@ class EventSerializer(serializers.ModelSerializer):
 
     def get_address(self, event: Event) -> str:
         """The postal address on one line, or "" for an online workshop."""
-        if event.is_online:
+        if event.is_online or event.address is None:
             return ""
-        # The postcode and city share a line ("69002 Lyon"); everything else is
-        # comma-separated. Blanks drop out of both joins.
-        locality = " ".join(filter(None, (event.postal_code, event.city)))
-        return ", ".join(filter(None, (event.address_line1, event.address_line2, locality)))
+        return event.address.one_line
 
 
 class EventManageSerializer(ModelCleanMixin):
     """A workshop as the site owner's editor reads and writes it.
 
-    Not the public shape. It carries the stored address parts and the label override
-    (what the form edits) and `is_published`. The derived `location_label` is read-only,
+    Not the public shape. It carries the chosen Address's id and the label override (what
+    the form edits) and `is_published`. The derived `location_label` is read-only,
     so the list can show what the site will display. Validation reuses `Event.clean()`
     through ModelCleanMixin, so the editor gets the admin's French field messages.
     """
@@ -71,13 +69,31 @@ class EventManageSerializer(ModelCleanMixin):
             "location_label_override",
             "location_label",
             "online_url",
-            "address_line1",
-            "address_line2",
-            "postal_code",
-            "city",
+            "address",
             "description",
             "is_published",
         )
+
+
+class AddressManageSerializer(ModelCleanMixin):
+    """A saved address as the editor's "Adresses" tab reads and writes it.
+
+    `event_count` is how many workshops use it, so the editor can say why one cannot be
+    deleted before she tries. It comes from the viewset's annotation; a freshly created
+    address has none, and uses nothing. `one_line` is the address as the site prints it, so
+    the editor shows the same thing without formatting it a second time.
+    """
+
+    one_line = serializers.CharField(read_only=True)
+    event_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Address
+        fields = ("id", "name", "line1", "line2", "postal_code", "city", "one_line", "event_count")
+
+    @extend_schema_field(serializers.IntegerField())
+    def get_event_count(self, address: Address) -> int:
+        return getattr(address, "event_count", 0)
 
 
 class EventListFilterSerializer(serializers.Serializer):

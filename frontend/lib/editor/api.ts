@@ -27,6 +27,8 @@ export type ManagedEvent = Schemas["EventManage"];
 export type EventPage = Schemas["PaginatedEventManageList"];
 export type EventInput = Schemas["EventManageRequest"];
 export type EventPatch = Schemas["PatchedEventManageRequest"];
+export type ManagedAddress = Schemas["AddressManage"];
+export type AddressInput = Schemas["AddressManageRequest"];
 export type ManagedPricingType = Schemas["PricingTypeManage"];
 export type PricingTypeInput = Schemas["PricingTypeManageRequest"];
 
@@ -221,6 +223,15 @@ export const editorApi = {
   patchEvent: (id: string, patch: EventPatch) =>
     request<ManagedEvent>("PATCH", `/manage/events/${id}/`, patch),
   deleteEvent: (id: string) => request<void>("DELETE", `/manage/events/${id}/`),
+
+  /** Every saved address, by name. A short list, which the event form's picker loads whole. */
+  listAddresses: () => request<ManagedAddress[]>("GET", "/manage/addresses/"),
+  createAddress: (input: AddressInput) =>
+    request<ManagedAddress>("POST", "/manage/addresses/", input),
+  updateAddress: (id: string, input: AddressInput) =>
+    request<ManagedAddress>("PUT", `/manage/addresses/${id}/`, input),
+  /** Refused (400, with a message) while a workshop still uses the address. */
+  deleteAddress: (id: string) => request<void>("DELETE", `/manage/addresses/${id}/`),
 
   listPricingTypes: () => request<ManagedPricingType[]>("GET", "/manage/pricing-types/"),
   createPricingType: (input: PricingTypeInput) =>
