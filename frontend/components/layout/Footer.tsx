@@ -36,12 +36,6 @@ export function Footer() {
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-creme/60">
             Association
           </p>
-          <a
-            href={`mailto:${site.email}`}
-            className="text-sm text-creme/85 transition-colors hover:text-creme"
-          >
-            {site.email}
-          </a>
           {footer.legalLinks.map((link) => (
             <a
               key={link.label}

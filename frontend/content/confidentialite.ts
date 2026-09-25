@@ -1,22 +1,22 @@
 // "Politique de confidentialité" — RGPD privacy policy. French copy lives here
 // (not in JSX) so it is centralised and maps cleanly onto a future Payload
-// "Globals" entry. Identity fields (name, email, retention period, date) are
-// left as bracketed placeholders to complete before launch.
+// "Globals" entry. The contact e-mail comes from `site` so it changes in one place.
 
 import type { LegalPage } from "./legal";
+import { site } from "./site";
 
 export const confidentialite: LegalPage = {
   eyebrow: "Protection des données",
   title: "Politique de confidentialité",
-  updatedAt: "[À COMPLÉTER : date de dernière mise à jour]",
+  updatedAt: "25 septembre 2026",
   intro:
     "L'association Re-Source Et Moi accorde une grande importance à la protection de votre vie privée. Cette politique explique quelles données nous collectons, pourquoi, et comment vous pouvez exercer vos droits, conformément au Règlement Général sur la Protection des Données (RGPD).",
   sections: [
     {
       heading: "Responsable du traitement",
       body: [
-        "Le responsable du traitement des données est l'association Re-Source Et Moi, représentée par [À COMPLÉTER : nom du/de la responsable].",
-        "Pour toute question relative à vos données, vous pouvez nous écrire à [À COMPLÉTER : adresse e-mail de contact].",
+        "Le responsable du traitement des données est l'association Re-Source Et Moi, représentée par Cécile Frank.",
+        `Pour toute question relative à vos données, vous pouvez nous écrire à ${site.email}.`,
       ],
     },
     {
@@ -41,7 +41,7 @@ export const confidentialite: LegalPage = {
     {
       heading: "Durée de conservation",
       body: [
-        "Vos données sont conservées le temps nécessaire au traitement de votre demande, puis pendant une durée maximale de [À COMPLÉTER : durée de conservation], avant d'être supprimées ou anonymisées.",
+        "Vos données sont conservées le temps nécessaire au traitement de votre demande, puis pendant une durée maximale de trois ans à compter de notre dernier échange, avant d'être supprimées ou anonymisées.",
       ],
     },
     {
@@ -61,13 +61,13 @@ export const confidentialite: LegalPage = {
       heading: "Vos droits",
       body: [
         "Conformément au RGPD, vous disposez d'un droit d'accès, de rectification, d'effacement, d'opposition, de limitation et de portabilité de vos données.",
-        "Pour exercer ces droits, écrivez-nous à [À COMPLÉTER : adresse e-mail de contact]. Vous pouvez également introduire une réclamation auprès de la CNIL (www.cnil.fr).",
+        `Pour exercer ces droits, écrivez-nous à ${site.email}. Vous pouvez également introduire une réclamation auprès de la CNIL (www.cnil.fr).`,
       ],
     },
     {
       heading: "Contact",
       body: [
-        "Pour toute question concernant cette politique de confidentialité, contactez-nous à [À COMPLÉTER : adresse e-mail de contact].",
+        `Pour toute question concernant cette politique de confidentialité, contactez-nous à ${site.email}.`,
       ],
     },
   ],

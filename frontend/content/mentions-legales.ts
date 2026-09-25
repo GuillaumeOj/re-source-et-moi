@@ -1,15 +1,15 @@
 // "Mentions légales" — legal notice for the association. French copy lives here
 // (not in JSX) so it is centralised and maps cleanly onto a future Payload
-// "Globals" entry. Identity fields (names, address, RNA number, email, date)
-// are left as bracketed placeholders to complete before launch.
+// "Globals" entry. The contact e-mail comes from `site` so it changes in one place.
 
 import type { LegalPage } from "./legal";
 import { brainGymTrademark, soiEnMouvementTrademark } from "./marques";
+import { site } from "./site";
 
 export const mentionsLegales: LegalPage = {
   eyebrow: "Informations légales",
   title: "Mentions légales",
-  updatedAt: "[À COMPLÉTER : date de dernière mise à jour]",
+  updatedAt: "25 septembre 2026",
   intro:
     "Conformément à la loi n° 2004-575 du 21 juin 2004 pour la confiance dans l'économie numérique, voici les informations relatives à l'éditeur et à l'hébergeur du présent site.",
   sections: [
@@ -17,22 +17,20 @@ export const mentionsLegales: LegalPage = {
       heading: "Éditeur du site",
       body: [
         "Le site re-source-et-moi.fr est édité par l'association Re-Source Et Moi, association régie par la loi du 1er juillet 1901.",
-        "Siège social : [À COMPLÉTER : adresse postale du siège social].",
-        "Numéro RNA : [À COMPLÉTER : numéro d'identification au Répertoire National des Associations].",
-        "Représentée par [À COMPLÉTER : nom du/de la représentant·e légal·e], en qualité de président·e.",
-        "Contact : [À COMPLÉTER : adresse e-mail de contact].",
+        "Siège social : 11 chemin de la Croix Saint Jacques, 91620 La Ville-du-Bois.",
+        "Numéro RNA : W913015531.",
+        "Représentée par Cécile Frank, en qualité de présidente.",
+        `Contact : ${site.email}.`,
       ],
     },
     {
-      heading: "Directeur / Directrice de la publication",
-      body: [
-        "La direction de la publication est assurée par [À COMPLÉTER : nom du/de la directeur·rice de la publication].",
-      ],
+      heading: "Directrice de la publication",
+      body: ["La direction de la publication est assurée par Cécile Frank."],
     },
     {
       heading: "Hébergeur",
       body: [
-        "Le site est hébergé par Vercel Inc. [à confirmer], 340 S Lemon Ave #4133, Walnut, CA 91789, États-Unis — vercel.com.",
+        "Le site est hébergé par Vercel Inc., 340 S Lemon Ave #4133, Walnut, CA 91789, États-Unis — vercel.com.",
       ],
     },
     {
