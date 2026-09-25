@@ -3,11 +3,11 @@
 import { routes } from "./routes";
 
 export const hero = {
-  eyebrow: "Association · Éducation kinesthésique",
+  eyebrow: "Association · Éducation Kinesthésique®",
   titleLine1: "Activez votre potentiel",
   titleLine2: "par le mouvement.",
   subtitle:
-    "L'éducation kinesthésique remet le corps et le cerveau en dialogue — pour apprendre, créer et agir avec plus d'aisance, à votre rythme.",
+    "L'Éducation Kinesthésique® remet le corps et le cerveau en dialogue — pour apprendre, créer et agir avec plus d'aisance, à votre rythme.",
   primaryCta: { label: "Participer à un atelier", href: "#ateliers" },
   secondaryCta: { label: "Découvrir la méthode", href: routes.pratiques.path },
 } as const;
