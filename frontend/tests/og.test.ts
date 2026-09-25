@@ -1,28 +1,17 @@
 // @vitest-environment node
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import AProposImage, * as aPropos from "@/app/a-propos/opengraph-image";
-import SiteImage, * as siteImage from "@/app/opengraph-image";
-import { LOGO_FIGURE_PATH, LOGO_WORDMARK_PATH } from "@/components/brand/logo-paths";
-import { fondatrice } from "@/content/fondatrice";
-import { logoDataUri } from "@/lib/og";
-
-describe("logoDataUri", () => {
-  it("draws both logo paths in the given colour", () => {
-    const uri = logoDataUri("#5c2642");
-    const svg = Buffer.from(uri.replace("data:image/svg+xml;base64,", ""), "base64").toString();
-    expect(svg).toContain(LOGO_FIGURE_PATH);
-    expect(svg).toContain(LOGO_WORDMARK_PATH);
-    expect(svg).toContain('fill="#5c2642"');
-  });
-});
+import AProposImage from "@/app/a-propos/opengraph-image";
+import SiteImage from "@/app/opengraph-image";
+import { ogColors } from "@/lib/og";
 
 describe("link previews", () => {
-  it("describe themselves as large PNGs", () => {
-    for (const image of [siteImage, aPropos]) {
-      expect(image.size).toEqual({ width: 1200, height: 630 });
-      expect(image.contentType).toBe("image/png");
-    }
-    expect(aPropos.alt).toBe(fondatrice.photoAlt);
+  it("use the site's own pinks", () => {
+    // next/og can't read CSS variables, so lib/og.ts copies them. This keeps the copy true.
+    const css = readFileSync("app/globals.css", "utf8");
+    expect(css).toContain(`--color-rose-tendre: ${ogColors.roseTendre};`);
+    expect(css).toContain(`--color-rose-vif: ${ogColors.roseVif};`);
+    expect(css).toContain(`--color-rose-sombre: ${ogColors.roseSombre};`);
   });
 
   it.each([

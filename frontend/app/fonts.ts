@@ -1,6 +1,8 @@
 import { Cormorant_Garamond, Nunito } from "next/font/google";
 
 // Display face — titles, headings, pull-quotes (used with restraint, light weights).
+// The /a-propos link preview can't use next/font and loads its own copy of it from
+// assets/fonts; change both together.
 export const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600"],
