@@ -36,7 +36,7 @@ export const pratiques = {
       {
         heading: "À qui s’adresse cette approche ? Dans quel contexte ? Dans quelle intention ?",
         body: [
-          "L’Education kinesthésique® s’adresse tant à l’enfant qu’à l’adolescent, l’adulte et le sénior.",
+          "L’Education Kinesthésique® s’adresse tant à l’enfant qu’à l’adolescent, l’adulte et le sénior.",
           "Elle peut être aisément pratiquée debout, assis ou couché, en groupe ou en individuel, en classe, à la maison, au travail.",
           "Cette approche apporte de véritables outils utilisables de manière autonome dans tous les lieux et pour toutes les situations de la vie quotidienne.",
           "Elle permet une amélioration de l’apprentissage et du fonctionnement impliquant des domaines multiples et variés. Tous les thèmes peuvent être abordés : lecture, écriture, mathématiques, compréhension, organisation, adaptation, communication, attention, écoute, observation, détente en vue de la préparation et le passage d’examens (scolaires ou médicaux), concentration, mémoire, créativité, musique, théâtre, sport, estime de soi, confiance, sécurité, procrastination, relation à soi et à l'autre, gestion des émotions...",
@@ -45,11 +45,11 @@ export const pratiques = {
       {
         heading: "Fondateurs de l’Education Kinesthésique®. Qui l’a mise au point ?",
         body: [
-          "Paul Dennison et Gail Dennison sont les fondateurs de l'Éducation kinesthésique (Educational Kinesiology ou Edu-K) et les créateurs de la méthode Brain Gym®. Leur travail s'inscrit dans une démarche visant à explorer le rôle du mouvement dans les processus d'apprentissage.",
+          "Paul Dennison et Gail Dennison sont les fondateurs de l'Éducation Kinesthésique® (Educational Kinesiology ou Edu-K) et les créateurs de la méthode Brain Gym®. Leur travail s'inscrit dans une démarche visant à explorer le rôle du mouvement dans les processus d'apprentissage.",
           "Paul Dennison, né en 1939 aux États-Unis, est enseignant et spécialiste des difficultés d'apprentissage. Ayant lui-même rencontré des difficultés en lecture durant son enfance, il s'intéresse très tôt aux mécanismes qui facilitent l'acquisition des savoirs. Au cours des années 1960, il ouvre plusieurs centres d'accompagnement en Californie destinés aux enfants et aux adultes présentant des difficultés de lecture, d'écriture ou d'apprentissage. Ses observations l'amènent à s'intéresser aux liens entre le développement moteur, la coordination, la perception visuelle et les capacités d'apprentissage.",
-          "Gail Dennison, éducatrice du mouvement, artiste et formatrice, apporte à cette réflexion son expérience dans les domaines de la danse, du développement de la vision et des approches corporelles. En rejoignant Paul Dennison au début des années 1980, elle contribue au développement et à la structuration de l'Éducation kinesthésique. Ensemble, ils conçoivent une série d'exercices fondés sur le mouvement, regroupés sous le nom de Brain Gym®, dans le but de préparer le corps et l'esprit aux apprentissages.",
+          "Gail Dennison, éducatrice du mouvement, artiste et formatrice, apporte à cette réflexion son expérience dans les domaines de la danse, du développement de la vision et des approches corporelles. En rejoignant Paul Dennison au début des années 1980, elle contribue au développement et à la structuration de l'Éducation Kinesthésique®. Ensemble, ils conçoivent une série d'exercices fondés sur le mouvement, regroupés sous le nom de Brain Gym®, dans le but de préparer le corps et l'esprit aux apprentissages.",
           "En 1986, ils publient l'ouvrage Brain Gym: Simple Activities for Whole-Brain Learning, qui présente les 26 mouvements caractéristiques de la méthode. L'année suivante, ils fondent l'Educational Kinesiology Foundation, aujourd'hui connue sous le nom de Breakthroughs International, afin de diffuser leur approche et de former des praticiens dans différents pays.",
-          "L'Éducation kinesthésique s'est progressivement développée à l'échelle internationale et est aujourd'hui utilisée dans certains contextes éducatifs, de formation et d'accompagnement.",
+          "L'Éducation Kinesthésique® s'est progressivement développée à l'échelle internationale et est aujourd'hui utilisée dans certains contextes éducatifs, de formation et d'accompagnement.",
         ],
       },
     ],

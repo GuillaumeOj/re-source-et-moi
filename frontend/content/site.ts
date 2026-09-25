@@ -8,7 +8,7 @@ import type { LinkTarget } from "./types";
 export const site = {
   name: "Re-Source Et Moi",
   description:
-    "Re-Source Et Moi est une association d'éducation kinesthésique (Brain Gym®). " +
+    "Re-Source Et Moi est une association d'Éducation Kinesthésique® (Brain Gym®). " +
     "Par le mouvement, chacun réveille ses ressources pour apprendre, créer et agir avec plus d'aisance.",
   // Replace with the real production domain before launch.
   url: "https://re-source-et-moi.fr",

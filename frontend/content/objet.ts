@@ -6,10 +6,10 @@ export const objet = {
   title: "Notre raison d'être",
   body: [
     "Re-Source et Moi est née d'une conviction simple : chacun porte en soi les ressources pour apprendre, créer et grandir — il suffit parfois de les remettre en mouvement.",
-    "L'association fait vivre l'éducation kinesthésique et le Brain Gym®, ainsi que « Le Soi en Mouvement® » et des temps de loisirs créatifs. Autant de chemins, doux et concrets, pour se reconnecter à soi, apaiser les tensions et contribuer, par le mouvement, au bien-être de chacun.",
+    "L'association fait vivre l'Éducation Kinesthésique® et le Brain Gym®, ainsi que « Le Soi en Mouvement® » et des temps de loisirs créatifs. Autant de chemins, doux et concrets, pour se reconnecter à soi, apaiser les tensions et contribuer, par le mouvement, au bien-être de chacun.",
   ],
   activities: [
-    "Éducation kinesthésique",
+    "Éducation Kinesthésique®",
     "Brain Gym®",
     "Le Soi en Mouvement®",
     "Loisirs créatifs",
