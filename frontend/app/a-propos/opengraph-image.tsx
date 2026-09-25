@@ -63,6 +63,8 @@ export default async function OpenGraphImage() {
             marginTop: 48,
             fontSize: 30,
             fontWeight: 300,
+            lineHeight: 1.3,
+            textWrap: "balance",
             color: ogColors.roseSombre,
           }}
         >

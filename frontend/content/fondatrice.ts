@@ -8,7 +8,7 @@ export const fondatrice = {
   eyebrow: "La fondatrice",
   name: "Cécile",
   fullName: "Cécile Frank",
-  role: "Enseignante Brain Gym® et Tai-Chi",
+  role: "Enseignante Brain Gym® et Éducation Kinesthésique®",
   title: "À l'origine de Re-Source Et Moi",
   quote: "Lorsque le corps est remis en mouvement, nos capacités peuvent pleinement s'exprimer.",
   bio: [
@@ -28,7 +28,7 @@ export const fondatrice = {
   page: {
     metaTitle: "À propos de Cécile Frank",
     metaDescription:
-      "Cécile Frank, fondatrice de Re-Source Et Moi : enseignante, instructrice et accompagnante Brain Gym® et Éducation Kinesthésique®, enseignante de Tai-Chi « Le Soi en Mouvement® ».",
+      "Cécile Frank, fondatrice de Re-Source Et Moi : enseignante, instructrice et accompagnante Brain Gym® et Éducation Kinesthésique®.",
     subtitle: "Fondatrice à l’origine de Re-Source Et Moi",
     certificationsLabel: "Ses écoles",
     certifications: [partnerSites.brainGymFrance, partnerSites.pointEmergence],
