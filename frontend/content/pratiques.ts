@@ -36,7 +36,7 @@ export const pratiques = {
       {
         heading: "À qui s’adresse cette approche ? Dans quel contexte ? Dans quelle intention ?",
         body: [
-          "L’Education kinesthésique® s’adresse tant à l’enfant qu’à l’adolescent, l’adulte et le sénior.",
+          "L’Education Kinesthésique® s’adresse tant à l’enfant qu’à l’adolescent, l’adulte et le sénior.",
           "Elle peut être aisément pratiquée debout, assis ou couché, en groupe ou en individuel, en classe, à la maison, au travail.",
           "Cette approche apporte de véritables outils utilisables de manière autonome dans tous les lieux et pour toutes les situations de la vie quotidienne.",
           "Elle permet une amélioration de l’apprentissage et du fonctionnement impliquant des domaines multiples et variés. Tous les thèmes peuvent être abordés : lecture, écriture, mathématiques, compréhension, organisation, adaptation, communication, attention, écoute, observation, détente en vue de la préparation et le passage d’examens (scolaires ou médicaux), concentration, mémoire, créativité, musique, théâtre, sport, estime de soi, confiance, sécurité, procrastination, relation à soi et à l'autre, gestion des émotions...",
