@@ -160,16 +160,18 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "config.authentication.EditorSessionAuthentication",
     ],
-    # Only views that name a scope are throttled: the editor's login and the two halves of
-    # the password reset. Asking for a reset sends e-mail, so it is also a spam lever and
-    # gets the tight limit. Confirming is looser, because a mistyped confirmation counts
-    # too and the token itself cannot be guessed. The counters live in the default
+    # Only views that name a scope are throttled: the editor's login, the two halves of the
+    # password reset and the contact form. Asking for a reset and writing through the
+    # contact form both send e-mail, so they are also spam levers and get the tight limit.
+    # Confirming a reset is looser, because a mistyped confirmation counts too and the
+    # token itself cannot be guessed. The counters live in the default
     # (per-process) cache, so on serverless they slow a guesser down rather than stop one.
     # Pair them with a strong password.
     "DEFAULT_THROTTLE_RATES": {
         "login": "10/min",
         "password_reset": "5/hour",
         "password_reset_confirm": "20/hour",
+        "contact": "5/hour",
     },
     # drf-spectacular introspects the views to build the OpenAPI schema the frontend's
     # TypeScript types are generated from (see SPECTACULAR_SETTINGS + config/urls.py).
@@ -256,11 +258,12 @@ SESSION_COOKIE_SECURE = ON_VERCEL
 CSRF_COOKIE_SECURE = ON_VERCEL
 
 
-# E-mail. The only message sent is the editor's password-reset link, through Brevo's
-# transactional API via django-anymail. On Vercel both the key and the sender are
-# required: a deployment that silently dropped reset e-mails would lock the site owner out
+# E-mail. Two messages are sent, both through Brevo's transactional API via django-anymail:
+# the editor's password-reset link, and what a visitor writes through the contact form.
+# On Vercel the key, the sender and the contact recipient are all required: a deployment
+# that silently dropped them would lock the site owner out, or lose visitors' messages,
 # with no error anywhere. Locally, with no key, messages print to the Django console
-# instead, which is how you follow a reset link in development.
+# instead, which is how you follow a reset link or read a contact message in development.
 BREVO_API_KEY = env("BREVO_API_KEY") if ON_VERCEL else env("BREVO_API_KEY", default="")
 ANYMAIL = {"BREVO_API_KEY": BREVO_API_KEY}
 EMAIL_BACKEND = (
@@ -273,6 +276,11 @@ DEFAULT_FROM_EMAIL = (
     env("DEFAULT_FROM_EMAIL")
     if ON_VERCEL
     else env("DEFAULT_FROM_EMAIL", default="Re-Source Et Moi <contact@re-source-et-moi.fr>")
+)
+# Where the contact form's messages go. Per environment, so a preview can deliver to a
+# test inbox rather than to the association.
+CONTACT_EMAIL = (
+    env("CONTACT_EMAIL") if ON_VERCEL else env("CONTACT_EMAIL", default="resourceetmoi@gmail.com")
 )
 
 # How long a reset link stays valid. Django's default is three days, far longer than

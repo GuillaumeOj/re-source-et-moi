@@ -14,6 +14,8 @@ export const contact = {
     message: "Message",
   },
   button: "Envoyer",
+  sending: "Envoi…",
+  sent: "Merci, votre message est bien parti. Nous vous répondons au plus vite.",
   // The link to the contact page from elsewhere (e.g. under an empty agenda).
   cta: "Nous contacter",
   metaTitle: "Contact",
@@ -43,8 +45,13 @@ export const contact = {
     email: "Indiquez une adresse email valide.",
     phone: "Indiquez un numéro de téléphone valide.",
     message: "Écrivez-nous quelques mots.",
+    // The backend's own check failed where the form's passed: its messages go under the
+    // fields, this goes by the button.
+    invalid: "Certains champs sont à corriger, voir ci-dessus.",
+    tooMany: "Vous nous avez déjà écrit plusieurs fois. Patientez un peu, ou appelez-nous.",
+    failed:
+      "Votre message n'a pas pu partir. Réessayez dans un instant, ou joignez Cécile directement (coordonnées ci-dessus).",
   },
-  demo: "Formulaire de démonstration — bientôt connecté.",
 } as const;
 
 // The home page's contact section: a pointer to the contact page, not the form itself.

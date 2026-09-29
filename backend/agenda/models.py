@@ -10,10 +10,11 @@ rendering is the frontend's job.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
 
 from config.models import UUIDModel
 
@@ -65,6 +66,21 @@ class Address(UUIDModel):
         return ", ".join(filter(None, (self.line1, self.line2, locality)))
 
 
+class EventQuerySet(models.QuerySet["Event"]):
+    def published(self) -> EventQuerySet:
+        # select_related: the label and the address both read the Address row.
+        return self.filter(is_published=True).select_related("address")
+
+    def upcoming(self) -> EventQuerySet:
+        """Published and not yet past: what the agenda lists and a visitor can sign up for.
+
+        localdate(), not utcnow(): TIME_ZONE is Europe/Paris, and a workshop is "today" in
+        the timezone it happens in. Comparing against UTC would drop an evening workshop
+        an hour or two early.
+        """
+        return self.published().filter(date__gte=timezone.localdate())
+
+
 class Event(UUIDModel):
     """A workshop, online or at an address, shown on the public agenda."""
 
@@ -114,6 +130,13 @@ class Event(UUIDModel):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    # The manager's queryset methods come from the django-stubs plugin, which ty doesn't
+    # run (see CLAUDE.md), so ty is told the manager is the queryset it proxies.
+    if TYPE_CHECKING:
+        objects: ClassVar[EventQuerySet]
+    else:
+        objects = EventQuerySet.as_manager()
 
     class Meta:
         verbose_name = "atelier"

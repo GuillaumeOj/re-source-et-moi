@@ -8,6 +8,7 @@ live `django.conf.settings` the rest of the suite uses is left untouched.
 import importlib
 
 import pytest
+from django.core.exceptions import ImproperlyConfigured
 
 from config import settings as settings_module
 
@@ -20,6 +21,7 @@ VERCEL_REQUIRED = {
     "EDITOR_URL": "https://example.org/admin-test",
     "BREVO_API_KEY": "test-key",
     "DEFAULT_FROM_EMAIL": "Test <test@example.org>",
+    "CONTACT_EMAIL": "contact@example.org",
 }
 
 
@@ -64,3 +66,12 @@ def test_the_binding_host_reaches_the_public_api(client, settings):
     response = client.get("/api/events/", HTTP_HOST="backend.53344c30.services.vercel-infra.com")
 
     assert response.status_code == 200
+
+
+def test_a_deployment_requires_a_contact_recipient(reload_settings, monkeypatch):
+    """Without one, every visitor's message would go nowhere."""
+    monkeypatch.delenv("CONTACT_EMAIL", raising=False)
+    required = {name: value for name, value in VERCEL_REQUIRED.items() if name != "CONTACT_EMAIL"}
+
+    with pytest.raises(ImproperlyConfigured, match="CONTACT_EMAIL"):
+        reload_settings(VERCEL_ENV="production", **required)

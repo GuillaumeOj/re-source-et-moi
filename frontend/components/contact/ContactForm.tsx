@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { contact } from "@/content/cta";
 import { CONTACT_EVENT_PARAM, routes } from "@/content/routes";
+import { ApiError, ensureCsrf, fieldError, request } from "@/lib/api/browser";
+import type { components } from "@/lib/api/generated";
 import { type ContactEvent, formatPlace, normalisePhone } from "@/lib/contact";
 import { capitalise, formatFullDate, formatTimeRange } from "@/lib/format";
 
@@ -18,11 +20,16 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  * The contact form. Name, email and phone are always asked for. With `event` — a visitor
  * who clicked a workshop's "S'inscrire" — it opens on that workshop and the message becomes
  * optional: the sign-up is the message, and whatever the visitor writes is added under it.
+ *
+ * Sent to /api/contact/, which e-mails it to the association through Brevo. The backend
+ * checks everything again; its field messages land under the fields like the form's own.
  */
 export function ContactForm({ event: initialEvent = null }: { event?: ContactEvent | null }) {
   const [event, setEvent] = useState(initialEvent);
   const [errors, setErrors] = useState<Errors>({});
-  const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending] = useState(false);
+  // What the line by the button says: that the message left, or why it didn't.
+  const [notice, setNotice] = useState<string | null>(null);
 
   const removeEvent = () => {
     setEvent(null);
@@ -32,9 +39,10 @@ export function ContactForm({ event: initialEvent = null }: { event?: ContactEve
     window.history.replaceState(null, "", url);
   };
 
-  const handleSubmit = (formEvent: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (formEvent: FormEvent<HTMLFormElement>) => {
     formEvent.preventDefault();
-    const data = new FormData(formEvent.currentTarget);
+    const form = formEvent.currentTarget;
+    const data = new FormData(form);
     const name = String(data.get("name") ?? "").trim();
     const email = String(data.get("email") ?? "").trim();
     const phone = normalisePhone(String(data.get("phone") ?? ""));
@@ -46,14 +54,54 @@ export function ContactForm({ event: initialEvent = null }: { event?: ContactEve
     if (!phone) found.phone = contact.errors.phone;
     if (!event && !message) found.message = contact.errors.message;
     setErrors(found);
-    // Not wired yet — TODO: send { name, email, phone, event: event?.id, message } to a backend
-    // endpoint. The e-mail templates (backend/config/templates/config/contact_email.*) write
-    // the workshop out from `event` themselves, so `message` is only what the visitor typed.
-    setSubmitted(Object.keys(found).length === 0);
+    setNotice(null);
+    // `!phone` again only for TypeScript: found.phone is already set when it's null.
+    if (!phone || Object.keys(found).length > 0) {
+      return;
+    }
+
+    // The e-mail templates write the workshop out from `event` themselves, so `message`
+    // is only what the visitor typed.
+    const body: components["schemas"]["ContactRequest"] = {
+      name,
+      email,
+      phone,
+      message,
+      event: event?.id ?? null,
+    };
+    setSending(true);
+    try {
+      await request<void>("POST", "/contact/", body);
+      form.reset();
+      setNotice(contact.sent);
+    } catch (error) {
+      const refusal = error instanceof ApiError ? error : null;
+      if (refusal?.status === 400) {
+        const fields = refusal.fieldErrors;
+        setErrors({
+          name: fieldError(fields, "name"),
+          email: fieldError(fields, "email"),
+          phone: fieldError(fields, "phone"),
+          message: fieldError(fields, "message"),
+        });
+        // A workshop that stopped being offered while the page was open has no field.
+        setNotice(fieldError(fields, "event") ?? contact.errors.invalid);
+      } else {
+        setNotice(refusal?.status === 429 ? contact.errors.tooMany : contact.errors.failed);
+      }
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5" noValidate>
+    <form
+      onSubmit={handleSubmit}
+      // Fetch the CSRF cookie while the visitor types, not when they press send.
+      onFocus={() => void ensureCsrf().catch(() => {})}
+      className="flex flex-col gap-5"
+      noValidate
+    >
       {event ? (
         <section
           aria-labelledby="contact-event-title"
@@ -130,12 +178,12 @@ export function ContactForm({ event: initialEvent = null }: { event?: ContactEve
         required={!event}
       />
       <div className="flex flex-wrap items-center gap-4">
-        <Button type="submit">{contact.button}</Button>
-        {submitted ? (
-          <p className="text-sm text-rose-sombre/70" aria-live="polite">
-            {contact.demo}
-          </p>
-        ) : null}
+        <Button type="submit" disabled={sending}>
+          {sending ? contact.sending : contact.button}
+        </Button>
+        <p className="text-sm text-rose-sombre/70" aria-live="polite">
+          {notice}
+        </p>
       </div>
       <p className="text-xs text-charbon/60">
         {contact.privacy.text}{" "}

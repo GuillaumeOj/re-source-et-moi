@@ -69,6 +69,8 @@ reach for whichever fits rather than inventing a third:
 - **A relation the plugin would synthesise** (a reverse accessor from `related_name`) —
   declare it in an `if TYPE_CHECKING:` block on the model, as `pricing/models.py` does for
   `PricingType.prices`. Every new `related_name` you read through will need one.
+  The same goes for a custom QuerySet's methods reached through `as_manager()`: declare
+  `objects: ClassVar[<QuerySet>]` there, as `agenda/models.py` does for `Event`.
 - **`get_user_model()`**, which resolves no further than `AbstractBaseUser` — import the
   concrete `django.contrib.auth.models.User`, as `config/seed_admin` does. That is honest
   here because `AUTH_USER_MODEL` is Django's default and stays that way; it would be wrong

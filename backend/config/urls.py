@@ -10,7 +10,7 @@ from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
-from config import auth_views, views
+from config import auth_views, contact_views, views
 
 urlpatterns = [
     # The admin is mounted at a secret, per-environment segment (settings.ADMIN_PATH); see
@@ -39,6 +39,7 @@ urlpatterns = [
         auth_views.PasswordResetConfirmView.as_view(),
         name="auth-password-reset-confirm",
     ),
+    path("api/contact/", contact_views.ContactView.as_view(), name="contact"),
     # OpenAPI schema. The frontend's TypeScript types are generated from it (see
     # frontend/package.json's `codegen` script). /api/schema/swagger/ is a browsable view.
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),

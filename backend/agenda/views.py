@@ -39,17 +39,13 @@ class EventListView(generics.ListAPIView):
     pagination_class = None
 
     def get_queryset(self) -> QuerySet[Event]:
-        # select_related: the label and the address both read the Address row.
-        events = Event.objects.filter(is_published=True).select_related("address")
+        events = Event.objects.published()
 
         filters = EventListFilterSerializer(data=self.request.query_params)
         filters.is_valid(raise_exception=True)
         params = filters.validated_data
         if not params:
-            # localdate(), not utcnow(): TIME_ZONE is Europe/Paris, and a workshop is
-            # "today" in the timezone it happens in. Comparing against UTC would drop an
-            # evening workshop from the list an hour or two early.
-            return events.filter(date__gte=timezone.localdate())
+            return events.upcoming()
 
         if "date_from" in params:
             events = events.filter(date__gte=params["date_from"])
