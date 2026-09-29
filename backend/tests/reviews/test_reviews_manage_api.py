@@ -1,5 +1,7 @@
 """/api/manage/reviews/: the editor's read-write view of the reviews."""
 
+from datetime import datetime
+
 import pytest
 from django.contrib.auth.models import User
 
@@ -24,16 +26,44 @@ def test_is_refused_to_a_non_staff_account(client):
     assert client.get(URL).status_code == 403
 
 
-def test_lists_every_review_hidden_ones_included_and_not_capped(staff_client, make_review):
-    for index in range(4):
-        make_review(author=f"Publié {index}")
-    make_review(author="Masqué", is_published=False)
+def test_lists_every_review_hidden_ones_included_newest_first(staff_client, make_review, age):
+    age(make_review(author="Publié"), days=2)
+    age(make_review(author="Masqué", is_published=False), days=1)
 
     body = staff_client.get(URL).json()
 
-    assert isinstance(body, list)
-    assert len(body) == 5
-    assert {review["is_published"] for review in body} == {True, False}
+    assert body["count"] == 2
+    assert [review["author"] for review in body["results"]] == ["Masqué", "Publié"]
+
+
+def test_pages_hold_fifty_reviews_at_most(staff_client, make_review):
+    for index in range(51):
+        make_review(author=f"Avis {index}")
+
+    first = staff_client.get(URL, {"page_size": 200}).json()
+    second = staff_client.get(URL, {"page": 2}).json()
+
+    assert first["count"] == 51
+    assert len(first["results"]) == 50
+    assert len(second["results"]) == 1
+
+
+def test_the_editor_can_ask_for_smaller_pages(staff_client, make_review):
+    for index in range(3):
+        make_review(author=f"Avis {index}")
+
+    body = staff_client.get(URL, {"page_size": 2}).json()
+
+    assert len(body["results"]) == 2
+    assert body["next"] is not None
+
+
+def test_exposes_the_creation_date_for_the_table(staff_client, make_review):
+    review = make_review()
+
+    body = staff_client.get(detail(review)).json()
+
+    assert datetime.fromisoformat(body["created_at"]) == review.created_at
 
 
 def test_creates_a_review(staff_client):

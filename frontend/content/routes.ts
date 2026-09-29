@@ -26,6 +26,11 @@ export const routes = {
     label: "À propos",
     sitemap: { changeFrequency: "monthly", priority: 0.7 },
   },
+  temoignages: {
+    path: "/temoignages",
+    label: "Témoignages",
+    sitemap: { changeFrequency: "weekly", priority: 0.6 },
+  },
   questions: {
     path: "/questions",
     label: "Questions",

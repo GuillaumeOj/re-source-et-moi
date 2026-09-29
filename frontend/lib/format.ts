@@ -23,6 +23,12 @@ const fullDateFormatter = new Intl.DateTimeFormat("fr-FR", {
   year: "numeric",
   timeZone: TIME_ZONE,
 });
+const shortDateFormatter = new Intl.DateTimeFormat("fr-FR", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  timeZone: TIME_ZONE,
+});
 const euroFormatter = new Intl.NumberFormat("fr-FR", {
   style: "currency",
   currency: "EUR",
@@ -65,6 +71,25 @@ export function formatMonth(isoDate: string): string {
 /** The full date, for a screen reader and the `datetime` title — "mercredi 1 octobre 2026". */
 export function formatFullDate(isoDate: string): string {
   return fullDateFormatter.format(parseApiDate(isoDate));
+}
+
+/**
+ * The first `max` characters of `text`, cut back to the last word boundary so no word is
+ * split, with an ellipsis. `null` when the text already fits.
+ */
+export function excerpt(text: string, max: number): string | null {
+  if (text.length <= max) {
+    return null;
+  }
+  const cut = text.slice(0, max);
+  // Look one character past the cut: a space right there means the last word fits whole.
+  const lastSpace = text.slice(0, max + 1).lastIndexOf(" ");
+  return `${(lastSpace > 0 ? cut.slice(0, lastSpace) : cut).replace(/[\s,;:.!?]+$/, "")}…`;
+}
+
+/** An API timestamp ("2026-09-29T08:12:00Z") as a short Paris date — "29 sept. 2026". */
+export function formatShortDate(isoDateTime: string): string {
+  return shortDateFormatter.format(new Date(isoDateTime));
 }
 
 /** An API time ("10:00:00") as French clock time — "10h", "10h30". */

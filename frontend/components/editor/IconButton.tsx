@@ -1,6 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import type { ReactNode } from "react";
+
+const iconAction =
+  "rounded-full p-2.5 text-rose-sombre transition-colors hover:bg-rose-tendre disabled:opacity-30 disabled:hover:bg-transparent";
 
 /**
  * A round, icon-only action (edit, duplicate, delete, move). The label is both its
@@ -37,9 +41,26 @@ export function IconButton({
       aria-expanded={expanded}
       onClick={onClick}
       disabled={disabled}
-      className="rounded-full p-2.5 text-rose-sombre transition-colors hover:bg-rose-tendre disabled:opacity-30 disabled:hover:bg-transparent"
+      className={iconAction}
     >
       {children}
     </button>
+  );
+}
+
+/** The same round, icon-only action when it goes to another editor page (edit a review). */
+export function IconLink({
+  label,
+  href,
+  children,
+}: {
+  label: string;
+  href: string;
+  children: ReactNode;
+}) {
+  return (
+    <Link href={href} aria-label={label} title={label} className={iconAction}>
+      {children}
+    </Link>
   );
 }

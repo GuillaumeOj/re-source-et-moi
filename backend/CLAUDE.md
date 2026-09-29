@@ -95,8 +95,9 @@ Keep the two consistent:
   and the editor would then disagree about what is valid, or word it differently.
 - **Messages and help texts are French and written for the site owner.** The editor
   shows the backend's validation messages verbatim under the fields.
-- **Manage endpoints are staff-only (`IsAdminUser`), unpaginated, and unfiltered.** The
-  editor needs drafts and past rows too. A nested write (a pricing group's lines) is one
+- **Manage endpoints are staff-only (`IsAdminUser`) and unfiltered.** The editor needs
+  drafts and past rows too. They are unpaginated, except for lists that only ever grow
+  (workshops, reviews). A nested write (a pricing group's lines) is one
   transaction, so a bad line leaves the whole group untouched.
 - **Account and password endpoints validate through Django's own auth forms**
   (`PasswordChangeForm`, `SetPasswordForm`, `PasswordResetForm`), so password rules and

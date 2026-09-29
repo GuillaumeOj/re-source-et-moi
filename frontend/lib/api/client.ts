@@ -19,6 +19,7 @@ export type Event = components["schemas"]["Event"];
 export type PricingType = components["schemas"]["PricingType"];
 export type Price = components["schemas"]["Price"];
 export type Review = components["schemas"]["Review"];
+export type ReviewPage = components["schemas"]["PaginatedReviewList"];
 
 /**
  * Where the backend service lives.
@@ -78,7 +79,11 @@ export function getPricingTypes(): Promise<PricingType[]> {
   return get<PricingType[]>("/pricing-types/", "pricing");
 }
 
-/** The most recent published reviews, newest first — the backend already keeps only three. */
-export function getReviews(): Promise<Review[]> {
-  return get<Review[]>("/reviews/", "reviews");
+/**
+ * The first page of published reviews, newest first. `pageSize` overrides the backend's
+ * default (12); the page's `count` says how many there are in all.
+ */
+export function getReviews({ pageSize }: { pageSize?: number } = {}): Promise<ReviewPage> {
+  const query = pageSize ? `?${new URLSearchParams({ page_size: String(pageSize) })}` : "";
+  return get<ReviewPage>(`/reviews/${query}`, "reviews");
 }

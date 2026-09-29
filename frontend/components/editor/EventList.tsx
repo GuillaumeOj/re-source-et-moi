@@ -2,12 +2,12 @@
 
 import { useCallback, useState } from "react";
 import { cn } from "@/lib/cn";
-import { ApiError, EVENTS_PAGE_SIZE, editorApi } from "@/lib/editor/api";
+import { EVENTS_PAGE_SIZE, editorApi } from "@/lib/editor/api";
 import { type EventActions, EventRow } from "./EventRow";
 import { Pagination } from "./Pagination";
 import { EventRowSkeleton, SkeletonRegion } from "./Skeleton";
 import { LoadError } from "./StatusMessage";
-import { useLoad } from "./useLoad";
+import { usePagedLoad } from "./usePagedLoad";
 
 type Period = "upcoming" | "past";
 
@@ -23,23 +23,17 @@ const PERIODS: { id: Period; label: string; empty: string }[] = [
  */
 export function EventList({ reloadKey, ...actions }: { reloadKey: number } & EventActions) {
   const [period, setPeriod] = useState<Period>("upcoming");
-  const [page, setPage] = useState(1);
 
   const fetchPage = useCallback(
-    () => editorApi.listEvents({ period, page, page_size: EVENTS_PAGE_SIZE }),
-    [period, page],
+    (page: number) => editorApi.listEvents({ period, page, page_size: EVENTS_PAGE_SIZE }),
+    [period],
   );
-  const { data, loading, failed, reload } = useLoad(fetchPage, reloadKey, (error) => {
-    // DRF answers 404 for a page past the end, e.g. once a deletion (or a date moved to
-    // the other period) emptied the last page. Step back rather than fail.
-    if (error instanceof ApiError && error.status === 404 && page > 1) {
-      setPage(page - 1);
-      return true;
-    }
-    return false;
-  });
-
-  const pageCount = data ? Math.max(1, Math.ceil(data.count / EVENTS_PAGE_SIZE)) : 1;
+  // The step back past the end also covers a date moved to the other period.
+  const { data, loading, failed, reload, page, setPage, pageCount } = usePagedLoad(
+    fetchPage,
+    EVENTS_PAGE_SIZE,
+    reloadKey,
+  );
   const current = PERIODS.find((item) => item.id === period) ?? PERIODS[0];
 
   return (
