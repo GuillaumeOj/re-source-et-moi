@@ -13,7 +13,8 @@ export const site = {
   // Replace with the real production domain before launch.
   url: "https://re-source-et-moi.fr",
   locale: "fr_FR",
-  email: "contact@re-source-et-moi.fr",
+  // Temporary address until the association has its own domain mailbox.
+  email: "resourceetmoi@gmail.com",
   // Social profiles — left empty until provided (used for JSON-LD sameAs).
   social: [] as Array<{ label: string; href: string }>,
 } as const;
