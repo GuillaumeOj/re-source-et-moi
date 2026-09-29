@@ -48,7 +48,12 @@ export function IconButton({
   );
 }
 
-/** The same round, icon-only action when it goes to another editor page (edit a review). */
+/**
+ * The same round, icon-only action when it goes to another editor page (edit a review).
+ *
+ * Not prefetched: it sits on every row of a list, and Next would otherwise request each
+ * row's page as soon as the row scrolls into view — fifty requests for one table.
+ */
 export function IconLink({
   label,
   href,
@@ -59,7 +64,7 @@ export function IconLink({
   children: ReactNode;
 }) {
   return (
-    <Link href={href} aria-label={label} title={label} className={iconAction}>
+    <Link href={href} prefetch={false} aria-label={label} title={label} className={iconAction}>
       {children}
     </Link>
   );

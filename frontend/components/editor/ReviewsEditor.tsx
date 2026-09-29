@@ -132,11 +132,16 @@ export function ReviewsEditor() {
               </thead>
               <tbody>
                 {data.results.map((review) => {
+                  // Not prefetched, like IconLink: one request per row otherwise.
                   const href = `${listHref}/${review.id}`;
                   return (
                     <tr key={review.id} className="border-rose-sombre/10 border-b last:border-b-0">
                       <th scope="row" className="text-rose-sombre">
-                        <Link href={href} className="underline-offset-4 hover:underline">
+                        <Link
+                          href={href}
+                          prefetch={false}
+                          className="underline-offset-4 hover:underline"
+                        >
                           {review.author}
                         </Link>
                       </th>
