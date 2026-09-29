@@ -1,0 +1,25 @@
+{% comment %}
+The chrome every HTML e-mail shares: the cream page, the white card and the brand line.
+A message fills `content`, and may add a line under the card in `footnote`.
+
+Mail clients ignore <style> and web fonts, so every style is inline and the brand's
+typefaces fall back to their closest safe fonts: Georgia for Cormorant Garamond, Arial for
+Nunito. Colours are the site's tokens (frontend/app/globals.css). A primary button is
+config/_email_button.html.
+{% endcomment %}<!doctype html>
+<html lang="fr">
+  <body style="margin:0;padding:24px 12px;background:#faf4f0;font-family:Arial,Helvetica,sans-serif;color:#2e2022;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:24px;">
+      <tr>
+        <td style="padding:32px 32px 0;">
+          <p style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:22px;color:#5c2642;">
+            Re-Source<em> Et Moi</em>
+          </p>
+          <div style="margin:16px 0 0;height:2px;width:48px;background:#c4749a;border-radius:2px;"></div>
+        </td>
+      </tr>
+      {% block content %}{% endblock %}
+    </table>
+    {% block footnote %}{% endblock %}
+  </body>
+</html>

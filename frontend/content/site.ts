@@ -15,6 +15,9 @@ export const site = {
   locale: "fr_FR",
   // Temporary address until the association has its own domain mailbox.
   email: "resourceetmoi@gmail.com",
+  // Cécile's mobile, in international form: dialled as is (`tel:`), so the link also works
+  // from a foreign SIM or a phone roaming abroad, and shown the French way by formatPhone.
+  phone: "+33627470144",
   // Social profiles — left empty until provided (used for JSON-LD sameAs).
   social: [] as Array<{ label: string; href: string }>,
 } as const;

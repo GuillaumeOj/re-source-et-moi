@@ -10,6 +10,7 @@ export const contact = {
   fields: {
     name: "Nom",
     email: "Email",
+    phone: "Téléphone",
     message: "Message",
   },
   button: "Envoyer",
@@ -25,10 +26,22 @@ export const contact = {
     unavailable: "Cet atelier n'est plus proposé — écrivez-nous quand même.",
     seeWorkshops: "Voir les prochains ateliers",
   },
+  // For a visitor who would rather call, or write from their own mailbox, than use the form.
+  direct: {
+    heading: "Vous préférez joindre Cécile directement ?",
+    phone: "Par téléphone :",
+    email: "Par e-mail :",
+  },
+  // Under the form, where the data is collected — what GDPR asks visitors be told there.
+  privacy: {
+    text: "Vos coordonnées servent uniquement à vous recontacter au sujet de votre demande : elles ne sont utilisées à aucune autre fin et ne sont jamais transmises à des tiers.",
+    link: "Politique de confidentialité",
+  },
   optionalMessage: "Un mot à ajouter ? (facultatif)",
   errors: {
     name: "Indiquez votre nom.",
     email: "Indiquez une adresse email valide.",
+    phone: "Indiquez un numéro de téléphone valide.",
     message: "Écrivez-nous quelques mots.",
   },
   demo: "Formulaire de démonstration — bientôt connecté.",

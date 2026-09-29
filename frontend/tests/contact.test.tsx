@@ -3,8 +3,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import ContactPage from "@/app/contact/page";
 import { contact } from "@/content/cta";
 import { contactHref } from "@/content/routes";
+import { site } from "@/content/site";
 import type { Event } from "@/lib/api/client";
-import { type ContactEvent, composeMessage } from "@/lib/contact";
+import { normalisePhone } from "@/lib/contact";
 
 vi.mock("@/lib/api/client", () => ({ getEvents: vi.fn() }));
 // No request context under vitest; see workshops.test.tsx.
@@ -41,30 +42,28 @@ describe("contactHref", () => {
   });
 });
 
-describe("composeMessage", () => {
-  const event: ContactEvent = makeEvent();
-
-  it("is the visitor's message alone without a workshop", () => {
-    expect(composeMessage(null, "  Bonjour  ")).toBe("Bonjour");
+describe("normalisePhone", () => {
+  it.each([
+    "0612345678",
+    "06 12 34 56 78",
+    "06.12.34.56.78",
+    "06-12-34-56-78",
+    "+33 6 12 34 56 78",
+    "+33 (0)6 12 34 56 78",
+    "0033612345678",
+  ])("dials %j as +33612345678", (typed) => {
+    expect(normalisePhone(typed)).toBe("+33612345678");
   });
 
-  it("writes the workshop out in full above the visitor's message", () => {
-    expect(composeMessage(event, "Je viendrai avec ma fille.")).toBe(
-      "Inscription à l'atelier « Brain Gym® en mouvement » — samedi 3 octobre 2026, " +
-        "10h–12h, Lyon (12 rue de la Paix, 69001 Lyon).\n\nJe viendrai avec ma fille.",
-    );
-  });
-
-  it("is the sign-up alone when the visitor adds nothing", () => {
-    expect(composeMessage(event, "   ")).toBe(
-      "Inscription à l'atelier « Brain Gym® en mouvement » — samedi 3 octobre 2026, " +
-        "10h–12h, Lyon (12 rue de la Paix, 69001 Lyon).",
-    );
-  });
-
-  it("names an online workshop by its label, with no address", () => {
-    const online = { ...event, location_label: "En ligne", address: "" };
-    expect(composeMessage(online, "")).toMatch(/10h–12h, En ligne\.$/);
+  it.each([
+    "",
+    "123",
+    "06 12 34 56",
+    "abcdefghij",
+    "+44 7700 900123",
+    "00 12 34 56 78",
+  ])("rejects %j", (typed) => {
+    expect(normalisePhone(typed)).toBeNull();
   });
 });
 
@@ -80,6 +79,21 @@ describe("ContactPage", () => {
     expect(screen.getByRole("heading", { level: 1, name: contact.title })).toBeInTheDocument();
     expect(screen.getByLabelText(contact.fields.message)).toBeInTheDocument();
     expect(getEvents).not.toHaveBeenCalled();
+  });
+
+  it("offers Cécile's number and e-mail for a visitor who would rather not use the form", async () => {
+    await renderPage();
+
+    expect(screen.getByRole("heading", { name: contact.direct.heading })).toBeInTheDocument();
+    // Shown the French way, dialled in the international form.
+    expect(screen.getByRole("link", { name: "06 27 47 01 44" })).toHaveAttribute(
+      "href",
+      "tel:+33627470144",
+    );
+    expect(screen.getByRole("link", { name: site.email })).toHaveAttribute(
+      "href",
+      `mailto:${site.email}`,
+    );
   });
 
   it("opens on the workshop the visitor chose", async () => {
