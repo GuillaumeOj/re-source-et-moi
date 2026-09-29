@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ContactForm } from "@/components/contact/ContactForm";
 import { contact } from "@/content/cta";
 import type { ContactEvent } from "@/lib/contact";
@@ -24,9 +24,40 @@ async function fillIdentity(
   await user.type(screen.getByLabelText("Téléphone"), phone);
 }
 
+const fetchMock = vi.fn();
+
+function answer(status: number, body?: unknown): Response {
+  return new Response(body === undefined ? null : JSON.stringify(body), { status });
+}
+
+/** The body of the POST to /api/contact/, parsed. */
+function sentBody(): unknown {
+  const call = fetchMock.mock.calls.find(([url]) => url === "/api/contact/");
+  return call ? JSON.parse(call[1].body) : undefined;
+}
+
+/** Fill in a valid plain message and send it. */
+async function submitMessage() {
+  const user = userEvent.setup();
+  render(<ContactForm />);
+  await fillIdentity(user);
+  await user.type(screen.getByLabelText("Message"), "Bonjour");
+  await user.click(screen.getByRole("button", { name: contact.button }));
+}
+
 describe("ContactForm", () => {
+  beforeEach(() => {
+    // The CSRF cookie is already there, so the only request is the contact POST.
+    // biome-ignore lint/suspicious/noDocumentCookie: jsdom test setup
+    document.cookie = "csrftoken=abc123";
+    fetchMock.mockReset();
+    fetchMock.mockResolvedValue(answer(204));
+    vi.stubGlobal("fetch", fetchMock);
+  });
+
   afterEach(() => {
     window.history.replaceState(null, "", "/");
+    vi.unstubAllGlobals();
   });
 
   it("renders labelled fields", () => {
@@ -60,7 +91,7 @@ describe("ContactForm", () => {
     expect(screen.getByText(contact.errors.phone)).toBeInTheDocument();
     expect(screen.getByText(contact.errors.message)).toBeInTheDocument();
     expect(screen.getByLabelText("Nom")).toHaveAttribute("aria-invalid", "true");
-    expect(screen.queryByText(contact.demo)).not.toBeInTheDocument();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("rejects a malformed email", async () => {
@@ -72,7 +103,7 @@ describe("ContactForm", () => {
     await user.click(screen.getByRole("button", { name: contact.button }));
 
     expect(screen.getByText(contact.errors.email)).toBeInTheDocument();
-    expect(screen.queryByText(contact.demo)).not.toBeInTheDocument();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   // Which numbers pass is normalisePhone's table (contact.test.tsx); this is the wiring.
@@ -85,18 +116,63 @@ describe("ContactForm", () => {
     await user.click(screen.getByRole("button", { name: contact.button }));
 
     expect(screen.getByText(contact.errors.phone)).toBeInTheDocument();
-    expect(screen.queryByText(contact.demo)).not.toBeInTheDocument();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("stays inert once valid, until a backend is wired", async () => {
+  it("sends the message, phone normalised, and says it left", async () => {
+    await submitMessage();
+
+    expect(await screen.findByText(contact.sent)).toBeInTheDocument();
+    expect(sentBody()).toEqual({
+      name: "Camille",
+      email: "camille@example.fr",
+      phone: "+33612345678",
+      message: "Bonjour",
+      event: null,
+    });
+    expect(fetchMock.mock.calls[0][1].headers["X-CSRFToken"]).toBe("abc123");
+    // Cleared, so a second click doesn't send the same message twice.
+    expect(screen.getByLabelText("Message")).toHaveValue("");
+  });
+
+  it("shows the backend's own field messages under the fields", async () => {
+    fetchMock.mockResolvedValue(answer(400, { phone: ["Numéro refusé par le serveur."] }));
+
+    await submitMessage();
+
+    expect(await screen.findByText("Numéro refusé par le serveur.")).toBeInTheDocument();
+    expect(screen.getByLabelText("Téléphone")).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByText(contact.errors.invalid)).toBeInTheDocument();
+    // Kept, so the visitor only fixes what was wrong.
+    expect(screen.getByLabelText("Message")).toHaveValue("Bonjour");
+  });
+
+  it.each([
+    ["a 429", () => fetchMock.mockResolvedValue(answer(429)), contact.errors.tooMany],
+    ["a 503", () => fetchMock.mockResolvedValue(answer(503)), contact.errors.failed],
+    [
+      "a network failure",
+      () => fetchMock.mockRejectedValue(new TypeError("Failed to fetch")),
+      contact.errors.failed,
+    ],
+  ])("explains %s and keeps what was typed", async (_, fail, text) => {
+    fail();
+
+    await submitMessage();
+
+    expect(await screen.findByText(text)).toBeInTheDocument();
+    expect(screen.getByLabelText("Message")).toHaveValue("Bonjour");
+  });
+
+  it("fetches the CSRF cookie as soon as the visitor starts typing", async () => {
+    // biome-ignore lint/suspicious/noDocumentCookie: jsdom test setup
+    document.cookie = "csrftoken=; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     const user = userEvent.setup();
     render(<ContactForm />);
 
-    await fillIdentity(user);
-    await user.type(screen.getByLabelText("Message"), "Bonjour");
-    await user.click(screen.getByRole("button", { name: contact.button }));
+    await user.click(screen.getByLabelText("Nom"));
 
-    expect(screen.getByText(contact.demo)).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledWith("/api/auth/csrf/", expect.anything());
   });
 
   describe("with a workshop to sign up for", () => {
@@ -119,7 +195,19 @@ describe("ContactForm", () => {
       await user.click(screen.getByRole("button", { name: contact.button }));
 
       expect(screen.queryByText(contact.errors.message)).not.toBeInTheDocument();
-      expect(screen.getByText(contact.demo)).toBeInTheDocument();
+      expect(await screen.findByText(contact.sent)).toBeInTheDocument();
+      expect(sentBody()).toMatchObject({ event: event.id, message: "" });
+    });
+
+    it("says so when the workshop stopped being offered in the meantime", async () => {
+      fetchMock.mockResolvedValue(answer(400, { event: ["Cet atelier n'est plus proposé."] }));
+      const user = userEvent.setup();
+      render(<ContactForm event={event} />);
+
+      await fillIdentity(user);
+      await user.click(screen.getByRole("button", { name: contact.button }));
+
+      expect(await screen.findByText("Cet atelier n'est plus proposé.")).toBeInTheDocument();
     });
 
     it("still asks for a name, an email and a phone number", async () => {
@@ -132,7 +220,7 @@ describe("ContactForm", () => {
       expect(screen.getByText(contact.errors.email)).toBeInTheDocument();
       expect(screen.getByText(contact.errors.phone)).toBeInTheDocument();
       expect(screen.queryByText(contact.errors.message)).not.toBeInTheDocument();
-      expect(screen.queryByText(contact.demo)).not.toBeInTheDocument();
+      expect(fetchMock).not.toHaveBeenCalled();
     });
 
     it("lets the visitor remove it, and drops it from the URL", async () => {

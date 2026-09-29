@@ -1,4 +1,5 @@
-"""The contact form's e-mail templates, rendered on their own until the form is wired."""
+"""The contact form's e-mail templates, rendered on their own. Sending them is
+tests/config/test_contact.py."""
 
 import datetime
 

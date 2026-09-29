@@ -1,8 +1,8 @@
 {% extends "config/email_base.html" %}
 {% comment %}
-The message the contact form sends to the association, HTML part. Not sent yet: the form is
-wired to Brevo (django-anymail) later, with contact_email.txt as the plain-text part,
-contact_subject.txt as the subject, and the visitor's address as Reply-To.
+The message the contact form sends to the association, HTML part. config/contact_views.py
+sends it through Brevo, with contact_email.txt as the plain-text part, contact_subject.txt
+as the subject, and the visitor's address as Reply-To.
 
 Context:
   name, email -- what the visitor typed.

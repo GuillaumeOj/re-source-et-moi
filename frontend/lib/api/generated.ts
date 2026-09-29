@@ -190,6 +190,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/contact/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * @description Send a visitor's message, or workshop sign-up, to the association.
+         *
+         *     204 once Brevo has accepted it. Unlike the password reset, a sending failure is
+         *     reported (503): nothing here is secret, and a visitor who is told the message did not
+         *     leave can still call or write directly, where a silent failure would lose the message.
+         */
+        post: operations["contact_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/events/": {
         parameters: {
             query?: never;
@@ -656,6 +679,16 @@ export interface components {
             postal_code?: string;
             /** Ville */
             city: string;
+        };
+        ContactRequest: {
+            name: string;
+            /** Format: email */
+            email: string;
+            phone: string;
+            /** @default  */
+            message: string;
+            /** Format: uuid */
+            event?: string | null;
         };
         /**
          * @description A workshop as the public agenda needs it.
@@ -1351,6 +1384,37 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Session"];
                 };
+            };
+        };
+    };
+    contact_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContactRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["ContactRequest"];
+                "multipart/form-data": components["schemas"]["ContactRequest"];
+            };
+        };
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No response body */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

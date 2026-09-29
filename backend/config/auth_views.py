@@ -12,7 +12,7 @@ here, so AUTH_PASSWORD_VALIDATORS applies exactly as it does in the admin.
 
 from __future__ import annotations
 
-from collections.abc import Callable, Iterator
+from collections.abc import Iterator
 from typing import Any, cast
 
 from django.conf import settings
@@ -23,11 +23,8 @@ from django.contrib.auth.password_validation import password_validators_help_tex
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.forms import Form
-from django.http import HttpResponseBase
-from django.utils.decorators import method_decorator
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
-from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
 from drf_spectacular.utils import extend_schema
 from rest_framework import permissions, serializers, status
 from rest_framework.request import Request
@@ -36,23 +33,13 @@ from rest_framework.settings import api_settings
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
+from config.csrf import csrf_cookie_ensured, csrf_protected
+
 # One message for every failure, so the form never tells a guesser which half was right,
 # or that an account exists but lacks staff access.
 LOGIN_FAILED = "Identifiant ou mot de passe incorrect."
 WRONG_CURRENT_PASSWORD = "Le mot de passe actuel est incorrect."
 INVALID_RESET_LINK = "Ce lien n'est plus valide. Demandez-en un nouveau."
-
-_View = Callable[..., HttpResponseBase]
-
-
-def _for_dispatch(decorator: object) -> Callable[[_View], _View]:
-    """Hand a CSRF view decorator to method_decorator in a form ty accepts.
-
-    django-stubs types csrf_protect and ensure_csrf_cookie as generic identity functions,
-    and ty cannot match that against method_decorator's parameter. They are view
-    decorators at runtime, and that is all this cast states.
-    """
-    return cast(Callable[[_View], _View], decorator)
 
 
 def _form_errors(form: Form) -> dict[str, list[str]]:
@@ -140,7 +127,7 @@ class EditorPasswordResetForm(PasswordResetForm):
         )
 
 
-@method_decorator(_for_dispatch(ensure_csrf_cookie), name="dispatch")
+@csrf_cookie_ensured
 class CsrfView(APIView):
     """Set the CSRF cookie, and nothing else.
 
@@ -185,10 +172,9 @@ class SessionView(APIView):
         return Response(_session(_staff(request)))
 
 
-# DRF only enforces CSRF on requests that are already authenticated. That would leave the
-# anonymous endpoints below (login, reset) open to cross-site requests, and csrf_protect
-# closes the gap.
-@method_decorator(_for_dispatch(csrf_protect), name="dispatch")
+# csrf_protected: DRF alone would leave these anonymous endpoints open to cross-site
+# requests. See config/csrf.py.
+@csrf_protected
 class LoginView(APIView):
     permission_classes = [permissions.AllowAny]
     throttle_classes = [ScopedRateThrottle]
@@ -211,7 +197,7 @@ class LoginView(APIView):
         return Response(_session(user))
 
 
-@method_decorator(_for_dispatch(csrf_protect), name="dispatch")
+@csrf_protected
 class LogoutView(APIView):
     permission_classes = [permissions.AllowAny]
 
@@ -256,7 +242,7 @@ class PasswordChangeView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-@method_decorator(_for_dispatch(csrf_protect), name="dispatch")
+@csrf_protected
 class PasswordResetRequestView(APIView):
     """Send a reset link to a staff member's e-mail address.
 
@@ -291,7 +277,7 @@ class PasswordResetRequestView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-@method_decorator(_for_dispatch(csrf_protect), name="dispatch")
+@csrf_protected
 class PasswordResetConfirmView(APIView):
     """Set a new password from the link in the reset e-mail.
 
