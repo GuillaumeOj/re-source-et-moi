@@ -1,5 +1,4 @@
 import type { Event } from "@/lib/api/client";
-import { formatFullDate, formatTimeRange } from "@/lib/format";
 
 /** What the contact form needs to know about the workshop a visitor is signing up for. */
 export type ContactEvent = Pick<
@@ -18,17 +17,18 @@ export function formatPlace(event: ContactEvent): string {
   return event.address ? `${event.location_label} (${event.address})` : event.location_label;
 }
 
+// A French number once its separators are gone: national ("0612345678") or international,
+// with or without the bracketed trunk zero ("+33 (0)6…" → "+330612345678").
+const FRENCH_PHONE = /^(?:(?:\+33|0033)0?|0)([1-9]\d{8})$/;
+const PHONE_SEPARATORS = /[\s.()-]/g;
+
 /**
- * The message the association receives: the workshop the visitor signs up for, written
- * out in full so it reads on its own in an inbox, then whatever the visitor added.
+ * A French number however the visitor typed it — "06 12 34 56 78", "06.12.34.56.78",
+ * "+33 (0)6 12 34 56 78" — in the one international form that can be dialled from
+ * anywhere ("+33612345678"), or null if it isn't one. Deliberately loose: the call back is
+ * the real check.
  */
-export function composeMessage(event: ContactEvent | null, message: string): string {
-  const text = message.trim();
-  if (!event) {
-    return text;
-  }
-  const signUp =
-    `Inscription à l'atelier « ${event.title} » — ${formatFullDate(event.date)}, ` +
-    `${formatTimeRange(event.start_time, event.end_time)}, ${formatPlace(event)}.`;
-  return text ? `${signUp}\n\n${text}` : signUp;
+export function normalisePhone(typed: string): string | null {
+  const match = FRENCH_PHONE.exec(typed.replace(PHONE_SEPARATORS, ""));
+  return match ? `+33${match[1]}` : null;
 }

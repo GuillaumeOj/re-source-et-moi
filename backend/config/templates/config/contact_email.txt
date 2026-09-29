@@ -1,0 +1,18 @@
+{% comment %}The plain-text part of contact_email.html, same context; see there.{% endcomment %}{% autoescape off %}{% if event %}{{ name }} s'inscrit à un atelier :
+
+{{ event.title }}
+{{ event.date|date:"l j F Y"|capfirst }}, {{ event.start_time|time:"G\hi" }}–{{ event.end_time|time:"G\hi" }}
+{{ event.location_label }}{% if event.address %} — {{ event.address.one_line }}{% endif %}
+{% else %}{{ name }} vous a écrit depuis le site.
+{% endif %}
+Nom : {{ name }}
+E-mail : {{ email }}
+Téléphone : {{ phone }}
+
+Message :
+{% if message %}{{ message }}{% else %}(aucun message ajouté à l'inscription){% endif %}
+
+--
+Envoyé depuis le formulaire de contact du site Re-Source Et Moi.
+Ces coordonnées ne servent qu'à répondre à cette demande.
+{% endautoescape %}

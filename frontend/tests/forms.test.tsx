@@ -15,9 +15,13 @@ const event: ContactEvent = {
   address: "12 rue de la Paix, 69001 Lyon",
 };
 
-async function fillIdentity(user: ReturnType<typeof userEvent.setup>) {
+async function fillIdentity(
+  user: ReturnType<typeof userEvent.setup>,
+  { email = "camille@example.fr", phone = "06 12 34 56 78" } = {},
+) {
   await user.type(screen.getByLabelText("Nom"), "Camille");
-  await user.type(screen.getByLabelText("Email"), "camille@example.fr");
+  await user.type(screen.getByLabelText("Email"), email);
+  await user.type(screen.getByLabelText("Téléphone"), phone);
 }
 
 describe("ContactForm", () => {
@@ -30,7 +34,19 @@ describe("ContactForm", () => {
 
     expect(screen.getByLabelText("Nom")).toBeInTheDocument();
     expect(screen.getByLabelText("Email")).toBeInTheDocument();
+    expect(screen.getByLabelText("Téléphone")).toHaveAttribute("type", "tel");
+    expect(screen.getByLabelText("Téléphone")).toBeRequired();
     expect(screen.getByLabelText("Message")).toBeInTheDocument();
+  });
+
+  it("says what the visitor's details are used for, and links to the privacy policy", () => {
+    render(<ContactForm />);
+
+    expect(screen.getByText(contact.privacy.text, { exact: false })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: contact.privacy.link })).toHaveAttribute(
+      "href",
+      "/politique-de-confidentialite",
+    );
   });
 
   it("flags every missing field and does not submit", async () => {
@@ -41,6 +57,7 @@ describe("ContactForm", () => {
 
     expect(screen.getByText(contact.errors.name)).toBeInTheDocument();
     expect(screen.getByText(contact.errors.email)).toBeInTheDocument();
+    expect(screen.getByText(contact.errors.phone)).toBeInTheDocument();
     expect(screen.getByText(contact.errors.message)).toBeInTheDocument();
     expect(screen.getByLabelText("Nom")).toHaveAttribute("aria-invalid", "true");
     expect(screen.queryByText(contact.demo)).not.toBeInTheDocument();
@@ -50,12 +67,24 @@ describe("ContactForm", () => {
     const user = userEvent.setup();
     render(<ContactForm />);
 
-    await user.type(screen.getByLabelText("Nom"), "Camille");
-    await user.type(screen.getByLabelText("Email"), "camille@");
+    await fillIdentity(user, { email: "camille@" });
     await user.type(screen.getByLabelText("Message"), "Bonjour");
     await user.click(screen.getByRole("button", { name: contact.button }));
 
     expect(screen.getByText(contact.errors.email)).toBeInTheDocument();
+    expect(screen.queryByText(contact.demo)).not.toBeInTheDocument();
+  });
+
+  // Which numbers pass is normalisePhone's table (contact.test.tsx); this is the wiring.
+  it("rejects a malformed phone number", async () => {
+    const user = userEvent.setup();
+    render(<ContactForm />);
+
+    await fillIdentity(user, { phone: "06 12 34 56" });
+    await user.type(screen.getByLabelText("Message"), "Bonjour");
+    await user.click(screen.getByRole("button", { name: contact.button }));
+
+    expect(screen.getByText(contact.errors.phone)).toBeInTheDocument();
     expect(screen.queryByText(contact.demo)).not.toBeInTheDocument();
   });
 
@@ -91,6 +120,19 @@ describe("ContactForm", () => {
 
       expect(screen.queryByText(contact.errors.message)).not.toBeInTheDocument();
       expect(screen.getByText(contact.demo)).toBeInTheDocument();
+    });
+
+    it("still asks for a name, an email and a phone number", async () => {
+      const user = userEvent.setup();
+      render(<ContactForm event={event} />);
+
+      await user.click(screen.getByRole("button", { name: contact.button }));
+
+      expect(screen.getByText(contact.errors.name)).toBeInTheDocument();
+      expect(screen.getByText(contact.errors.email)).toBeInTheDocument();
+      expect(screen.getByText(contact.errors.phone)).toBeInTheDocument();
+      expect(screen.queryByText(contact.errors.message)).not.toBeInTheDocument();
+      expect(screen.queryByText(contact.demo)).not.toBeInTheDocument();
     });
 
     it("lets the visitor remove it, and drops it from the URL", async () => {

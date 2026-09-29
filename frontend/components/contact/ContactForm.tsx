@@ -5,19 +5,19 @@ import { type FormEvent, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { contact } from "@/content/cta";
-import { CONTACT_EVENT_PARAM } from "@/content/routes";
-import { type ContactEvent, formatPlace } from "@/lib/contact";
+import { CONTACT_EVENT_PARAM, routes } from "@/content/routes";
+import { type ContactEvent, formatPlace, normalisePhone } from "@/lib/contact";
 import { capitalise, formatFullDate, formatTimeRange } from "@/lib/format";
 
-type Errors = Partial<Record<"name" | "email" | "message", string>>;
+type Errors = Partial<Record<"name" | "email" | "phone" | "message", string>>;
 
 // Deliberately loose: the browser's own rule, not RFC 5322. The reply is the real check.
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
- * The contact form. With `event` — a visitor who clicked a workshop's "S'inscrire" — it
- * opens on that workshop and the message becomes optional: the sign-up is the message, and
- * whatever the visitor writes is added under it (see composeMessage).
+ * The contact form. Name, email and phone are always asked for. With `event` — a visitor
+ * who clicked a workshop's "S'inscrire" — it opens on that workshop and the message becomes
+ * optional: the sign-up is the message, and whatever the visitor writes is added under it.
  */
 export function ContactForm({ event: initialEvent = null }: { event?: ContactEvent | null }) {
   const [event, setEvent] = useState(initialEvent);
@@ -37,15 +37,18 @@ export function ContactForm({ event: initialEvent = null }: { event?: ContactEve
     const data = new FormData(formEvent.currentTarget);
     const name = String(data.get("name") ?? "").trim();
     const email = String(data.get("email") ?? "").trim();
+    const phone = normalisePhone(String(data.get("phone") ?? ""));
     const message = String(data.get("message") ?? "").trim();
 
     const found: Errors = {};
     if (!name) found.name = contact.errors.name;
     if (!EMAIL.test(email)) found.email = contact.errors.email;
+    if (!phone) found.phone = contact.errors.phone;
     if (!event && !message) found.message = contact.errors.message;
     setErrors(found);
-    // Not wired yet — TODO: send { name, email, event: event?.id, message } to a backend
-    // endpoint, with the message built by composeMessage (lib/contact.ts).
+    // Not wired yet — TODO: send { name, email, phone, event: event?.id, message } to a backend
+    // endpoint. The e-mail templates (backend/config/templates/config/contact_email.*) write
+    // the workshop out from `event` themselves, so `message` is only what the visitor typed.
     setSubmitted(Object.keys(found).length === 0);
   };
 
@@ -109,6 +112,15 @@ export function ContactForm({ event: initialEvent = null }: { event?: ContactEve
         required
       />
       <Field
+        id="contact-phone"
+        name="phone"
+        type="tel"
+        label={contact.fields.phone}
+        autoComplete="tel"
+        error={errors.phone}
+        required
+      />
+      <Field
         id="contact-message"
         name="message"
         label={event ? contact.optionalMessage : contact.fields.message}
@@ -125,6 +137,15 @@ export function ContactForm({ event: initialEvent = null }: { event?: ContactEve
           </p>
         ) : null}
       </div>
+      <p className="text-xs text-charbon/60">
+        {contact.privacy.text}{" "}
+        <a
+          href={routes.confidentialite.path}
+          className="underline underline-offset-2 hover:no-underline"
+        >
+          {contact.privacy.link}
+        </a>
+      </p>
     </form>
   );
 }

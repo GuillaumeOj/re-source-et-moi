@@ -1,3 +1,4 @@
+import { Mail, Phone } from "lucide-react";
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import { ContactForm } from "@/components/contact/ContactForm";
@@ -5,8 +6,10 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { PageShell } from "@/components/layout/PageShell";
 import { contact } from "@/content/cta";
 import { CONTACT_EVENT_PARAM, routes } from "@/content/routes";
+import { site } from "@/content/site";
 import { getEvents } from "@/lib/api/client";
 import { type ContactEvent, toContactEvent } from "@/lib/contact";
+import { formatPhone } from "@/lib/format";
 import { param, type SearchParams } from "@/lib/searchParams";
 
 export const metadata: Metadata = {
@@ -35,7 +38,8 @@ async function findEvent(id: string): Promise<ContactEvent | null> {
 /**
  * The contact form, on its own page. The header's "Nous contacter", the home page's contact
  * section and every "Nous contacter" link land here; a workshop's "S'inscrire" lands here
- * with `?atelier=<id>`, and the form opens on that workshop.
+ * with `?atelier=<id>`, and the form opens on that workshop. Cécile's number and e-mail
+ * sit above the form, for a visitor who would rather call or write from their own mailbox.
  */
 export default async function ContactPage({
   searchParams,
@@ -61,7 +65,32 @@ export default async function ContactPage({
         </p>
       ) : null}
 
-      <div className="mt-10">
+      <section aria-labelledby="contact-direct" className="mt-10 flex flex-col gap-2">
+        <h2 id="contact-direct" className="font-semibold text-rose-sombre">
+          {contact.direct.heading}
+        </h2>
+        <ul className="flex flex-col gap-1.5 text-charbon/80">
+          {(
+            [
+              [Phone, contact.direct.phone, `tel:${site.phone}`, formatPhone(site.phone)],
+              [Mail, contact.direct.email, `mailto:${site.email}`, site.email],
+            ] as const
+          ).map(([Icon, label, href, text]) => (
+            <li key={href} className="flex flex-wrap items-center gap-x-2">
+              <Icon size={18} aria-hidden="true" className="text-rose-vif" />
+              {label}
+              <a
+                href={href}
+                className="font-semibold [overflow-wrap:anywhere] text-rose-sombre underline underline-offset-2 hover:no-underline"
+              >
+                {text}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <div className="mt-8">
         <ContactForm event={event} />
       </div>
     </PageShell>

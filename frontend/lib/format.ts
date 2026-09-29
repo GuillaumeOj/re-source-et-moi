@@ -93,6 +93,14 @@ export function parisToday(): string {
 }
 
 /**
+ * A French number stored in international form as it is written in France —
+ * "+33627470144" → "06 27 47 01 44".
+ */
+export function formatPhone(international: string): string {
+  return international.replace(/^\+33/, "0").replace(/(\d{2})(?=\d)/g, "$1 ");
+}
+
+/**
  * A tariff line's price — "75 €", or "Sur devis" when there is no fixed amount.
  *
  * `amount` arrives as a decimal *string* (DRF's default, which avoids float rounding on
