@@ -917,7 +917,21 @@ paths:
       operationId: manage_reviews_list
       description: |-
         Every review, hidden ones included, editable by staff. Backs the editor's
-        "Témoignages" tab.
+        "Témoignages" tab. The list is paginated, because like the workshops it only ever
+        grows.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Nombre de résultats à retourner par page.
+        schema:
+          type: integer
       tags:
       - manage
       security:
@@ -927,15 +941,14 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ReviewManage'
+                $ref: '#/components/schemas/PaginatedReviewManageList'
           description: ''
     post:
       operationId: manage_reviews_create
       description: |-
         Every review, hidden ones included, editable by staff. Backs the editor's
-        "Témoignages" tab.
+        "Témoignages" tab. The list is paginated, because like the workshops it only ever
+        grows.
       tags:
       - manage
       requestBody:
@@ -964,7 +977,8 @@ paths:
       operationId: manage_reviews_retrieve
       description: |-
         Every review, hidden ones included, editable by staff. Backs the editor's
-        "Témoignages" tab.
+        "Témoignages" tab. The list is paginated, because like the workshops it only ever
+        grows.
       parameters:
       - in: path
         name: id
@@ -988,7 +1002,8 @@ paths:
       operationId: manage_reviews_update
       description: |-
         Every review, hidden ones included, editable by staff. Backs the editor's
-        "Témoignages" tab.
+        "Témoignages" tab. The list is paginated, because like the workshops it only ever
+        grows.
       parameters:
       - in: path
         name: id
@@ -1024,7 +1039,8 @@ paths:
       operationId: manage_reviews_partial_update
       description: |-
         Every review, hidden ones included, editable by staff. Backs the editor's
-        "Témoignages" tab.
+        "Témoignages" tab. The list is paginated, because like the workshops it only ever
+        grows.
       parameters:
       - in: path
         name: id
@@ -1059,7 +1075,8 @@ paths:
       operationId: manage_reviews_destroy
       description: |-
         Every review, hidden ones included, editable by staff. Backs the editor's
-        "Témoignages" tab.
+        "Témoignages" tab. The list is paginated, because like the workshops it only ever
+        grows.
       parameters:
       - in: path
         name: id
@@ -1101,10 +1118,24 @@ paths:
     get:
       operationId: reviews_list
       description: |-
-        The most recent published reviews, newest first.
+        Published reviews, newest first.
 
-        Public and unpaginated for the same reasons as the agenda and the tariffs: the content
-        is already on the website, and a plain array generates a plain TypeScript array.
+        Public, because the content is already on the website. Paginated, unlike the agenda
+        and the tariffs, because reviews only ever pile up and the "Témoignages" page loads
+        them as the visitor scrolls.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Nombre de résultats à retourner par page.
+        schema:
+          type: integer
       tags:
       - reviews
       security:
@@ -1115,9 +1146,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Review'
+                $ref: '#/components/schemas/PaginatedReviewList'
           description: ''
 components:
   schemas:
@@ -1500,6 +1529,56 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/EventManage'
+    PaginatedReviewList:
+      type: object
+      required:
+      - count
+      - next
+      - previous
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Review'
+    PaginatedReviewManageList:
+      type: object
+      required:
+      - count
+      - next
+      - previous
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReviewManage'
     PasswordChangeRequest:
       type: object
       description: The request shape only. PasswordChangeForm does the validating.
@@ -1931,7 +2010,7 @@ components:
     Review:
       type: object
       description: |-
-        A review as the home page renders it. `is_published` stays out: the public feed
+        A review as the public site renders it. `is_published` stays out: the public feed
         only ever holds published reviews.
       properties:
         id:
@@ -1979,12 +2058,18 @@ components:
           type: boolean
           title: Publié
           description: Décocher pour garder l'avis sans l'afficher sur le site.
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Ajouté le
       required:
       - id
       - text
       - author
       - context
       - is_published
+      - created_at
     ReviewManageRequest:
       type: object
       description: A review as the editor reads and writes it, drafts included.

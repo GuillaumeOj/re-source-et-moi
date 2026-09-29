@@ -8,6 +8,7 @@ import { cn } from "@/lib/cn";
 import { editorApi, onSessionLost, SESSION_ENDED, type Session } from "@/lib/editor/api";
 import { EditorContext } from "./EditorContext";
 import { LoginForm } from "./LoginForm";
+import type { Status } from "./StatusMessage";
 import { pill } from "./styles";
 
 /**
@@ -33,11 +34,17 @@ export function EditorShell({ basePath, children }: { basePath: string; children
     return onSessionLost(() => setExpired(true));
   }, []);
 
-  const context = useMemo(() => (session ? { session, setSession } : null), [session]);
+  const [flash, setFlash] = useState<Status>(null);
+
+  const context = useMemo(
+    () => (session ? { session, setSession, basePath, flash, setFlash } : null),
+    [session, basePath, flash],
+  );
 
   async function handleLogout() {
     await editorApi.logout().catch(() => undefined);
     setExpired(false);
+    setFlash(null);
     setSession(null);
   }
 
@@ -91,16 +98,20 @@ export function EditorShell({ basePath, children }: { basePath: string; children
                   </Link>
                 </div>
                 <nav aria-label="Sections de l'éditeur" className="flex gap-2">
-                  {tabs.map((tab) => (
-                    <Link
-                      key={tab.href}
-                      href={tab.href}
-                      aria-current={pathname === tab.href ? "page" : undefined}
-                      className={pill(pathname === tab.href)}
-                    >
-                      {tab.label}
-                    </Link>
-                  ))}
+                  {tabs.map((tab) => {
+                    // A tab's sub-pages (a review's own page) still light it up.
+                    const active = pathname === tab.href || pathname.startsWith(`${tab.href}/`);
+                    return (
+                      <Link
+                        key={tab.href}
+                        href={tab.href}
+                        aria-current={pathname === tab.href ? "page" : undefined}
+                        className={pill(active)}
+                      >
+                        {tab.label}
+                      </Link>
+                    );
+                  })}
                 </nav>
                 <div className="flex items-center gap-2 text-sm">
                   <Link

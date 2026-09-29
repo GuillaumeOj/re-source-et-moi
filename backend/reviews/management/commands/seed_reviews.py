@@ -1,9 +1,9 @@
-"""Fill the dev database with a few customer reviews.
+"""Fill the dev database with customer reviews.
 
-The first three are the placeholders that used to live in frontend/content/temoignages.ts.
-Two more sit on either side of what the home page shows: an unpublished one, and a
-published one older than the rest. Neither should appear on the page, so the "published
-only" filter and the "three most recent" cut are both visible in dev.
+The newest is unpublished, so the "published only" filter is visible in dev. There are more
+published reviews than a page of the public feed holds (12), so the home page links to the
+"Témoignages" page and that page's infinite scroll loads a second page. A few run past 200
+characters, so the home page's "Lire la suite" toggle shows too.
 """
 
 from __future__ import annotations
@@ -47,11 +47,74 @@ SEED: list[tuple[str, str, str, bool]] = [
         True,
     ),
     (
+        "Je suis arrivée à l'atelier fatiguée, un peu sceptique, et sans trop savoir ce que "
+        "j'allais y trouver. Cécile a pris le temps d'écouter chacun, puis nous a guidés "
+        "avec douceur à travers des mouvements très simples. En sortant, je me sentais plus "
+        "légère et plus présente. Depuis, je refais ces gestes chaque matin avant de partir "
+        "travailler, et je remarque une vraie différence sur ma concentration.",
+        "Élodie",
+        "Atelier découverte",
+        True,
+    ),
+    (
         "Des séances qui m'ont aidée à mieux vivre une période chargée.",
         "Anne",
         "",
         True,
     ),
+    (
+        "Ma fille attend chaque séance avec impatience. Elle nous montre les mouvements à la "
+        "maison et c'est devenu un petit rituel familial avant le coucher, qui l'aide à se "
+        "poser après les journées d'école bien remplies.",
+        "Nadia",
+        "Parent d'élève",
+        True,
+    ),
+    ("Simple, efficace, bienveillant. Je recommande.", "Pierre", "Atelier ECAP", True),
+    (
+        "J'ai enfin compris comment relâcher les tensions dans mes épaules.",
+        "Lucie",
+        "",
+        True,
+    ),
+    (
+        "Une belle découverte pour toute l'équipe : nous avons intégré quelques mouvements à "
+        "nos réunions du lundi.",
+        "Thomas",
+        "Intervention en entreprise",
+        True,
+    ),
+    ("Des outils concrets, expliqués avec patience.", "Hélène", "Atelier ECAP", True),
+    (
+        "Mon fils avait du mal à se concentrer en classe. Après quelques semaines, sa "
+        "maîtresse a remarqué qu'il était plus calme et plus attentif. Nous continuons les "
+        "exercices ensemble le soir, et il les propose lui-même quand il sent qu'il en a "
+        "besoin, ce qui est pour nous la plus belle des réussites.",
+        "Karim",
+        "Parent d'élève",
+        True,
+    ),
+    ("Un moment pour soi, sans jugement.", "Isabelle", "", True),
+    (
+        "Je ne pensais pas qu'on pouvait apprendre autant en une matinée.",
+        "Jean",
+        "Atelier découverte",
+        True,
+    ),
+    (
+        "Cécile adapte chaque exercice à nos besoins, c'est précieux.",
+        "Martine",
+        "Suivi individuel",
+        True,
+    ),
+    ("Un retour qui n'a pas encore été relu.", "Paul", "", False),
+    (
+        "Merci pour cette parenthèse de douceur dans une année difficile.",
+        "Sandrine",
+        "Suivi individuel",
+        True,
+    ),
+    ("Une approche qui change le regard sur l'apprentissage.", "Olivier", "", True),
 ]
 
 

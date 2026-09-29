@@ -28,6 +28,7 @@ export type AddressInput = Schemas["AddressManageRequest"];
 export type ManagedPricingType = Schemas["PricingTypeManage"];
 export type PricingTypeInput = Schemas["PricingTypeManageRequest"];
 export type ManagedReview = Schemas["ReviewManage"];
+export type ReviewManagePage = Schemas["PaginatedReviewManageList"];
 export type ReviewInput = Schemas["ReviewManageRequest"];
 export type ReviewPatch = Schemas["PatchedReviewManageRequest"];
 
@@ -42,6 +43,9 @@ export type EventQuery = {
 
 /** Page size of the list view. Sent explicitly, so the page count is computed here. */
 export const EVENTS_PAGE_SIZE = 20;
+
+/** Page size of the reviews table. Sent explicitly, as for the workshops. */
+export const REVIEWS_PAGE_SIZE = 50;
 
 /** The error object for line `index` of a nested list field, e.g. `prices`. */
 export function nestedErrors(
@@ -178,8 +182,16 @@ export const editorApi = {
   reorderPricingTypes: (ids: string[]) =>
     request<void>("POST", "/manage/pricing-types/reorder/", { ids }),
 
-  /** Every review, hidden ones included, newest first. */
-  listReviews: () => request<ManagedReview[]>("GET", "/manage/reviews/"),
+  /** Every review, hidden ones included, newest first, REVIEWS_PAGE_SIZE per page. */
+  listReviews: (page: number) =>
+    request<ReviewManagePage>(
+      "GET",
+      `/manage/reviews/?${new URLSearchParams({
+        page: String(page),
+        page_size: String(REVIEWS_PAGE_SIZE),
+      })}`,
+    ),
+  getReview: (id: string) => request<ManagedReview>("GET", `/manage/reviews/${id}/`),
   createReview: (input: ReviewInput) => request<ManagedReview>("POST", "/manage/reviews/", input),
   updateReview: (id: string, input: ReviewInput) =>
     request<ManagedReview>("PUT", `/manage/reviews/${id}/`, input),

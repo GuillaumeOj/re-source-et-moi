@@ -6,7 +6,7 @@ import { EventList } from "@/components/editor/EventList";
 import { PricingEditor } from "@/components/editor/PricingEditor";
 import { ReviewsEditor } from "@/components/editor/ReviewsEditor";
 import { ApiError } from "@/lib/editor/api";
-import { address, SESSION, withEditor } from "./fixtures";
+import { address, page, SESSION, withEditor } from "./fixtures";
 
 vi.mock("@/lib/editor/api", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/editor/api")>();
@@ -92,7 +92,7 @@ describe("loading skeletons", () => {
       label: "Chargement des ateliers…",
       view: () => <EventList reloadKey={0} {...noActions} />,
       mock: editorApi.listEvents,
-      value: { count: 0, next: null, previous: null, results: [] },
+      value: page([]),
       loaded: "Aucun atelier à venir.",
     },
     {
@@ -113,7 +113,7 @@ describe("loading skeletons", () => {
       label: "Chargement des avis…",
       view: () => withEditor(<ReviewsEditor />),
       mock: editorApi.listReviews,
-      value: [],
+      value: page([]),
       loaded: "Aucun avis enregistré pour l'instant.",
     },
   ])("shows skeletons for $label", async ({ label, view, mock, value, loaded }) => {

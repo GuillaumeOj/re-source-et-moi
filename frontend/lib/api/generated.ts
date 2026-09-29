@@ -517,13 +517,15 @@ export interface paths {
         };
         /**
          * @description Every review, hidden ones included, editable by staff. Backs the editor's
-         *     "Témoignages" tab.
+         *     "Témoignages" tab. The list is paginated, because like the workshops it only ever
+         *     grows.
          */
         get: operations["manage_reviews_list"];
         put?: never;
         /**
          * @description Every review, hidden ones included, editable by staff. Backs the editor's
-         *     "Témoignages" tab.
+         *     "Témoignages" tab. The list is paginated, because like the workshops it only ever
+         *     grows.
          */
         post: operations["manage_reviews_create"];
         delete?: never;
@@ -541,25 +543,29 @@ export interface paths {
         };
         /**
          * @description Every review, hidden ones included, editable by staff. Backs the editor's
-         *     "Témoignages" tab.
+         *     "Témoignages" tab. The list is paginated, because like the workshops it only ever
+         *     grows.
          */
         get: operations["manage_reviews_retrieve"];
         /**
          * @description Every review, hidden ones included, editable by staff. Backs the editor's
-         *     "Témoignages" tab.
+         *     "Témoignages" tab. The list is paginated, because like the workshops it only ever
+         *     grows.
          */
         put: operations["manage_reviews_update"];
         post?: never;
         /**
          * @description Every review, hidden ones included, editable by staff. Backs the editor's
-         *     "Témoignages" tab.
+         *     "Témoignages" tab. The list is paginated, because like the workshops it only ever
+         *     grows.
          */
         delete: operations["manage_reviews_destroy"];
         options?: never;
         head?: never;
         /**
          * @description Every review, hidden ones included, editable by staff. Backs the editor's
-         *     "Témoignages" tab.
+         *     "Témoignages" tab. The list is paginated, because like the workshops it only ever
+         *     grows.
          */
         patch: operations["manage_reviews_partial_update"];
         trace?: never;
@@ -594,10 +600,11 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description The most recent published reviews, newest first.
+         * @description Published reviews, newest first.
          *
-         *     Public and unpaginated for the same reasons as the agenda and the tariffs: the content
-         *     is already on the website, and a plain array generates a plain TypeScript array.
+         *     Public, because the content is already on the website. Paginated, unlike the agenda
+         *     and the tariffs, because reviews only ever pile up and the "Témoignages" page loads
+         *     them as the visitor scrolls.
          */
         get: operations["reviews_list"];
         put?: never;
@@ -852,6 +859,36 @@ export interface components {
              */
             previous: string | null;
             results: components["schemas"]["EventManage"][];
+        };
+        PaginatedReviewList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous: string | null;
+            results: components["schemas"]["Review"][];
+        };
+        PaginatedReviewManageList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous: string | null;
+            results: components["schemas"]["ReviewManage"][];
         };
         /** @description The request shape only. PasswordChangeForm does the validating. */
         PasswordChangeRequest: {
@@ -1125,7 +1162,7 @@ export interface components {
             ids: string[];
         };
         /**
-         * @description A review as the home page renders it. `is_published` stays out: the public feed
+         * @description A review as the public site renders it. `is_published` stays out: the public feed
          *     only ever holds published reviews.
          */
         Review: {
@@ -1159,6 +1196,11 @@ export interface components {
              * @description Décocher pour garder l'avis sans l'afficher sur le site.
              */
             is_published: boolean;
+            /**
+             * Ajouté le
+             * Format: date-time
+             */
+            readonly created_at: string;
         };
         /** @description A review as the editor reads and writes it, drafts included. */
         ReviewManageRequest: {
@@ -1930,7 +1972,12 @@ export interface operations {
     };
     manage_reviews_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Un numéro de page de l'ensemble des résultats. */
+                page?: number;
+                /** @description Nombre de résultats à retourner par page. */
+                page_size?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -1942,7 +1989,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ReviewManage"][];
+                    "application/json": components["schemas"]["PaginatedReviewManageList"];
                 };
             };
         };
@@ -2092,7 +2139,12 @@ export interface operations {
     };
     reviews_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Un numéro de page de l'ensemble des résultats. */
+                page?: number;
+                /** @description Nombre de résultats à retourner par page. */
+                page_size?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -2104,7 +2156,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Review"][];
+                    "application/json": components["schemas"]["PaginatedReviewList"];
                 };
             };
         };

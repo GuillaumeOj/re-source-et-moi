@@ -28,6 +28,7 @@ export const navLinks: LinkTarget[] = [
   routes.pratiques,
   routes.ateliers,
   routes.aPropos,
+  routes.temoignages,
   routes.questions,
 ].map((route) => ({ label: route.label, href: route.path }));
 

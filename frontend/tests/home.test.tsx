@@ -69,6 +69,7 @@ describe("HomePage", () => {
       "/nos-pratiques",
       "/ateliers",
       "/a-propos",
+      "/temoignages",
       "/questions",
     ]);
   });

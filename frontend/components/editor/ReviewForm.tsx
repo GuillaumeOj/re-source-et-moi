@@ -53,8 +53,8 @@ export function ReviewForm({ review, onSaved, onRemove }: ReviewFormProps) {
       setInitial(fresh);
       setDraft(fresh);
       onSaved(saved);
-      // A new review is replaced by the stored card, and the page reports the save. A
-      // stored one stays, and confirms once the home page is refreshed.
+      // A new review's page reports the save itself, on the table it returns to. A stored
+      // one stays, and confirms once the public site is refreshed.
       if (review) {
         setStatus({ tone: "success", text: await confirmSaved("reviews") });
       }

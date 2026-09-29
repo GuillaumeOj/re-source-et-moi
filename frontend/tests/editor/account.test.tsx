@@ -6,6 +6,7 @@ import { EditorContext } from "@/components/editor/EditorContext";
 import { LoginForm, RESET_SENT } from "@/components/editor/LoginForm";
 import { ResetPasswordForm } from "@/components/editor/ResetPasswordForm";
 import { ApiError } from "@/lib/editor/api";
+import { editorContext } from "./fixtures";
 
 vi.mock("@/lib/editor/api", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/editor/api")>();
@@ -33,7 +34,7 @@ const setSession = vi.fn();
 
 function renderAccount() {
   render(
-    <EditorContext.Provider value={{ session: SESSION, setSession }}>
+    <EditorContext.Provider value={editorContext({ session: SESSION, setSession })}>
       <AccountEditor />
     </EditorContext.Provider>,
   );
