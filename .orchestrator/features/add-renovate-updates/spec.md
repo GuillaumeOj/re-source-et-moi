@@ -10,7 +10,7 @@ instead of one per package:
 - one PR for the **frontend** (`frontend/package.json` + `frontend/bun.lock`, bun);
 - one PR for **lockfile maintenance** (refresh transitive deps in `uv.lock` and `bun.lock`).
 
-No application code changes. Only one file is added: `renovate.json` at the repo root.
+No application code changes: `renovate.json` is added at the repo root, plus a short README note.
 
 ## What the repo looks like today (drives the config)
 
