@@ -298,3 +298,20 @@ Two consequences worth knowing:
   `DisallowedHost` 400, and the site shows no workshops and no tariffs.
 
 Locally there is no binding, so `API_BASE_URL` is set explicitly in `docker-compose.yml`.
+
+## Dependency updates
+
+Renovate (`renovate.json`) opens its pull requests once a week, before 6am on Monday
+(Europe/Paris), labelled `dependencies`, and never merges them itself. Non-major updates
+arrive grouped: one PR for the backend (uv), one for the frontend (bun), one for GitHub
+Actions and Docker images, plus one for lockfile maintenance (`uv.lock` and `bun.lock`).
+Major updates (related packages such as `react` and `react-dom` stay bundled) and the
+codegen tools (`drf-spectacular`, `openapi-typescript`) each get their own PR, so a
+breaking upgrade never blocks the routine ones.
+
+A `drf-spectacular` or `openapi-typescript` PR can change the generated `schema.yml` /
+`lib/api/generated.ts`, which fails CI. Before merging, run `uv run tox -e openapi`
+(in `backend/`) and `bun run codegen` (in `frontend/`) and commit the result.
+
+Python itself is not bumped by Renovate: moving to a new version touches `.python-version`,
+`requires-python`, the Dockerfile, CI and the ruff/ty targets together, so it stays a manual change.
