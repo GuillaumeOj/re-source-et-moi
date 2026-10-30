@@ -305,8 +305,8 @@ Renovate (`renovate.json`) opens its pull requests once a week, before 6am on Mo
 (Europe/Paris), labelled `dependencies`, and never merges them itself. Non-major updates
 arrive grouped: one PR for the backend (uv), one for the frontend (bun), one for GitHub
 Actions and Docker images, plus one for lockfile maintenance (`uv.lock` and `bun.lock`).
-Major updates and the codegen tools (`drf-spectacular`, `openapi-typescript`) each get
-their own PR, so a breaking upgrade never blocks the routine ones.
+Major updates (related packages such as `react` and `react-dom` stay bundled) and the
+codegen tools (`drf-spectacular`, `openapi-typescript`) each get their own PR, so a breaking upgrade never blocks the routine ones.
 
 A `drf-spectacular` or `openapi-typescript` PR can change the generated `schema.yml` /
 `lib/api/generated.ts`, which fails CI. Before merging, run `uv run tox -e openapi`
